@@ -1,0 +1,15 @@
+#TODO setup postgres db
+#TODO env setup
+#TODO frontend docker setup
+
+version: "3"
+services:
+  web:
+    build:
+      context: ./backend
+    container_name: ft_transcendence-web
+    ports:
+      - 80:3000 #change this port on prod
+    volumes:
+      - ./backend:/ft_transcendence-web #maps current host dir to docker working dir
+      # - /ls-backend-web/node_modules #make node_modules in container persistent
