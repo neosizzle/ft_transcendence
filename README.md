@@ -1,2 +1,2 @@
 # ft_transcendence
-pp
+docker-compose --env-file .env.development up
