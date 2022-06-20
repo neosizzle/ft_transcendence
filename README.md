@@ -2,4 +2,4 @@
 
 
 
-docker-compose --env-file .env.development back -- start dev env for back
+docker-compose --env-file .env.development up -- start dev env 
