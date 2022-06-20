@@ -5,14 +5,17 @@
 version: "3"
 services:
   web:
+    depends_on:
+      - db
     build:
       context: ./backend
     container_name: ft_transcendence-web
     ports:
-      - 80:3000 #change this port on prod
+      - 3001:3001 #change this port on prod
+    networks:
+      - ft_trans
     volumes:
       - ./backend:/ft_transcendence-web #maps current host dir to docker working dir
-      # - /ls-backend-web/node_modules #make node_modules in container persistent
 
   db:
     image: postgres
@@ -23,9 +26,28 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       - '5432:5432'
+    networks:
+      - ft_trans
     volumes: 
       - db:/var/lib/postgresql/data
+
+  front:
+    depends_on:
+      - web
+    build:
+      context: ./frontend
+    container_name: ft_transcendence-front
+    ports:
+      - 80:3000 #change this port on prod
+    networks:
+      - ft_trans
+
+    volumes:
+      - ./frontend:/ft_transcendence-front #maps current host dir to docker working dir
 
 volumes:
   db:
     driver: local
+
+networks:
+  ft_trans:
