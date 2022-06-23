@@ -1,7 +1,3 @@
-#TODO setup postgres db
-#TODO env setup
-#TODO frontend docker setup
-
 version: "3"
 services:
   web:
