@@ -8,13 +8,16 @@ import {
 import User from './User';
 import Game from './Game';
 import Chat from './Chat';
+import { AuthProvider, useAuth } from './context/authContext';
+import Login from './Login';
+import Protected from './commonComponents/Protected';
 
-function App() {
-  
+
+const Navbar = () => {
+  const auth = useAuth();
   return (
-    <Router>
-        <div>
-          <nav>
+      <nav>
+        {/* {auth && auth.user? auth.user : "no user"} */}
             <ul>
               <li>
                 <Link to="/">Home</Link>
@@ -28,19 +31,38 @@ function App() {
               <li>
                 <Link to="/game">Game</Link>
               </li>
+              {
+                auth?.user?.length &&  auth?.user?.length > 0?
+                null
+                :
+                <li><Link to="/login">Login</Link></li>
+              }
             </ul>
-          </nav>
+      </nav>
+  )
+}
 
+function App() {
+
+  return (
+    <AuthProvider>
+      <Router>
+        <div>
+          
+          <Navbar/>
+          
           {/* A <Route> looks through its children <Route>s and
               renders the first one that matches the current URL. */}
           <Routes>
             <Route path="/chat" element = {<Chat/>}/>
             <Route path="/game" element = {<Game/>}/>
-            <Route path="/users" element = {<User/>}/>
+            <Route path="/users" element = {<Protected><User/></Protected>}/>
+            <Route path="/login" element = {<Login/>}/>
             <Route path="/" element = {<Home/>}/>
           </Routes>
         </div>
     </Router>
+    </AuthProvider>
   );
 }
 
