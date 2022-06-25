@@ -6,8 +6,12 @@ services:
     build:
       context: ./backend
     container_name: ft_transcendence-web
+    restart: always
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
     ports:
-      - 3001:3001 #change this port on prod
+      - 3001:3001 #webserver (change this port on prod)
+      - 5555:5555 #prisma studio (change this port on prod)
     networks:
       - ft_trans
     volumes:
@@ -21,7 +25,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
-      - '5432:5432'
+      - '5432:5432' #database 
     networks:
       - ft_trans
     volumes: 
@@ -34,7 +38,7 @@ services:
       context: ./frontend
     container_name: ft_transcendence-front
     ports:
-      - 3000:3000 #change this port on prod
+      - 3000:3000 #frontend (change this port on prod)
     networks:
       - ft_trans
 
