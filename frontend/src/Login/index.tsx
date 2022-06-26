@@ -20,6 +20,9 @@ const Login = (props: any) => {
 			const code : string  | null = params.get('code');
 			if (code) handleLogin(code);
 		}
+		//user does not grant permission, redirect to home
+		else if (params.get('error'))
+			window.location.replace("/")
 		else
 			// window.location.href will cause infinite redirect loop
 			window.location.replace("https://api.intra.42.fr/oauth/authorize?client_id=5d614e506c4c77f5174eb5107dc4ccc21c425fa78cdb4e8b00fe69e2dc95b128&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Flogin&response_type=code");

@@ -12,3 +12,18 @@ datasource db {
 
 // cant really split prisma files , apologies for the merge conflcits :(
 // https://github.com/prisma/prisma/issues/2377
+enum UserStatus {
+  LOGGEDIN
+  OFFLINE
+  INGAME
+}
+
+model User {
+  id        Int           @id @default(autoincrement())
+  email     String?       @unique
+  avatar    String?
+  status    UserStatus    @default(LOGGEDIN)
+  level     Float         @default(0.0)
+  intraID   String
+  intraName String
+}
