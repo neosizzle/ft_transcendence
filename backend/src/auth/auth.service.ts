@@ -1,5 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Auth, Prisma, User } from '@prisma/client';
+import * as moment from "moment";
 import { PrismaService } from 'src/prisma/prisma.service';
 
 interface TokenInfo {
@@ -13,12 +15,17 @@ interface TokenInfo {
 	error_description? : string,
 }
 
+interface UserInfo {
+	intraId? : string,
+	intraName? : string,
+	error? : string,
+	error_description? : string,
+}
 
 @Injectable()
 export class AuthService {
 	constructor(private prisma : PrismaService, private config : ConfigService){}
 
-	// TODO : TEST THIS
 	private async getTokenInfo(code : string) : Promise<TokenInfo> {
 		const payload = new FormData();
 
@@ -34,10 +41,39 @@ export class AuthService {
 		}).then(res => res.json())
 	}
 
+	private async getUserInfo(token : string) : Promise<UserInfo> {
+		return fetch(`${this.config.get('API_HOST_42')}/v2/me`, {
+			method : "GET",
+			headers: {
+				'Authorization': `Bearer ${token}`
+				},
+		})
+		.then(res => res.json())
+		.then(data => {
+			const res : UserInfo = {
+				intraId : data.id,
+				intraName : data.login,
+				error : data.error,
+				error_description : data.error_description,
+			}
+
+			return res;
+		})
+		.catch(e => {
+			console.error(e)
+			const res : UserInfo = {
+				error : "fetch error",
+				error_description : e.message,
+			}
+			return res;
+		})
+	}
+
 	async authenticate(code : string)
 	{
 		let	tokenInfo : TokenInfo;
-		let	userInfo : any;
+		let	userInfo : UserInfo;
+		let	user	: User;
 
 		// fetch token with code
 		try {
@@ -52,14 +88,7 @@ export class AuthService {
 
 		// get 42 user info 
 		try {
-			const res = await fetch(`${this.config.get('API_HOST_42')}/oauth/token`, {
-				method : "GET",
-				headers: {
-					'Authorization': `Bearer ${tokenInfo.access_token}`
-					},
-			})
-
-			const userInfo = await res.json();
+			userInfo = await this.getUserInfo(tokenInfo.access_token);
 			if (userInfo.error) throw new Error(JSON.stringify(userInfo))
 		} catch (error) {
 			// send error if request fails
@@ -68,14 +97,31 @@ export class AuthService {
 		}
 
 		// get or create user in db
-		
+		if (await this.prisma.user.count({where : {intraID : userInfo.intraId.toString()}}) === 0)
+		{
+			user = await this.prisma.user.create({
+				data: {
+					intraID : userInfo.intraId.toString(),
+					intraName : userInfo.intraName,
+				}
+			})
+		}
+		else
+			user = await this.prisma.user.findFirst({where : {intraID : userInfo.intraId.toString()}})
 
 		// calculate expire date token
+		const expiresAt = moment().add(tokenInfo.expires_in, 's')
 
 		// add or update auth entry
+		const auth = await this.prisma.auth.upsert({
+			where : {userId: user.id},
+			create : {expiresAt: expiresAt.toISOString(), token: tokenInfo.access_token, userId: user.id},
+			update: {expiresAt: expiresAt.toISOString(), token: tokenInfo.access_token}
+		})
 
 		// return access token and expire date
-		console.log(tokenInfo)
-		return {data : tokenInfo.access_token}
+		// console.log(tokenInfo)
+		// console.log(userInfo)
+		return {data : {token : auth.token, expiresAt : auth.expiresAt}}
 	}
 }

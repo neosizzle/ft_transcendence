@@ -12,6 +12,7 @@ datasource db {
 
 // cant really split prisma files , apologies for the merge conflcits :(
 // https://github.com/prisma/prisma/issues/2377
+
 enum UserStatus {
   LOGGEDIN
   OFFLINE
@@ -28,4 +29,14 @@ model User {
   intraName String
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
+
+  auth Auth[]
+}
+
+model Auth {
+    id        Int           @id @default(autoincrement())
+    token     String
+    expiresAt DateTime
+    userId    Int           @unique
+    user      User          @relation(fields: [userId], references: [id])
 }
