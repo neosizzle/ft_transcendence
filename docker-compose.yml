@@ -8,6 +8,10 @@ services:
     container_name: ft_transcendence-web
     restart: always
     environment:
+      - API_UID_42=${API_UID_42}
+      - API_SECRET_42=${API_SECRET_42}
+      - API_REDIR_URI_42=${API_REDIR_URI_42}
+      - API_HOST_42=${API_HOST_42}
       - DATABASE_URL=${DATABASE_URL}
     ports:
       - 3001:3001 #webserver (change this port on prod)

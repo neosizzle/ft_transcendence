@@ -26,4 +26,6 @@ model User {
   level     Float         @default(0.0)
   intraID   String
   intraName String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 }
