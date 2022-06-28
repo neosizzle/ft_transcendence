@@ -1,7 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Auth, Prisma, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import * as moment from "moment";
+
 import { PrismaService } from 'src/prisma/prisma.service';
 
 interface TokenInfo {
@@ -123,5 +124,10 @@ export class AuthService {
 		// console.log(tokenInfo)
 		// console.log(userInfo)
 		return {data : {token : auth.token, expiresAt : auth.expiresAt}}
+	}
+
+	async logout(user : User) {
+		const res = await this.prisma.auth.delete({where : {userId : user.id}});
+		return {data : {token : res.token}}
 	}
 }
