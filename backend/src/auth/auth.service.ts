@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { User } from '@prisma/client';
+import { User, UserStatus } from '@prisma/client';
 import * as moment from "moment";
 
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -27,6 +27,12 @@ interface UserInfo {
 export class AuthService {
 	constructor(private prisma : PrismaService, private config : ConfigService){}
 
+	/**
+	 * gets access token via 42 oauth api
+	 * 
+	 * @param code code generataed by 42 oauth ui
+	 * @returns access token used to access 42 api content
+	 */
 	private async getTokenInfo(code : string) : Promise<TokenInfo> {
 		const payload = new FormData();
 
@@ -42,6 +48,12 @@ export class AuthService {
 		}).then(res => res.json())
 	}
 
+	/**
+	 * Gets 42 user infromation using 42 api
+	 * 
+	 * @param token token obtained through 42 oauth api
+	 * @returns 42 user 
+	 */
 	private async getUserInfo(token : string) : Promise<UserInfo> {
 		return fetch(`${this.config.get('API_HOST_42')}/v2/me`, {
 			method : "GET",
@@ -70,6 +82,14 @@ export class AuthService {
 		})
 	}
 
+	/**
+	 * Obtains token using the code given and obtain 42 user.
+	 * Check if user exists in our db and creates that use in our database if it doesnt.
+	 * Add new entry in auth table relating the user and the token
+	 * 
+	 * @param code the code that was obtained via 42 Oauth UI
+	 * @returns token as well as token expiry date
+	 */
 	async authenticate(code : string)
 	{
 		let	tokenInfo : TokenInfo;
@@ -105,10 +125,13 @@ export class AuthService {
 					intraID : userInfo.intraId.toString(),
 					intraName : userInfo.intraName,
 				}
-			})
+			});
 		}
 		else
-			user = await this.prisma.user.findFirst({where : {intraID : userInfo.intraId.toString()}})
+			user = await this.prisma.user.findFirst({where : {intraID : userInfo.intraId.toString()}});
+
+		//set user status in bg
+		await this.prisma.user.update({where : {id : user.id}, data : { status : UserStatus.LOGGEDIN }});
 
 		// calculate expire date token
 		const expiresAt = moment().add(tokenInfo.expires_in, 's')
@@ -121,13 +144,19 @@ export class AuthService {
 		})
 
 		// return access token and expire date
-		// console.log(tokenInfo)
-		// console.log(userInfo)
 		return {data : {token : auth.token, expiresAt : auth.expiresAt}}
 	}
 
+	/**
+	 * Logs out user by deleting the auth record 
+	 * Set user status to logout
+	 * 
+	 * @param user User object from req
+	 * @returns the expired token
+	 */
 	async logout(user : User) {
 		const res = await this.prisma.auth.delete({where : {userId : user.id}});
+		await this.prisma.user.update({where : {id : user.id}, data : {status : UserStatus.OFFLINE}})
 		return {data : {token : res.token}}
 	}
 }

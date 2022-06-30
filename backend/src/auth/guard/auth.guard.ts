@@ -18,7 +18,7 @@ const validateRequest = async (req : Req, prisma : PrismaService) => {
 	if (!token) return false;
 
 	// check if token does not exist in db, return false
-	const authObj : Auth = await prisma.auth.findFirst({where : {token : token}})
+	const authObj : Auth = await prisma.auth.findFirst({ where : { token : token } })
 	if (!authObj) return false;
 
 	// check if token is expired, if it is, return false
