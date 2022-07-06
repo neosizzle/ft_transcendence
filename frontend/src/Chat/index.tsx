@@ -1,5 +1,4 @@
 import React from 'react';
-import "./index.css";
 
 function Chat() {
 	let messages = "Test";
@@ -12,14 +11,13 @@ function Chat() {
 
 	return (
 		<>
-		<div>
-			<h2>chat</h2>
-		</div>
-		{messages}
-		<form onSubmit={(myFunction)} className="Chat">
-			<input/>
-			<button type="submit">Submit</button>
-		</form>
+			<div>
+				<h1 className='text-5xl'>Chat</h1>
+			</div>
+			{messages}
+			<form onSubmit={(myFunction)} className="Chat">
+				<input className="w-fit mt-10 border-2" placeholder="Say something..." />
+			</form>
 		</>
 	);
 }
