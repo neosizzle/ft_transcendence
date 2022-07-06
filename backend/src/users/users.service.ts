@@ -5,6 +5,7 @@ import { ListObject, ListQuery, validateListquery } from 'src/utils';
 import { UserPatchDto } from './dto';
 
 //TODO TEST AGAINST ALL FIELDS
+//TODO user delete
 // very ugly solution
 /**
  * Transforms string values into values of their specific type 
@@ -134,7 +135,10 @@ export class UsersService {
 			})
 			return res ;
 		} catch (error) {
+			console.error(error.code)
 			console.error(error.message)
+			if (error.code === "P2002")
+				throw new BadRequestException("username must be unique")
 			throw new InternalServerErrorException("Update failed " + error.message)
 		}
 	}

@@ -30,8 +30,10 @@
     "class-validator": "^0.13.2",
     "moment": "^2.29.3",
     "momentjs": "^2.0.0",
+    "pactum": "^3.1.10",
     "passport-oauth": "^1.0.0",
     "prisma": "^3.15.2",
+    "prompt-sync": "^4.2.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0"
@@ -64,7 +66,10 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": "./",
+    "modulePaths": [
+      "<rootDir>"
+    ],
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

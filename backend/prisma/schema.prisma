@@ -25,6 +25,7 @@ model User {
   avatar    String?
   status    UserStatus    @default(LOGGEDIN)
   level     Float         @default(0.0)
+  username  String        @unique
   intraID   String
   intraName String
   createdAt DateTime      @default(now())

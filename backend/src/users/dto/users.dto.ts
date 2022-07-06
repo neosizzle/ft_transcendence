@@ -13,6 +13,10 @@ export class UserPatchDto {
 
 	@IsString()
 	@IsOptional()
+	username : string;
+
+	@IsString()
+	@IsOptional()
 	status : UserStatus;
 
 	@IsOptional()

@@ -124,6 +124,7 @@ export class AuthService {
 				data: {
 					intraID : userInfo.intraId.toString(),
 					intraName : userInfo.intraName,
+					username : userInfo.intraName
 				}
 			});
 		}
