@@ -32,15 +32,33 @@ class Pong {
 		
 		// create the balls
 		const velocity = width / 120;	// takes 2 seconds to travel across
-		this.ball.push(new Ball(width/2, height/2, -velocity, 0));
+		this.ball.push(new Ball(width/2, height/2, -velocity, velocity*2));
 		for (let i = 0; i < this.ball.length; i++)
 			this.ball[i].draw(this.ctx, Ball.colour);
 	}
 	
 	// update the objects in the canvas
 	update(): void {
-		for (let i = 0; i < this.ball.length; i++)
-			this.ball[i].update(this.ctx);
+		// check for ball-wall collision and alter direction of ball if required
+		for (const w in this.wall)
+		{
+			const wall = this.wall[w];
+			for (const b in this.ball)
+			{
+				const ball = this.ball[b];
+				if (wall.collide(ball))
+					ball.reflect(wall);
+			}
+		}
+		
+		// update the ball position and redraw
+		for (const b in this.ball)
+			this.ball[b].update(this.ctx);
+			
+		// redraw the walls
+		for (const w in this.wall)
+			this.wall[w].draw(this.ctx);
+		
 	}
 	
 	// start a new game
@@ -56,8 +74,8 @@ class Wall {
 	
 	private x: number;
 	private y: number;
-	private width: number;
-	private height: number;
+	width: number;
+	height: number;
 	
 	constructor(x: number, y: number, width: number, height: number) {
 		this.x = x;
@@ -72,6 +90,17 @@ class Wall {
 		ctx.fillRect(
 			this.x - this.width/2, this.y - this.height/2,
 			this.x + this.width/2, this.y + this.height/2);
+	}
+	
+	// return true if a given ball collides with a wall, false otherwise.
+	collide(ball: Ball): boolean {
+		const distance = Math.min(
+			Math.abs(ball.x - (this.x - this.width/2)),
+			Math.abs(ball.x - (this.x + this.width/2)),
+			Math.abs(ball.y - (this.y - this.height/2)),
+			Math.abs(ball.y - (this.y + this.height/2))
+		)
+		return (distance <= Ball.radius);
 	}
 }
 
@@ -96,16 +125,24 @@ class Ball {
 	static colour = "white";
 	static radius = 5;
 	
-	private x: number;
-	private y: number;
-	private vx: number;	// velocity along x
-	private vy: number;	// velocity along y
+	x: number;
+	y: number;
+	vx: number;	// velocity along x
+	vy: number;	// velocity along y
 	
 	constructor(x: number, y: number, vx:number, vy:number) {
 		this.x = x;
 		this.y = y;
 		this.vx = vx;
 		this.vy = vy;
+	}
+	
+	// Given that a ball collides with a given wall, alter direction of ball
+	reflect(wall: Wall): void {
+		if (wall.height >= wall.width)
+			this.vx *= -1;
+		else
+			this.vy *= -1;
 	}
 	
 	/* Update the position of the ball by colouring in previous position
