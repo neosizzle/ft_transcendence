@@ -64,6 +64,18 @@ class Pong {
 	// start a new game
 	start(): void {
 		this.update();
+		
+		// game over if any ball is outside the canvas
+		for (const b in this.ball)
+		{
+			if (this.ball[b].inCanvas(this.canvas) == false)
+			{
+				console.log("Game Over!");
+				return ;
+			}
+		}
+		
+		// move to next frame if all balls are still within canvas
 		requestAnimationFrame(this.start.bind(this));
 	}
 }
@@ -135,6 +147,12 @@ class Ball {
 		this.y = y;
 		this.vx = vx;
 		this.vy = vy;
+	}
+	
+	// return true if ball is in canvas, false otherwise
+	inCanvas(canvas: HTMLCanvasElement): boolean {
+		return (0 <= this.x && this.x <= canvas.width
+			&& 0 <= this.y && this.y <= canvas.height);
 	}
 	
 	// Given that a ball collides with a given wall, alter direction of ball
