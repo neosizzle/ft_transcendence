@@ -32,8 +32,8 @@ class Pong {
 			this.wall[w].draw(this.ctx);
 		
 		// create paddles
-		this.paddle.push(
-			new Paddle(width - border*3/2, height/2, border, height*0.2));
+		this.paddle.push(new Paddle(
+				width - border*3/2, height/2, border, height*0.2, 0, -4));
 		for (const p in this.paddle)
 			this.paddle[p].draw(this.ctx);
 		
@@ -130,18 +130,32 @@ abstract class Entity {
 	y: number;	// y-coordinate of centre point
 	width: number;	// width of bounding box
 	height: number;	// height of bounding box
+	vx: number;	// velocity along x direction
+	vy: number;	// velocity along y direction
 	colour: string;	// colour of the entity
 	
-	constructor(x: number, y: number, width: number, height: number) {
+	constructor(x: number, y: number, width: number, height: number,
+			vx = 0, vy = 0) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
+		this.vx = vx;
+		this.vy = vy;
 		this.colour = "white";	// white by default
 	}
 	
 	// abstract draw method to be implemented by derived classes
 	abstract draw(ctx: CanvasRenderingContext2D, colour?: string): void;
+	
+	// if there is movement, draw object black, move to new position and redraw
+	update(ctx: CanvasRenderingContext2D): void {
+		if (this.vx != 0 || this.vy != 0)
+			this.draw(ctx, "black");
+			this.x += this.vx;
+			this.y += this.vy;
+			this.draw(ctx, this.colour);
+	}
 	
 	// return the side which collides with another entity, otherwise NONE
 	collide(other: Entity): CollideSide {
@@ -170,12 +184,39 @@ abstract class Entity {
 				return CollideSide.TOP;
 		}
 	}
+	
+	// halt the movement if the object if collision happens
+	halt(other: Entity): void {
+		const side: CollideSide = this.collide(other);
+		if (side == CollideSide.NONE)
+			return;
+		if (side == CollideSide.LEFT || side == CollideSide.RIGHT)
+			this.vx = 0;
+		else if (side == CollideSide.TOP || side == CollideSide.BOTTOM)
+			this.vy = 0;
+	}
+	
+	// reflect the direction of the object velocity if collision happens
+	reflect(wall: Wall): void {
+		const side: CollideSide = this.collide(wall);
+		if (side == CollideSide.NONE)
+			return;
+		if (side == CollideSide.LEFT)
+			this.vx = Math.abs(this.vx);
+		else if (side == CollideSide.RIGHT)
+			this.vx = -Math.abs(this.vx);
+		else if (side == CollideSide.TOP)
+			this.vy = Math.abs(this.vy);
+		else if (side == CollideSide.BOTTOM)
+			this.vy = -Math.abs(this.vy);
+	}
 }
 
 
 class Wall extends Entity {
-	constructor(x: number, y: number, width: number, height: number) {
-		super(x, y, width, height);
+	constructor(x: number, y: number, width: number, height: number,
+			vx = 0, vy = 0) {
+		super(x, y, width, height, vx, vy);
 	}
 	
 	// draw the wall using the context
@@ -192,28 +233,9 @@ class Wall extends Entity {
 
 
 class Paddle extends Wall {
-	vx = 0;	// velocity along x
-	vy = -4;	// velocity along y
-	
-	constructor(x: number, y: number, width: number, height: number) {
-		super(x, y, width, height);
-	}
-	
-	halt(wall: Wall): void {
-		if (wall.height >= wall.width)
-			this.vx *= -1;
-		else
-			this.vy *= -1;
-	}
-	
-	/* Update the position of the paddle by colouring in previous position
-	 * with background colour, update x and y and drawing in current
-	 * position with foreground colour. */
-	update(ctx: CanvasRenderingContext2D): void {
-		this.draw(ctx, "black");
-		this.x += this.vx;
-		this.y += this.vy;
-		this.draw(ctx, this.colour);
+	constructor(x: number, y: number, width: number, height: number,
+			vx: number, vy: number) {
+		super(x, y, width, height, vx, vy);
 	}
 }
 
@@ -221,37 +243,14 @@ class Paddle extends Wall {
 class Ball extends Entity {
 	static radius = 5;
 	
-	vx: number;	// velocity along x
-	vy: number;	// velocity along y
-	
 	constructor(x: number, y: number, vx:number, vy:number) {
-		super(x, y, Ball.radius * 2, Ball.radius * 2);
-		this.vx = vx;
-		this.vy = vy;
+		super(x, y, Ball.radius * 2, Ball.radius * 2, vx, vy);
 	}
 	
 	// return true if ball is in canvas, false otherwise
 	inCanvas(canvas: HTMLCanvasElement): boolean {
 		return (0 <= this.x && this.x <= canvas.width
 			&& 0 <= this.y && this.y <= canvas.height);
-	}
-	
-	// Given that a ball collides with a given wall, alter direction of ball
-	reflect(wall: Wall): void {
-		if (wall.height >= wall.width)
-			this.vx *= -1;
-		else
-			this.vy *= -1;
-	}
-	
-	/* Update the position of the ball by colouring in previous position
-	 * with background colour, update x and y and drawing in current
-	 * position with foreground colour. */
-	update(ctx: CanvasRenderingContext2D): void {
-		this.draw(ctx, "black");
-		this.x += this.vx;
-		this.y += this.vy;
-		this.draw(ctx, this.colour);
 	}
 	
 	// draw the ball with the specified colour
