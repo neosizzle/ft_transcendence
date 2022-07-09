@@ -39,7 +39,7 @@ class Pong {
 		
 		// create the balls
 		const velocity = width / 120;	// takes 2 seconds to travel across
-		this.ball.push(new Ball(width/2, height/2, -velocity, 0));
+		this.ball.push(new Ball(width/2, height/2, 5, -velocity, 0));
 		for (const b in this.ball)
 			this.ball[b].draw(this.ctx);
 	}
@@ -213,12 +213,8 @@ abstract class Entity {
 }
 
 
-class Wall extends Entity {
-	constructor(x: number, y: number, width: number, height: number,
-			vx = 0, vy = 0) {
-		super(x, y, width, height, vx, vy);
-	}
-	
+// class for which rectangle-shaped entities can be derived from
+class RectangleEntity extends Entity {
 	// draw the wall using the context
 	draw(ctx: CanvasRenderingContext2D, colour?: string): void {
 		if (colour === undefined)
@@ -232,37 +228,44 @@ class Wall extends Entity {
 }
 
 
-class Paddle extends Wall {
-	constructor(x: number, y: number, width: number, height: number,
-			vx: number, vy: number) {
-		super(x, y, width, height, vx, vy);
-	}
-}
-
-
-class Ball extends Entity {
-	static radius = 5;
+// class for which circle-shaped entities can be derived from
+class CircleEntity extends Entity {
+	radius: number;
 	
-	constructor(x: number, y: number, vx:number, vy:number) {
-		super(x, y, Ball.radius * 2, Ball.radius * 2, vx, vy);
+	constructor(x: number, y: number, radius: number, vx:number, vy:number) {
+		super(x, y, radius * 2, radius * 2, vx, vy);
+		this.radius = radius
 	}
 	
-	// return true if ball is in canvas, false otherwise
-	inCanvas(canvas: HTMLCanvasElement): boolean {
-		return (0 <= this.x && this.x <= canvas.width
-			&& 0 <= this.y && this.y <= canvas.height);
-	}
-	
-	// draw the ball with the specified colour
+	// draw the circle entity with the specified colour
 	draw(ctx: CanvasRenderingContext2D, colour?: string): void {
 		if (colour === undefined)
 			ctx.fillStyle = this.colour;
 		else
 			ctx.fillStyle = colour;
 		ctx.beginPath();
-		ctx.arc(this.x, this.y, Ball.radius, 0, 2 * Math.PI);
+		ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
 		ctx.fill();
 		ctx.stroke();
+	}
+}
+
+
+class Wall extends RectangleEntity {
+	constructor(x: number, y: number, width: number, height: number) {
+		super(x, y, width, height, 0, 0);
+	}
+}
+
+
+class Paddle extends RectangleEntity {}
+
+
+class Ball extends CircleEntity {
+	// return true if ball is in canvas, false otherwise
+	inCanvas(canvas: HTMLCanvasElement): boolean {
+		return (0 <= this.x && this.x <= canvas.width
+			&& 0 <= this.y && this.y <= canvas.height);
 	}
 }
 
