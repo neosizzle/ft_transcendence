@@ -53,7 +53,7 @@ class Pong {
 			for (const w in this.wall)
 			{
 				const wall = this.wall[w];
-				if (paddle.collide_wall(wall))
+				if (paddle.collide(wall))
 					paddle.halt(wall);
 			}
 		}
@@ -69,14 +69,14 @@ class Pong {
 			for (const w in this.wall)
 			{
 				const wall = this.wall[w];
-				if (wall.collide_ball(ball))
+				if (wall.collide(ball))
 					ball.reflect(wall);
 			}
 			
 			for (const p in this.paddle)
 			{
 				const paddle = this.paddle[p];
-				if (paddle.collide_ball(ball))
+				if (paddle.collide(ball))
 					ball.reflect(paddle);
 			}
 		}
@@ -115,6 +115,15 @@ class Pong {
 }
 
 
+enum CollideSide {
+	NONE = 0,
+	LEFT = -1,
+	RIGHT = 1,
+	TOP = -2,
+	BOTTOM = 2
+}
+
+
 // A generic entity with bounding box for other classes to derive from
 abstract class Entity {
 	x: number;	// x-coordinate of centre point
@@ -133,6 +142,34 @@ abstract class Entity {
 	
 	// abstract draw method to be implemented by derived classes
 	abstract draw(ctx: CanvasRenderingContext2D, colour?: string): void;
+	
+	// return the side which collides with another entity, otherwise NONE
+	collide(other: Entity): CollideSide {
+		// if no collision occurs, return NONE
+		if (Math.abs(this.x - other.x) * 2 > this.width + other.width
+			|| Math.abs(this.y - other.y) * 2 > this.height + other.height)
+			return CollideSide.NONE;
+		
+		const dx: number = (this.width + other.width) / 2
+			- Math.abs(this.x - other.x);
+		const dy: number = (this.height + other.height) / 2
+			- Math.abs(this.y - other.y);
+		
+		if (dx <= dy)
+		{
+			if (this.x <= other.x)
+				return CollideSide.RIGHT;
+			else
+				return CollideSide.LEFT;
+		}
+		else
+		{
+			if (this.y <= other.y)
+				return CollideSide.BOTTOM;
+			else
+				return CollideSide.TOP;
+		}
+	}
 }
 
 
@@ -151,23 +188,6 @@ class Wall extends Entity {
 			this.x - this.width/2, this.y - this.height/2,
 			this.width, this.height);
 	}
-	
-	// return true if a given ball collides with a wall, false otherwise.
-	collide_ball(ball: Ball): boolean {
-		const wall_top: number = this.y - this.height/2;
-		const wall_bot: number = this.y + this.height/2;
-		const wall_left: number = this.x - this.width/2;
-		const wall_right: number = this.x + this.width/2;
-		const ball_top: number = ball.y - Ball.radius;
-		const ball_bot: number = ball.y + Ball.radius;
-		const ball_left: number = ball.x - Ball.radius;
-		const ball_right: number = ball.x + Ball.radius;
-		
-		return (((wall_top <= ball_top && ball_top <= wall_bot)
-			|| (wall_top <= ball_bot && ball_bot <= wall_bot))
-			&& ((wall_left <= ball_left && ball_left <= wall_right)
-			|| (wall_left <= ball_right && ball_right <= wall_right)));
-	}
 }
 
 
@@ -177,24 +197,6 @@ class Paddle extends Wall {
 	
 	constructor(x: number, y: number, width: number, height: number) {
 		super(x, y, width, height);
-	}
-	
-	// returns true of a paddle collides with a wall, false otherwise.
-	collide_wall(wall: Wall): boolean {
-		const wall_top: number = wall.y - wall.height/2;
-		const wall_bot: number = wall.y + wall.height/2;
-		const wall_left: number = wall.x - wall.width/2;
-		const wall_right: number = wall.x + wall.width/2;
-		const paddle_top: number = this.y - this.height/2;
-		const paddle_bot: number = this.y + this.height/2;
-		const paddle_left: number = this.x - this.width/2;
-		const paddle_right: number = this.x + this.width/2;
-		
-		return (((wall_top <= paddle_top && paddle_top <= wall_bot)
-			|| (wall_top <= paddle_bot && paddle_bot <= wall_bot))
-			&& ((wall_left <= paddle_left && paddle_left <= wall_right)
-			|| (wall_left <= paddle_right && paddle_right <= wall_right)));
-		// return (false);
 	}
 	
 	halt(wall: Wall): void {
