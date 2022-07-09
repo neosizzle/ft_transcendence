@@ -41,7 +41,7 @@ class Pong {
 		const velocity = width / 120;	// takes 2 seconds to travel across
 		this.ball.push(new Ball(width/2, height/2, -velocity, 0));
 		for (const b in this.ball)
-			this.ball[b].draw(this.ctx, Ball.colour);
+			this.ball[b].draw(this.ctx);
 	}
 	
 	// update the objects in the canvas
@@ -115,19 +115,30 @@ class Pong {
 }
 
 
-class Wall {
-	colour: string;
-	x: number;
-	y: number;
-	width: number;
-	height: number;
+// A generic entity with bounding box for other classes to derive from
+abstract class Entity {
+	x: number;	// x-coordinate of centre point
+	y: number;	// y-coordinate of centre point
+	width: number;	// width of bounding box
+	height: number;	// height of bounding box
+	colour: string;	// colour of the entity
 	
 	constructor(x: number, y: number, width: number, height: number) {
-		this.colour = "white";
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
+		this.colour = "white";	// white by default
+	}
+	
+	// abstract draw method to be implemented by derived classes
+	abstract draw(ctx: CanvasRenderingContext2D, colour?: string): void;
+}
+
+
+class Wall extends Entity {
+	constructor(x: number, y: number, width: number, height: number) {
+		super(x, y, width, height);
 	}
 	
 	// draw the wall using the context
@@ -205,18 +216,14 @@ class Paddle extends Wall {
 }
 
 
-class Ball {
-	static colour = "white";
+class Ball extends Entity {
 	static radius = 5;
 	
-	x: number;
-	y: number;
 	vx: number;	// velocity along x
 	vy: number;	// velocity along y
 	
 	constructor(x: number, y: number, vx:number, vy:number) {
-		this.x = x;
-		this.y = y;
+		super(x, y, Ball.radius * 2, Ball.radius * 2);
 		this.vx = vx;
 		this.vy = vy;
 	}
@@ -242,14 +249,17 @@ class Ball {
 		this.draw(ctx, "black");
 		this.x += this.vx;
 		this.y += this.vy;
-		this.draw(ctx, Ball.colour);
+		this.draw(ctx, this.colour);
 	}
 	
 	// draw the ball with the specified colour
-	draw(ctx: CanvasRenderingContext2D, colour: string): void {
+	draw(ctx: CanvasRenderingContext2D, colour?: string): void {
+		if (colour === undefined)
+			ctx.fillStyle = this.colour;
+		else
+			ctx.fillStyle = colour;
 		ctx.beginPath();
 		ctx.arc(this.x, this.y, Ball.radius, 0, 2 * Math.PI);
-		ctx.fillStyle = colour;
 		ctx.fill();
 		ctx.stroke();
 	}
