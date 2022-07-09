@@ -3,7 +3,8 @@ import { INestApplication, ValidationPipe  } from '@nestjs/common';
 import { AppModule } from './../src/app.module';
 import * as pactum from 'pactum'
 import { PrismaService } from 'src/prisma/prisma.service';
-import runUserTests from './user.e2e-spec';
+import runUserTests from './user/user.e2e-spec';
+import runFriendsTests from './friends/friends.e2e-spec';
 
 describe('App (e2e)', () => {
   let app: INestApplication;
@@ -82,6 +83,7 @@ describe('App (e2e)', () => {
   })
 
   runUserTests(pactum) 
+  runFriendsTests(pactum)
 
   describe('Auth logout ', () => {
 

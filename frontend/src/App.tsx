@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 //, { useEffect, useState }
 import {
   BrowserRouter as Router,
@@ -46,7 +46,18 @@ const Navbar = () => {
 
 function App() {
 
+  const [initLoad, setInitLoad] = useState<number>(0);
+
+  // initial loading
+  useEffect(() => {
+    setTimeout(() => setInitLoad(1), 1000)
+  }, [])
+  
   return (
+    !initLoad ? 
+    <div>
+      asdf
+    </div> : 
     <AuthProvider>
       <Router>
         <div>
@@ -64,7 +75,7 @@ function App() {
           </Routes>
         </div>
     </Router>
-    </AuthProvider>
+  </AuthProvider>
   );
 }
 

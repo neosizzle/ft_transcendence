@@ -4,8 +4,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ListObject, ListQuery, validateListquery } from 'src/utils';
 import { UserPatchDto } from './dto';
 
-//TODO TEST AGAINST ALL FIELDS
 //TODO user delete
+// TODO handle bad user status enum
 // very ugly solution
 /**
  * Transforms string values into values of their specific type 
@@ -66,7 +66,10 @@ const generateUserWhere = (listObj : ListObject) : Prisma.UserWhereInput => {
 			const filterBy = listObj.filterBys[index];
 			const filterOn = listObj.filterOns[index];
 			const filterEntry = {}
-			filterEntry[filterOn] = {contains : filterBy};
+			if ((filterBy == "LOGGEDIN" || filterBy == "INGAME" || filterBy == "OFFLINE") || typeof filterBy !== 'string')
+				filterEntry[filterOn] = {equals : filterBy};
+			else
+				filterEntry[filterOn] = {contains : filterBy};
 			res.OR.push(filterEntry)
 		}
 	}
@@ -102,6 +105,13 @@ const generateUserPayload = (listObj : ListObject) : Prisma.UserFindManyArgs => 
 export class UsersService {
 	constructor(private prisma : PrismaService){}
 
+	/**
+	 * Lists out users
+	 * 
+	 * @param user User object passed by middleware
+	 * @param query query params
+	 * @returns result of lisst or error
+	 */
 	async getUsers(user : User, query : ListQuery)
 	{
 		// validate query
@@ -110,11 +120,11 @@ export class UsersService {
 			throw new BadRequestException(listObj.error)
 
 		// generate and send prisma query
-		const res = await this.prisma.user.findMany(generateUserPayload(listObj.data));
+		const payload = generateUserPayload(listObj.data);
+		const res = await this.prisma.user.findMany(payload);
+		const total_elements = await this.prisma.user.count(<Prisma.UserCountArgs>payload)
 
-		// console.log(JSON.stringify(generateUserPayload(listObj.data)));
-		// console.log(res)
-		return {data : res, length : res.length}
+		return {data : res, total_elements}
 	}
 
 	/**
