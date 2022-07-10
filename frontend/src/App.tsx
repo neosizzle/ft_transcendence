@@ -28,7 +28,7 @@ const Navbar = () => {
                 <div className="flex space-x-4">
                   <Link to="/" className="bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium" aria-current="page">Home</Link>
                   {
-                    auth?.user?.length &&  auth?.user?.length > 0?
+                    auth?.user?
                     null
                     :
                     <Link to="/login" className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Login</Link>
@@ -50,13 +50,14 @@ function App() {
 
   // initial loading
   useEffect(() => {
-    setTimeout(() => setInitLoad(1), 1000)
+    setInitLoad(1)
+    // setTimeout(() => setInitLoad(1), 1000)
   }, [])
   
   return (
     !initLoad ? 
     <div>
-      asdf
+      Loading..
     </div> : 
     <AuthProvider>
       <Router>

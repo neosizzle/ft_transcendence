@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { TOKEN_KEY } from '../constants';
 import { useAuth } from '../context/authContext';
 
 const Login = (props: any) => {
 	const auth = useAuth();
 	const navigate = useNavigate();
 
-	const handleLogin = (user : string) =>
+	const handleLogin = (user : string | null) =>
 	{
 		auth?.login(user)
 		navigate("/", {replace : true})
@@ -15,10 +16,10 @@ const Login = (props: any) => {
 	useEffect(() => {
 		// check for local storage for api id or code
 		const params = new URLSearchParams(window.location.search)
-		if (localStorage.getItem("trans-token") || params.get('code'))
+		if (localStorage.getItem(TOKEN_KEY) || params.get('code'))
 		{
 			const code : string  | null = params.get('code');
-			if (code) handleLogin(code);
+			handleLogin(code);
 		}
 		//user does not grant permission, redirect to home
 		else if (params.get('error'))

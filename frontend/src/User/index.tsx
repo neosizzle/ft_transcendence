@@ -13,7 +13,7 @@ const User = () => {
 
 	return (
 		<div>
-			<h2>welcome {auth?.user}</h2>
+			<h2>welcome {typeof auth?.user === "string" ? "code is " + auth?.user : auth?.user?.intraName}</h2>
 			<button onClick={handleLogout}>
 				logout
 			</button>
