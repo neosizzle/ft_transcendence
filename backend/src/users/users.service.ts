@@ -122,6 +122,8 @@ export class UsersService {
 		// generate and send prisma query
 		const payload = generateUserPayload(listObj.data);
 		const res = await this.prisma.user.findMany(payload);
+		delete payload.skip;
+		delete payload.take;
 		const total_elements = await this.prisma.user.count(<Prisma.UserCountArgs>payload)
 
 		return {data : res, total_elements}
@@ -146,7 +148,7 @@ export class UsersService {
 			return res ;
 		} catch (error) {
 			console.error(error.code)
-			console.error(error.message)
+			// console.error(error.message)
 			if (error.code === "P2002")
 				throw new BadRequestException("username must be unique")
 			throw new InternalServerErrorException("Update failed " + error.message)

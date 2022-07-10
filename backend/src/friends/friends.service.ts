@@ -117,7 +117,6 @@ const FRIEND_USER = 0;
             res.AND[1].OR.push({reqStatus : {equals : filterBy}})
         }
     }
-    console.log(JSON.stringify(res))
 	return res;
 }
 
@@ -136,8 +135,8 @@ const FRIEND_USER = 0;
         user: true,
         friend: true,
       }
-	res.take = listObj.pageSize;
-	res.skip = (listObj.page - 1) * listObj.pageSize;
+    res.take = listObj.pageSize;
+    res.skip = (listObj.page - 1) * listObj.pageSize;
 	res.where = generateFriendsWhere(listObj, userId)
 	if (listObj.sortBy)
 	{
@@ -160,9 +159,11 @@ export class FriendsService {
             throw new BadRequestException(listObj.error)
             
         // generate and send prisma query
-        const payload = generateFriendPayload(listObj.data, user.id)
+        const payload = generateFriendPayload(listObj.data, user.id);
         const res = await this.prisma.friendship.findMany(payload);
         delete payload.include;
+        delete payload.take;
+        delete payload.skip;
         const total_elements = await this.prisma.friendship.count(<Prisma.FriendshipCountArgs>payload)
 
         return {data : res, total_elements};

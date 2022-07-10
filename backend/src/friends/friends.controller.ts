@@ -25,12 +25,14 @@ export class FriendsController {
 		return this.friendsService.addFriend(user, dto);
 	}
 
+	// removes friend (unfriend)
 	@Delete(":id")
 	deleteFriend(@GetUser() user : User, @Param('id') id : string)
 	{
 		return this.friendsService.removeFriend(user, parseInt(id, 10));
 	}
 
+	// modifies friendship status (accept / reject requests)
 	@Patch(":id")
 	modifyFriend(@GetUser() user : User, @Param('id') id : string, @Body() dto : FriendsPatchDto)
 	{

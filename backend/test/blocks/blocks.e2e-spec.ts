@@ -1,14 +1,14 @@
-const runFriendsTests = (pactum: any) => {
-    describe('Friends', () => {
+const runBlocksTests = (pactum: any) => {
+    describe('Blocks', () => {
     
-        it(`/friends (POST) bad dto`, () => {
+        it(`/blocks (POST) bad dto`, () => {
           const dto = {
             "intraName" : "wtf"
           }
 
           return pactum
           .spec()
-          .post(`/friends`)
+          .post(`/blocks`)
           .withBody(dto)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
@@ -17,14 +17,14 @@ const runFriendsTests = (pactum: any) => {
           .expectBodyContains("error")
         });
 
-        it(`/friends (POST) bad dto 2`, () => {
+        it(`/blocks (POST) bad dto 2`, () => {
           const dto = {
             
           }
 
           return pactum
           .spec()
-          .post(`/friends`)
+          .post(`/blocks`)
           .withBody(dto)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
@@ -33,7 +33,7 @@ const runFriendsTests = (pactum: any) => {
           .expectBodyContains("error")
         });
 
-        it(`/friends (POST) bad dto 3`, () => {
+        it(`/blocks (POST) bad dto 3`, () => {
           const dto = {
             "intraName" : "test",
             "id" : "69"
@@ -41,7 +41,7 @@ const runFriendsTests = (pactum: any) => {
 
           return pactum
           .spec()
-          .post(`/friends`)
+          .post(`/blocks`)
           .withBody(dto)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
@@ -50,14 +50,14 @@ const runFriendsTests = (pactum: any) => {
           .expectBodyContains("error")
         });
 
-        it(`/friends (POST) bad dto 4`, () => {
+        it(`/blocks (POST) bad dto 4`, () => {
           const dto = {
             "id" : "0"
           }
 
           return pactum
           .spec()
-          .post(`/friends`)
+          .post(`/blocks`)
           .withBody(dto)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
@@ -66,58 +66,55 @@ const runFriendsTests = (pactum: any) => {
           .expectBodyContains("error")
         });
 
-        it(`/friends (POST)`, () => {
+        it(`/blocks (POST)`, () => {
           const dto = {
             "intraName" : "test"
           }
 
           return pactum
           .spec()
-          .post(`/friends`)
+          .post(`/blocks`)
           .withBody(dto)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
           })
           .expectStatus(201)
-          .expectBodyContains("PENDING")
         });
 
-        it(`/friends (POST) 2`, () => {
+        it(`/blocks (POST) 2`, () => {
           const dto = {
             "intraName" : "tes"
           }
 
           return pactum
           .spec()
-          .post(`/friends`)
+          .post(`/blocks`)
           .withBody(dto)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
           })
           .expectStatus(201)
-          .expectBodyContains("PENDING")
         });
     
-        it(`/friends (POST) 3`, () => {
+        it(`/blocks (POST) 3`, () => {
           const dto = {
             "intraName" : "test2"
           }
 
           return pactum
           .spec()
-          .post(`/friends`)
+          .post(`/blocks`)
           .withBody(dto)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
           })
           .expectStatus(201)
-          .expectBodyContains("PENDING")
         });
 
-        it(`/friends (GET) no pgination`, () => {
+        it(`/blocks (GET) no pgination`, () => {
           return pactum
           .spec()
-          .get(`/friends`)
+          .get(`/blocks`)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
           })
@@ -125,10 +122,10 @@ const runFriendsTests = (pactum: any) => {
           .expectBodyContains("error")
         });
 
-        it(`/friends (GET) pagination`, () => {
+        it(`/blocks (GET) pagination`, () => {
           return pactum
           .spec()
-          .get(`/friends?page=1&pageSize=3`)
+          .get(`/blocks?page=1&pageSize=3`)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
           })
@@ -137,33 +134,22 @@ const runFriendsTests = (pactum: any) => {
           .expectBodyContains("test")
         });
 
-        it(`/friends (GET) filtering`, () => {
+        it(`/blocks (GET) filtering`, () => {
           return pactum
           .spec()
-          .get(`/friends?page=1&pageSize=30&filterOn=avatar,status&filterBy=asdf.avatar.jpg,OFFLINE`)
+          .get(`/blocks?page=1&pageSize=30&filterOn=avatar,status&filterBy=asdf.avatar.jpg,OFFLINE`)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
           })
           .expectStatus(200)
           .expectJsonLength("data", 2)
+          .stores('blockid', 'data[0].blockee.id')
         });
 
-        it(`/friends (GET) filtering 2`, () => {
+        it(`/blocks (DELETE) no effect`, () => {
           return pactum
           .spec()
-          .get(`/friends?page=1&pageSize=30&filterOn=reqStatus,reqStatus&filterBy=PENDING,APPROVED`)
-          .withHeaders({
-            Authorization : 'Bearer $S{token}',
-          })
-          .expectStatus(200)
-          .expectJsonLength("data", 3)
-          .stores('friendid', 'data[0].friend.id')
-        });
-
-        it(`/friends (DELETE) no effect`, () => {
-          return pactum
-          .spec()
-          .delete(`/friends/0`)
+          .delete(`/blocks/0`)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
           })
@@ -171,10 +157,10 @@ const runFriendsTests = (pactum: any) => {
           .expectJsonMatch({count: 0})
         });
 
-        it(`/friends (DELETE) deleted`, () => {
+        it(`/blocks (DELETE) deleted`, () => {
           return pactum
           .spec()
-          .delete(`/friends/$S{friendid}`)
+          .delete(`/blocks/$S{blockid}`)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
           })
@@ -185,4 +171,4 @@ const runFriendsTests = (pactum: any) => {
       })
 }
 
-export default runFriendsTests;
+export default runBlocksTests;

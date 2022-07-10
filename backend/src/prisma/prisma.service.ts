@@ -30,7 +30,7 @@ export class PrismaService extends PrismaClient{
 	//adds sample user data
 	async seedSampleUsers(){
 		await this.user.create({data : {
-			email : "test@gmail.com",
+			email : "tes@gmail.com",
 			avatar : "asdf.avatar.jpg",
 			status : UserStatus.OFFLINE,
 			level : 1.12,
@@ -46,6 +46,33 @@ export class PrismaService extends PrismaClient{
 			username : "te4s",
 			intraID : "123345",
 			intraName : "te4s"
+		}})
+		await this.user.create({data : {
+			email : "test@gmail.com",
+			avatar : "asdf.avatar.jpg",
+			status : UserStatus.OFFLINE,
+			level : 1.12,
+			username : "test",
+			intraID : "12345",
+			intraName : "test"
+		}})
+		await this.user.create({data : {
+			email : "test1@gmail.com",
+			avatar : "asdf.avatar.jpg",
+			status : UserStatus.OFFLINE,
+			level : 1.12,
+			username : "test1",
+			intraID : "1235",
+			intraName : "test1"
+		}})
+		await this.user.create({data : {
+			email : "test2@gmail.com",
+			avatar : "asdf.avater.jpg",
+			status : UserStatus.OFFLINE,
+			level : 1.12,
+			username : "test2",
+			intraID : "1234a5",
+			intraName : "test2"
 		}})
 	}
 }

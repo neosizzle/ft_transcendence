@@ -123,7 +123,7 @@ const runUserTests = (pactum: any) => {
         it(`/users (GET) (Pagination)`, () => {
           return pactum
           .spec()
-          .get(`/users?page=4&pageSize=1`)
+          .get(`/users?page=1000&pageSize=1`)
           .withHeaders({
             Authorization : 'Bearer $S{token}',
           })
@@ -159,7 +159,7 @@ const runUserTests = (pactum: any) => {
             Authorization : 'Bearer $S{token}',
           })
           .expectStatus(200)
-          .expectJsonLength("data", 2)
+          .expectJsonLength("data", 3)
         });
     
         it(`/users (GET) (Filtering)`, () => {
@@ -170,7 +170,7 @@ const runUserTests = (pactum: any) => {
             Authorization : 'Bearer $S{token}',
           })
           .expectStatus(200)
-          .expectJsonLength("data", 2)
+          .expectJsonLength("data", 3)
         });
     
         it(`/users (GET) (sorting)`, () => {
