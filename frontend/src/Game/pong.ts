@@ -5,7 +5,7 @@ class Pong {
 	private wall: Wall[] = [];
 	private paddle: Paddle[] = [];
 	private ball: Ball[] = [];
-	private entity: Entity[][] = [this.wall, this.paddle, this.ball];
+	private entity: Entity[] = [];
 	
 	constructor() {
 		this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -46,53 +46,32 @@ class Pong {
 		this.ball.push(new Ball(width/2, height/2, 5, -velocity, 0));
 		for (const b in this.ball)
 			this.ball[b].draw(this.ctx);
+		
+		// concatenate all entities into an array
+		this.entity = this.entity.concat(this.wall, this.paddle, this.ball);
+	}
+	
+	// collide all the objects in the canvas
+	collide(): void {
+		for (let i = 0; i < this.entity.length - 1; i++)
+			for (let j = i + 1; j < this.entity.length; j++)
+				this.entity[i].collide(this.entity[j]);
 	}
 	
 	// update the objects in the canvas
 	update(): void {
-		// check for paddle-wall collision and alter the velocity of the paddle
-		for (const p in this.paddle)
-		{
-			const paddle = this.paddle[p];
-			for (const w in this.wall)
-			{
-				const wall = this.wall[w];
-				if (paddle.collide(wall))
-					paddle.halt(wall);
-			}
-		}
-		
-		// check for ball-wall collision and alter direction of ball if required
-		for (const b in this.ball)
-		{
-			const ball = this.ball[b];
-			for (const w in this.wall)
-			{
-				const wall = this.wall[w];
-				if (wall.collide(ball))
-					ball.reflect(wall);
-			}
-			
-			for (const p in this.paddle)
-			{
-				const paddle = this.paddle[p];
-				if (paddle.collide(ball))
-					ball.reflect(paddle);
-			}
-		}
-		
 		// reset the canvas to the background colour
 		this.reset_background();
 		
 		// update all the entities in the game
-		for (const arr in this.entity)
-			for (const i in this.entity[arr])
-				this.entity[arr][i].update(this.ctx);
+		for (const i in this.entity)
+			this.entity[i].update(this.ctx);
 	}
 	
 	// start a new game
 	start(): void {
-		this.update();
+		this.collide();	// detect collision among all the entities in the game
+		this.update();	// update velocity and redraw all entities
 		
 		// game over if any ball is outside the canvas
 		for (const b in this.ball)
@@ -151,11 +130,13 @@ abstract class Entity {
 	}
 	
 	// return the side which collides with another entity, otherwise NONE
-	collide(other: Entity): CollideSide {
+	collide(other: Entity): void {
+		let side: CollideSide;
+		
 		// if no collision occurs, return NONE
 		if (Math.abs(this.x - other.x) * 2 > this.width + other.width
 			|| Math.abs(this.y - other.y) * 2 > this.height + other.height)
-			return CollideSide.NONE;
+			return ;
 		
 		const dx: number = (this.width + other.width) / 2
 			- Math.abs(this.x - other.x);
@@ -165,49 +146,30 @@ abstract class Entity {
 		if (dx <= dy)
 		{
 			if (this.x <= other.x)
-				return CollideSide.RIGHT;
+				side = CollideSide.RIGHT;
 			else
-				return CollideSide.LEFT;
+				side = CollideSide.LEFT;
 		}
 		else
 		{
 			if (this.y <= other.y)
-				return CollideSide.BOTTOM;
+				side = CollideSide.BOTTOM;
 			else
-				return CollideSide.TOP;
+				side = CollideSide.TOP;
 		}
+		
+		// both object reacts to collision.
+		this.react(other, side);
+		other.react(this, -side);
 	}
 	
-	// halt the movement if the object if collision happens
-	halt(other: Entity): void {
-		const side: CollideSide = this.collide(other);
-		if (side == CollideSide.NONE)
-			return;
-		if (side == CollideSide.LEFT || side == CollideSide.RIGHT)
-			this.vx = 0;
-		else if (side == CollideSide.TOP || side == CollideSide.BOTTOM)
-			this.vy = 0;
-	}
-	
-	// reflect the direction of the object velocity if collision happens
-	reflect(wall: Wall): void {
-		const side: CollideSide = this.collide(wall);
-		if (side == CollideSide.NONE)
-			return;
-		if (side == CollideSide.LEFT)
-			this.vx = Math.abs(this.vx);
-		else if (side == CollideSide.RIGHT)
-			this.vx = -Math.abs(this.vx);
-		else if (side == CollideSide.TOP)
-			this.vy = Math.abs(this.vy);
-		else if (side == CollideSide.BOTTOM)
-			this.vy = -Math.abs(this.vy);
-	}
+	// function to be called when collision happens
+	abstract react(other: Entity, side: CollideSide): void;
 }
 
 
 // class for which rectangle-shaped entities can be derived from
-class RectangleEntity extends Entity {
+abstract class RectangleEntity extends Entity {
 	// draw the wall using the context
 	draw(ctx: CanvasRenderingContext2D): void {
 		ctx.fillStyle = this.colour;
@@ -219,7 +181,7 @@ class RectangleEntity extends Entity {
 
 
 // class for which circle-shaped entities can be derived from
-class CircleEntity extends Entity {
+abstract class CircleEntity extends Entity {
 	radius: number;
 	
 	constructor(x: number, y: number, radius: number, vx:number, vy:number) {
@@ -242,13 +204,42 @@ class Wall extends RectangleEntity {
 	constructor(x: number, y: number, width: number, height: number) {
 		super(x, y, width, height, 0, 0);
 	}
+	
+	// wall will not have any reaction upon collision
+	react(other: Entity, side: CollideSide): void {
+		return ;
+	}
 }
 
 
-class Paddle extends RectangleEntity {}
+class Paddle extends RectangleEntity {
+	// paddle halts its movement if collides with a wall
+	react(other: Entity, side: CollideSide): void {
+		if (!(other instanceof Wall) || side == CollideSide.NONE)
+			return ;
+		if (side == CollideSide.LEFT || side == CollideSide.RIGHT)
+			this.vx = 0;
+		else if (side == CollideSide.TOP || side == CollideSide.BOTTOM)
+			this.vy = 0;
+	}
+}
 
 
 class Ball extends CircleEntity {
+	// ball always reflects upon collision
+	react(other: Entity, side: CollideSide): void {
+		if (side == CollideSide.NONE)
+			return ;
+		else if (side == CollideSide.LEFT)
+			this.vx = Math.abs(this.vx);
+		else if (side == CollideSide.RIGHT)
+			this.vx = -Math.abs(this.vx);
+		else if (side == CollideSide.TOP)
+			this.vy = Math.abs(this.vy);
+		else if (side == CollideSide.BOTTOM)
+			this.vy = -Math.abs(this.vy);
+	}
+	
 	// return true if ball is in canvas, false otherwise
 	inCanvas(canvas: HTMLCanvasElement): boolean {
 		return (0 <= this.x && this.x <= canvas.width
