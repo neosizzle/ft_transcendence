@@ -3,23 +3,27 @@ class Pong {
 	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
 	private wall: Wall[] = [];
-	private ball: Ball[] = [];
 	private paddle: Paddle[] = [];
+	private ball: Ball[] = [];
+	private entity: Entity[][] = [this.wall, this.paddle, this.ball];
 	
 	constructor() {
 		this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
 		this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
 		
-		this.create_background();
+		this.reset_background();
+		this.init_entities();
 		requestAnimationFrame(this.start.bind(this));
 	}
 	
-	// create background for the game
-	create_background(): void {
-		// fill the background with black colour
+	// reset the background with the background colour
+	reset_background(): void {
 		this.ctx.fillStyle = "black";
 		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		
+	}
+	
+	// initialise all entities in the game
+	init_entities(): void {
 		// create walls
 		const width = this.canvas.width;
 		const height = this.canvas.height;
@@ -58,10 +62,6 @@ class Pong {
 			}
 		}
 		
-		// update paddle position and redraw
-		for (const p in this.paddle)
-			this.paddle[p].update(this.ctx);
-		
 		// check for ball-wall collision and alter direction of ball if required
 		for (const b in this.ball)
 		{
@@ -81,18 +81,13 @@ class Pong {
 			}
 		}
 		
-		// update ball position and redraw
-		for (const b in this.ball)
-			this.ball[b].update(this.ctx);
+		// reset the canvas to the background colour
+		this.reset_background();
 		
-		// redraw the paddles
-		for (const p in this.paddle)
-			this.paddle[p].draw(this.ctx, this.paddle[p].colour);
-			
-		// redraw the walls
-		for (const w in this.wall)
-			this.wall[w].draw(this.ctx);
-		
+		// update all the entities in the game
+		for (const arr in this.entity)
+			for (const i in this.entity[arr])
+				this.entity[arr][i].update(this.ctx);
 	}
 	
 	// start a new game
@@ -146,15 +141,13 @@ abstract class Entity {
 	}
 	
 	// abstract draw method to be implemented by derived classes
-	abstract draw(ctx: CanvasRenderingContext2D, colour?: string): void;
+	abstract draw(ctx: CanvasRenderingContext2D): void;
 	
-	// if there is movement, draw object black, move to new position and redraw
+	// move to new position and redraw
 	update(ctx: CanvasRenderingContext2D): void {
-		if (this.vx != 0 || this.vy != 0)
-			this.draw(ctx, "black");
-			this.x += this.vx;
-			this.y += this.vy;
-			this.draw(ctx, this.colour);
+		this.x += this.vx;
+		this.y += this.vy;
+		this.draw(ctx);
 	}
 	
 	// return the side which collides with another entity, otherwise NONE
@@ -216,11 +209,8 @@ abstract class Entity {
 // class for which rectangle-shaped entities can be derived from
 class RectangleEntity extends Entity {
 	// draw the wall using the context
-	draw(ctx: CanvasRenderingContext2D, colour?: string): void {
-		if (colour === undefined)
-			ctx.fillStyle = this.colour;
-		else
-			ctx.fillStyle = colour;
+	draw(ctx: CanvasRenderingContext2D): void {
+		ctx.fillStyle = this.colour;
 		ctx.fillRect(
 			this.x - this.width/2, this.y - this.height/2,
 			this.width, this.height);
@@ -238,11 +228,8 @@ class CircleEntity extends Entity {
 	}
 	
 	// draw the circle entity with the specified colour
-	draw(ctx: CanvasRenderingContext2D, colour?: string): void {
-		if (colour === undefined)
-			ctx.fillStyle = this.colour;
-		else
-			ctx.fillStyle = colour;
+	draw(ctx: CanvasRenderingContext2D): void {
+		ctx.fillStyle = this.colour;
 		ctx.beginPath();
 		ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
 		ctx.fill();
