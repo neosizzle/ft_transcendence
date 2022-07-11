@@ -1,7 +1,7 @@
 import { BadRequestException, Controller, Get, NotFoundException, Param, Post, Req, StreamableFile, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
-import { createReadStream, fstat, readdirSync } from 'fs';
+import { createReadStream, readdirSync } from 'fs';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { AuthGuard } from 'src/auth/guard';
