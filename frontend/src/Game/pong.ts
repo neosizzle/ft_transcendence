@@ -2,9 +2,11 @@
 class Pong {
 	// map to remember the status of a key
 	static keypress: Set<KeyboardEvent["key"]> = new Set();
+	static canvas: HTMLCanvasElement
+		= document.getElementById('canvas') as HTMLCanvasElement;
+	static ctx: CanvasRenderingContext2D
+		= Pong.canvas.getContext('2d') as CanvasRenderingContext2D;
 	
-	private canvas: HTMLCanvasElement;
-	private ctx: CanvasRenderingContext2D;
 	private wall: Wall[] = [];
 	private paddle: Paddle[] = [];
 	private ball: Ball[] = [];
@@ -12,8 +14,6 @@ class Pong {
 	private	isRunning: boolean;
 	
 	constructor() {
-		this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
-		this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
 		this.isRunning = false;
 		
 		// register keydown and keyup events
@@ -37,34 +37,34 @@ class Pong {
 	
 	// reset the background with the background colour
 	reset_background(): void {
-		this.ctx.fillStyle = "black";
-		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		Pong.ctx.fillStyle = "black";
+		Pong.ctx.fillRect(0, 0, Pong.canvas.width, Pong.canvas.height);
 	}
 	
 	// initialise all entities in the game
 	entities_init(): void {
 		// create walls
-		const width = this.canvas.width;
-		const height = this.canvas.height;
-		const border = this.canvas.width * 0.025;
+		const width = Pong.canvas.width;
+		const height = Pong.canvas.height;
+		const border = Pong.canvas.width * 0.025;
 		
 		this.wall.push(new Wall(width/2, border/2, width, border));
 		this.wall.push(new Wall(width/2, height - border/2, width, border));
 		this.wall.push(new Wall(border/2, height/2, border, height));
 		for (const w in this.wall)
-			this.wall[w].draw(this.ctx);
+			this.wall[w].draw();
 		
 		// create paddles
 		this.paddle.push(new Paddle(
 				width - border*3/2, height/2, border, height*0.2, 0, -4));
 		for (const p in this.paddle)
-			this.paddle[p].draw(this.ctx);
+			this.paddle[p].draw();
 		
 		// create the balls
 		const velocity = width / 120;	// takes 2 seconds to travel across
 		this.ball.push(new Ball(width/2, height/2, 5, -velocity, 0));
 		for (const b in this.ball)
-			this.ball[b].draw(this.ctx);
+			this.ball[b].draw();
 		
 		// concatenate all entities into an array
 		this.entity = this.entity.concat(this.wall, this.paddle, this.ball);
@@ -100,7 +100,7 @@ class Pong {
 		
 		// update all the entities in the game
 		for (const i in this.entity)
-			this.entity[i].update(this.ctx);
+			this.entity[i].update();
 	}
 	
 	// start a new game
@@ -111,7 +111,7 @@ class Pong {
 		// game over if any ball is outside the canvas
 		for (const b in this.ball)
 		{
-			if (!this.ball[b].inCanvas(this.canvas))
+			if (!this.ball[b].inCanvas(Pong.canvas))
 			{
 				console.log("Game Over!");
 				this.isRunning = false;
@@ -160,13 +160,13 @@ abstract class Entity {
 	}
 	
 	// abstract draw method to be implemented by derived classes
-	abstract draw(ctx: CanvasRenderingContext2D): void;
+	abstract draw(): void;
 	
 	// move to new position and redraw
-	update(ctx: CanvasRenderingContext2D): void {
+	update(): void {
 		this.x += this.vx;
 		this.y += this.vy;
-		this.draw(ctx);
+		this.draw();
 	}
 	
 	// return the side which collides with another entity, otherwise NONE
@@ -211,9 +211,9 @@ abstract class Entity {
 // class for which rectangle-shaped entities can be derived from
 abstract class RectangleEntity extends Entity {
 	// draw the wall using the context
-	draw(ctx: CanvasRenderingContext2D): void {
-		ctx.fillStyle = this.colour;
-		ctx.fillRect(
+	draw(): void {
+		Pong.ctx.fillStyle = this.colour;
+		Pong.ctx.fillRect(
 			this.x - this.width/2, this.y - this.height/2,
 			this.width, this.height);
 	}
@@ -230,12 +230,12 @@ abstract class CircleEntity extends Entity {
 	}
 	
 	// draw the circle entity with the specified colour
-	draw(ctx: CanvasRenderingContext2D): void {
-		ctx.fillStyle = this.colour;
-		ctx.beginPath();
-		ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-		ctx.fill();
-		ctx.stroke();
+	draw(): void {
+		Pong.ctx.fillStyle = this.colour;
+		Pong.ctx.beginPath();
+		Pong.ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+		Pong.ctx.fill();
+		Pong.ctx.stroke();
 	}
 }
 
