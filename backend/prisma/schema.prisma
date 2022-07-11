@@ -10,5 +10,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Movie {
+  id           Int    @id @default(autoincrement())
+  director     String
+  movieName    String
+  yearReleased Int
+}
+
 // cant really split prisma files , apologies for the merge conflcits :(
 // https://github.com/prisma/prisma/issues/2377
