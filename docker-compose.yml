@@ -18,7 +18,7 @@ services:
       - ./backend:/ft_transcendence-web #maps current host dir to docker working dir
 
   db:
-    image: postgres
+    image: postgres:13.4-buster
     container_name: ft_transcendence-db
     restart: always
     environment:
