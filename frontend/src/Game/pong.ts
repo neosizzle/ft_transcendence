@@ -1,19 +1,38 @@
 // class representing the Pong game
 class Pong {
+	// map to remember the status of a key
+	static keypress: Set<KeyboardEvent["key"]> = new Set();
+	
 	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
 	private wall: Wall[] = [];
 	private paddle: Paddle[] = [];
 	private ball: Ball[] = [];
 	private entity: Entity[] = [];
+	private	isRunning: boolean;
 	
 	constructor() {
 		this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
 		this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+		this.isRunning = false;
+		
+		// register keydown and keyup events
+		window.addEventListener("keydown", this.keydown);
+		window.addEventListener("keyup", this.keyup);
 		
 		this.reset_background();
-		this.init_entities();
+		this.entities_init();
 		requestAnimationFrame(this.start.bind(this));
+	}
+	
+	// method to handle keydown event
+	keydown(e: KeyboardEvent) {
+		Pong.keypress.add(e.key);
+	}
+	
+	// method to handle keyup event
+	keyup(e: KeyboardEvent) {
+		Pong.keypress.delete(e.key);
 	}
 	
 	// reset the background with the background colour
@@ -23,7 +42,7 @@ class Pong {
 	}
 	
 	// initialise all entities in the game
-	init_entities(): void {
+	entities_init(): void {
 		// create walls
 		const width = this.canvas.width;
 		const height = this.canvas.height;
@@ -51,6 +70,14 @@ class Pong {
 		this.entity = this.entity.concat(this.wall, this.paddle, this.ball);
 	}
 	
+	// clear all the entities in the game
+	entities_clear(): void {
+		this.wall = [];
+		this.paddle = [];
+		this.ball = [];
+		this.entity = [];
+	}
+	
 	// collide all the objects in the canvas
 	collide(): void {
 		for (let i = 0; i < this.entity.length - 1; i++)
@@ -60,6 +87,14 @@ class Pong {
 	
 	// update the objects in the canvas
 	update(): void {
+		// start running game if space key is pressed
+		if (!this.isRunning && Pong.keypress.has(' '))
+			this.isRunning = true;
+		
+		// do nothing if game is not running
+		if (!this.isRunning)
+			return ;
+		
 		// reset the canvas to the background colour
 		this.reset_background();
 		
@@ -76,14 +111,19 @@ class Pong {
 		// game over if any ball is outside the canvas
 		for (const b in this.ball)
 		{
-			if (this.ball[b].inCanvas(this.canvas) == false)
+			if (!this.ball[b].inCanvas(this.canvas))
 			{
 				console.log("Game Over!");
-				return ;
+				this.isRunning = false;
+				
+				// reset game to initial condition
+				this.entities_clear();
+				this.reset_background();
+				this.entities_init();
+				break ;
 			}
 		}
 		
-		// move to next frame if all balls are still within canvas
 		requestAnimationFrame(this.start.bind(this));
 	}
 }
