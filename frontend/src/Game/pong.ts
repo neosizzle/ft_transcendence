@@ -56,13 +56,14 @@ class Pong {
 		
 		// create paddles
 		this.paddle.push(new Paddle(
-				width - border*3/2, height/2, border, height*0.2, 0, -4));
+				width - border*3/2, height/2, border, height*0.2,
+				"ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"));
 		for (const p in this.paddle)
 			this.paddle[p].draw();
 		
 		// create the balls
 		const velocity = width / 120;	// takes 2 seconds to travel across
-		this.ball.push(new Ball(width/2, height/2, 5, -velocity, 0));
+		this.ball.push(new Ball(width/2, height/2, 5, -velocity/2, velocity/2));
 		for (const b in this.ball)
 			this.ball[b].draw();
 		
@@ -253,13 +254,52 @@ class Wall extends RectangleEntity {
 
 
 class Paddle extends RectangleEntity {
+	left = KeyboardEvent["key"];
+	right = KeyboardEvent["key"];
+	up = KeyboardEvent["key"];
+	down = KeyboardEvent["key"];
+	
+	constructor(x: number, y: number, width: number, height: number,
+			left?: KeyboardEvent["key"],
+			right?: KeyboardEvent["key"],
+			up?: KeyboardEvent["key"],
+			down?: KeyboardEvent["key"]) {
+		super(x, y, width, height, 0, 0);
+		this.left = left;
+		this.right = right;
+		this.up = up;
+		this.down = down;
+	}
+	
+	// change speed after updating the object
+	update(): void {
+		super.update();
+		this.change_speed();
+	}
+	
+	// move the paddle by changing the speed
+	change_speed(): void {
+		this.vx = 0;
+		this.vy = 0;
+		if (Pong.keypress.has(this.left))
+			this.vx = -2;
+		if (Pong.keypress.has(this.right))
+			this.vx = 2;
+		if (Pong.keypress.has(this.up))
+			this.vy = -2;
+		if (Pong.keypress.has(this.down))
+			this.vy = 2;
+	}
+	
 	// paddle halts its movement if collides with a wall
 	react(other: Entity, side: CollideSide): void {
-		if (!(other instanceof Wall) || side == CollideSide.NONE)
+		if (side == CollideSide.NONE)
 			return ;
-		if (side == CollideSide.LEFT || side == CollideSide.RIGHT)
+		if ((this.vx < 0 && side == CollideSide.LEFT)
+			|| (this.vy > 0 && side == CollideSide.RIGHT))
 			this.vx = 0;
-		else if (side == CollideSide.TOP || side == CollideSide.BOTTOM)
+		else if ((this.vy < 0 && side == CollideSide.TOP)
+			|| (this.vy > 0 && side == CollideSide.BOTTOM))
 			this.vy = 0;
 	}
 }
