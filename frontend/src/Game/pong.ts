@@ -42,7 +42,7 @@ class Pong {
 	}
 	
 	// initialise all entities in the game
-	entities_init(): void {
+	entities_init(ball_no = 1): void {
 		// create walls
 		const width = Pong.canvas.width;
 		const height = Pong.canvas.height;
@@ -62,10 +62,14 @@ class Pong {
 			this.paddle[p].draw();
 		
 		// create the balls
-		const velocity = width / 120;	// takes 2 seconds to travel across
-		this.ball.push(new Ball(width/2, height/2, 5, -velocity/2, velocity/2));
-		for (const b in this.ball)
+		const vx: number = width / 120;	// take 2s to travel across
+		for (let b = 0; b < ball_no; b++)
+		{
+			const y = (Math.random() - 0.5) * (height/2 - border) + height/2;
+			const vy = (Math.random() / 0.5 - 1) * vx * 2 / 3;
+			this.ball.push(new Ball(width/2, y, border/2, vx, vy));
 			this.ball[b].draw();
+		}
 		
 		// concatenate all entities into an array
 		this.entity = this.entity.concat(this.wall, this.paddle, this.ball);
