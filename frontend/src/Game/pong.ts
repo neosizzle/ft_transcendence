@@ -54,13 +54,6 @@ class Pong {
 		for (const w in this.wall)
 			this.wall[w].draw();
 		
-		// create paddles
-		this.paddle.push(new Paddle(
-				width - border*3/2, height/2, border, height*0.2,
-				"ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"));
-		for (const p in this.paddle)
-			this.paddle[p].draw();
-		
 		// create the balls
 		const vx: number = width / 120;	// take 2s to travel across
 		for (let b = 0; b < ball_no; b++)
@@ -70,6 +63,13 @@ class Pong {
 			this.ball.push(new Ball(width/2, y, border/2, vx, vy));
 			this.ball[b].draw();
 		}
+		
+		// create paddles
+		this.paddle.push(new Paddle(
+			width - border*3/2, height/2, border, height*0.2, vx,
+			"ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"));
+		for (const p in this.paddle)
+			this.paddle[p].draw();
 		
 		// concatenate all entities into an array
 		this.entity = this.entity.concat(this.wall, this.paddle, this.ball);
@@ -258,17 +258,19 @@ class Wall extends RectangleEntity {
 
 
 class Paddle extends RectangleEntity {
-	left = KeyboardEvent["key"];
-	right = KeyboardEvent["key"];
-	up = KeyboardEvent["key"];
-	down = KeyboardEvent["key"];
+	dv: number;
+	left: KeyboardEvent["key"];
+	right: KeyboardEvent["key"];
+	up: KeyboardEvent["key"];
+	down: KeyboardEvent["key"];
 	
-	constructor(x: number, y: number, width: number, height: number,
-			left?: KeyboardEvent["key"],
-			right?: KeyboardEvent["key"],
-			up?: KeyboardEvent["key"],
-			down?: KeyboardEvent["key"]) {
+	constructor(x: number, y: number, width: number, height: number, dv: number,
+			left: KeyboardEvent["key"],
+			right: KeyboardEvent["key"],
+			up: KeyboardEvent["key"],
+			down: KeyboardEvent["key"]) {
 		super(x, y, width, height, 0, 0);
+		this.dv = dv;
 		this.left = left;
 		this.right = right;
 		this.up = up;
@@ -286,13 +288,13 @@ class Paddle extends RectangleEntity {
 		this.vx = 0;
 		this.vy = 0;
 		if (Pong.keypress.has(this.left))
-			this.vx = -2;
+			this.vx -= this.dv;
 		if (Pong.keypress.has(this.right))
-			this.vx = 2;
+			this.vx += this.dv;
 		if (Pong.keypress.has(this.up))
-			this.vy = -2;
+			this.vy -= this.dv;
 		if (Pong.keypress.has(this.down))
-			this.vy = 2;
+			this.vy += this.dv;
 	}
 	
 	// paddle halts its movement if collides with a wall
