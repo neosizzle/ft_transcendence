@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { TOKEN_KEY } from '../constants';
 import { useAuth } from '../context/authContext';
 
@@ -7,9 +7,9 @@ const Login = (props: any) => {
 	const auth = useAuth();
 	const navigate = useNavigate();
 
-	const handleLogin = (user : string | null) =>
+	const handleLogin = async (user : string | null) =>
 	{
-		auth?.login(user)
+		await auth?.login(user)
 		navigate("/", {replace : true})
 	}
 

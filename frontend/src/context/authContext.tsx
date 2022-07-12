@@ -7,6 +7,7 @@ import { auth_net_get, net_get } from "../utils";
 
 const authEndpoint = `${APT_ROOT}/auth/authenticate`
 const userEndpoint = `${APT_ROOT}/users/me`
+const logoutEndpoint = `${APT_ROOT}/auth/logout`
 
 interface Props {
     children : React.ReactNode
@@ -36,22 +37,22 @@ const AuthContext = createContext<AuthCtx | null>(null);
 export const AuthProvider = (props : Props) => {
 	const [user, setUser] = useState<User | string | null>(null);
 
-	const login = (code : string | null) => {
+	const login = async (code : string | null) => {
 		// setUser(code)
 		if (!code)
 		{
-			auth_net_get(userEndpoint)
-			.then(res => setUser(res))
+			const user = await auth_net_get(userEndpoint)
+			setUser(user);
+			return;
 		}
-		net_get(`${authEndpoint}/?code=${code}`)
-		.then(async data => {
-			localStorage.setItem(TOKEN_KEY, data.data.token)
-			const res = await auth_net_get(userEndpoint)
-			setUser(res)
-		})
+		const data = await net_get(`${authEndpoint}/?code=${code}`)
+		localStorage.setItem(TOKEN_KEY, data.data.token)
+		const res = await auth_net_get(userEndpoint)
+		setUser(res)
 	}
-	const logout = () => {
-		setUser(null)
+	const logout = async () => {
+		setUser(null);
+		auth_net_get(logoutEndpoint)
 		localStorage.removeItem(TOKEN_KEY)
 	}
 
