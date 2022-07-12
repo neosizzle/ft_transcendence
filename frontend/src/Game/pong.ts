@@ -12,9 +12,21 @@ class Pong {
 	private ball: Ball[] = [];
 	private entity: Entity[] = [];
 	private	isRunning: boolean;
+	private player_no;
+	private ball_no;
 	
-	constructor() {
+	constructor(player_no: number, ball_no: number) {
 		this.isRunning = false;
+		
+		// record the number of players
+		if (player_no < 0 || player_no > 4)
+			throw new RangeError("Number of player must between 0 to 4.");
+		this.player_no = player_no;
+		
+		// record the number of balls
+		if (ball_no < 1)
+			throw new RangeError("There must be at least 1 ball.");
+		this.ball_no = ball_no;
 		
 		// register keydown and keyup events
 		window.addEventListener("keydown", this.keydown);
@@ -42,21 +54,26 @@ class Pong {
 	}
 	
 	// initialise all entities in the game
-	entities_init(ball_no = 1): void {
+	entities_init(): void {
 		// create walls
 		const width = Pong.canvas.width;
 		const height = Pong.canvas.height;
 		const border = Pong.canvas.width * 0.025;
 		
-		this.wall.push(new Wall(width/2, border/2, width, border));
-		this.wall.push(new Wall(width/2, height - border/2, width, border));
-		this.wall.push(new Wall(border/2, height/2, border, height));
+		if (this.player_no < 4)
+			this.wall.push(new Wall(width/2, border/2, width, border));
+		if (this.player_no < 3)
+			this.wall.push(new Wall(width/2, height - border/2, width, border));
+		if (this.player_no < 2)
+			this.wall.push(new Wall(border/2, height/2, border, height));
+		if (this.player_no < 1)
+			this.wall.push(new Wall(width - border/2, height/2, border, height));
 		for (const w in this.wall)
 			this.wall[w].draw();
 		
 		// create the balls
 		const vx: number = width / 120;	// take 2s to travel across
-		for (let b = 0; b < ball_no; b++)
+		for (let b = 0; b < this.ball_no; b++)
 		{
 			const y = (Math.random() - 0.5) * (height/2 - border) + height/2;
 			const vy = (Math.random() / 0.5 - 1) * vx * 2 / 3;
@@ -65,9 +82,22 @@ class Pong {
 		}
 		
 		// create paddles
-		this.paddle.push(new Paddle(
-			width - border*3/2, height/2, border, height*0.2, vx,
-			"ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"));
+		if (this.player_no >= 4)
+			this.paddle.push(new Paddle(
+				width/2, border*3/2, height*0.2, border, vx,
+				"a", "d", "", ""));
+		if (this.player_no >= 3)
+			this.paddle.push(new Paddle(
+				width/2, height - border*3/2, height*0.2, border, vx,
+				"ArrowLeft", "ArrowRight", "", ""));
+		if (this.player_no >= 2)
+			this.paddle.push(new Paddle(
+				border*3/2, height/2, border, height*0.2, vx,
+				"", "", "w", "s"));
+		if (this.player_no >= 1)
+			this.paddle.push(new Paddle(
+				width - border*3/2, height/2, border, height*0.2, vx,
+				"", "", "ArrowUp", "ArrowDown"));
 		for (const p in this.paddle)
 			this.paddle[p].draw();
 		
@@ -334,4 +364,4 @@ class Ball extends CircleEntity {
 }
 
 
-const pong: Pong = new Pong();
+const pong: Pong = new Pong(2, 1);
