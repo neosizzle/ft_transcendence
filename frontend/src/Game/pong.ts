@@ -146,7 +146,7 @@ class Pong {
 		// game over if any ball is outside the canvas
 		for (const b in this.ball)
 		{
-			if (!this.ball[b].inCanvas(Pong.canvas))
+			if (!this.ball[b].in_canvas())
 			{
 				console.log("Game Over!");
 				this.isRunning = false;
@@ -322,6 +322,14 @@ class Paddle extends RectangleEntity {
 			this.vy -= this.dv;
 		if (Pong.keypress.has(this.down))
 			this.vy += this.dv;
+		
+		// prevent paddles from moving out of boundary
+		if ((this.vx < 0 && this.x_min <= 0)
+			|| (this.vx > 0 && this.x_max >= Pong.canvas.width))
+			this.vx = 0;
+		if ((this.vy < 0 && this.y_min <= 0)
+			|| (this.vy > 0 && this.y_max >= Pong.canvas.height))
+			this.vy = 0;
 	}
 	
 	// paddle halts its movement if collides with other object
@@ -348,9 +356,9 @@ class Ball extends CircleEntity {
 	}
 	
 	// return true if ball is in canvas, false otherwise
-	inCanvas(canvas: HTMLCanvasElement): boolean {
-		return (0 <= this.x && this.x <= canvas.width
-			&& 0 <= this.y && this.y <= canvas.height);
+	in_canvas(): boolean {
+		return (0 <= this.x && this.x <= Pong.canvas.width
+			&& 0 <= this.y && this.y <= Pong.canvas.height);
 	}
 }
 
