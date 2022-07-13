@@ -164,15 +164,6 @@ class Pong {
 }
 
 
-enum CollideSide {
-	NONE = 0,
-	LEFT = -1,
-	RIGHT = 1,
-	TOP = -2,
-	BOTTOM = 2
-}
-
-
 // A generic entity with bounding box for other classes to derive from
 abstract class Entity {
 	x: number;	// x-coordinate of centre point
@@ -194,6 +185,12 @@ abstract class Entity {
 		this.colour = "white";	// white by default
 	}
 	
+	// getter functions for object boundary
+	get x_min(): number { return this.x - this.width / 2; }
+	get x_max(): number { return this.x + this.width / 2; }
+	get y_min(): number { return this.y - this.height / 2; }
+	get y_max(): number { return this.y + this.height / 2; }
+	
 	// abstract draw method to be implemented by derived classes
 	abstract draw(): void;
 	
@@ -204,42 +201,42 @@ abstract class Entity {
 		this.draw();
 	}
 	
-	// return the side which collides with another entity, otherwise NONE
+	// collide this object with other object
 	collide(other: Entity): void {
-		let side: CollideSide;
-		
-		// if no collision occurs, return NONE
+		// if no collision occurs
 		if (Math.abs(this.x - other.x) * 2 > this.width + other.width
 			|| Math.abs(this.y - other.y) * 2 > this.height + other.height)
 			return ;
 		
-		const dx: number = (this.width + other.width) / 2
-			- Math.abs(this.x - other.x);
-		const dy: number = (this.height + other.height) / 2
-			- Math.abs(this.y - other.y);
+		let left: boolean = (
+			other.x_min <= this.x_min && this.x_min <= other.x_max);
+		let right: boolean = (
+			other.x_min <= this.x_max && this.x_max <= other.x_max);
+		let top: boolean = (
+			other.y_min <= this.y_min && this.y_min <= other.y_max);
+		let bottom: boolean = (
+			other.y_min <= this.y_max && this.y_max <= other.y_max);
 		
-		if (dx <= dy)
+		// 'this' is wholely inside the 'other', no reaction from the other
+		if (left && right && top && bottom)
 		{
-			if (this.x <= other.x)
-				side = CollideSide.RIGHT;
-			else
-				side = CollideSide.LEFT;
+			this.react(left, right, top, bottom);
 		}
 		else
 		{
-			if (this.y <= other.y)
-				side = CollideSide.BOTTOM;
-			else
-				side = CollideSide.TOP;
+			// if opposite faces collide, the effects cancel each other out
+			if (left && right)
+				left = right = false;
+			if (top && bottom)
+				top = bottom = false;
+			this.react(left, right, top, bottom);
+			other.react(right, left, bottom, top);
 		}
-		
-		// both object reacts to collision.
-		this.react(other, side);
-		other.react(this, -side);
 	}
 	
 	// function to be called when collision happens
-	abstract react(other: Entity, side: CollideSide): void;
+	abstract react(
+		left: boolean, right: boolean, top: boolean, bottom: boolean): void;
 }
 
 
@@ -281,7 +278,7 @@ class Wall extends RectangleEntity {
 	}
 	
 	// wall will not have any reaction upon collision
-	react(other: Entity, side: CollideSide): void {
+	react(left: boolean, right: boolean, top: boolean, bottom: boolean): void {
 		return ;
 	}
 }
@@ -327,15 +324,11 @@ class Paddle extends RectangleEntity {
 			this.vy += this.dv;
 	}
 	
-	// paddle halts its movement if collides with a wall
-	react(other: Entity, side: CollideSide): void {
-		if (side == CollideSide.NONE)
-			return ;
-		if ((this.vx < 0 && side == CollideSide.LEFT)
-			|| (this.vy > 0 && side == CollideSide.RIGHT))
+	// paddle halts its movement if collides with other object
+	react(left: boolean, right: boolean, top: boolean, bottom: boolean): void {
+		if ((this.vx < 0 && left) || (this.vx > 0 && right))
 			this.vx = 0;
-		else if ((this.vy < 0 && side == CollideSide.TOP)
-			|| (this.vy > 0 && side == CollideSide.BOTTOM))
+		if ((this.vy < 0 && top) || (this.vy > 0 && bottom))
 			this.vy = 0;
 	}
 }
@@ -343,16 +336,14 @@ class Paddle extends RectangleEntity {
 
 class Ball extends CircleEntity {
 	// ball always reflects upon collision
-	react(other: Entity, side: CollideSide): void {
-		if (side == CollideSide.NONE)
-			return ;
-		else if (side == CollideSide.LEFT)
+	react(left: boolean, right: boolean, top: boolean, bottom: boolean): void {
+		if (left)
 			this.vx = Math.abs(this.vx);
-		else if (side == CollideSide.RIGHT)
+		else if (right)
 			this.vx = -Math.abs(this.vx);
-		else if (side == CollideSide.TOP)
+		if (top)
 			this.vy = Math.abs(this.vy);
-		else if (side == CollideSide.BOTTOM)
+		else if (bottom)
 			this.vy = -Math.abs(this.vy);
 	}
 	
