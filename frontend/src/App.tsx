@@ -42,7 +42,7 @@ function App() {
           <Routes>
             <Route path="/chat" element = {<Chat/>}/>
             <Route path="/game" element = {<Game/>}/>
-            <Route path="/users" element = {<Protected><User/></Protected>}/>
+            <Route path="/users/*" element = {<Protected><User/></Protected>}/>
             <Route path="/logout" element = {<Protected><Logout/></Protected>}/>
             <Route path="/login" element = {<Login/>}/>
             <Route path="/" element = {<Home/>}/>

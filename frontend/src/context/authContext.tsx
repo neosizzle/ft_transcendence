@@ -9,11 +9,7 @@ const authEndpoint = `${APT_ROOT}/auth/authenticate`
 const userEndpoint = `${APT_ROOT}/users/me`
 const logoutEndpoint = `${APT_ROOT}/auth/logout`
 
-interface Props {
-    children : React.ReactNode
-}
-
-interface User {
+export interface User {
 	id : number,
 	email : string | null,
 	avatar : string | null,
@@ -26,8 +22,13 @@ interface User {
 	updatedAt : string
 }
 
+interface Props {
+    children : React.ReactNode
+}
+
 interface AuthCtx {
-    user : User | string | null,
+    // user : User | string | null,
+	user : User | null,
 	login: (code : string | null) => void ,
 	logout: () => void
 }
@@ -35,10 +36,11 @@ interface AuthCtx {
 const AuthContext = createContext<AuthCtx | null>(null);
 
 export const AuthProvider = (props : Props) => {
-	const [user, setUser] = useState<User | string | null>(null);
+	// const [user, setUser] = useState<User | string | null>(null);
+	const [user, setUser] = useState<User | null>(null);
 
 	const login = async (code : string | null) => {
-		// setUser(code)
+		// alert(code) // uncomment this to obtain the code for backend testing. Usable only once.
 		if (!code)
 		{
 			const user = await auth_net_get(userEndpoint)

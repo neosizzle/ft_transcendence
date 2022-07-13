@@ -62,7 +62,7 @@ const SideDialog: FunctionComponent<SideDialogProps> = ({setOpenMenu}) => {
                       </Link>
                     </div>
                     <div onClick={()=>setOpenMenu(false)} className='w-full'><Link to="/chat" className="block px-6 py-2 text-sm font-medium">Chat</Link></div>
-                    <div onClick={()=>setOpenMenu(false)} className='w-full'><Link to="/users" className="block px-6 py-2 text-sm font-medium">Users</Link></div>
+                    <div onClick={()=>setOpenMenu(false)} className='w-full'><Link to="/users/profile/me" className="block px-6 py-2 text-sm font-medium">Users</Link></div>
                     <div onClick={()=>setOpenMenu(false)} className='w-full'><Link to="/game" className="block px-6 py-2 text-sm font-medium">Game</Link></div>
                     
                   </div>

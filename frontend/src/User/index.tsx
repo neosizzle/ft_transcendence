@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import MenuIcon from './common/MenuIcon';
+import UserDashboard from './UserDashboard';
 
 const PROFILE_ACTIVE = 0;
 const FRIENDS_ACTIVE = 1;
 const BLOCKS_ACTIVE = 2;
 const EDIT_ACTIVE = 3;
+const SEARCH_ACTIVE = 4;
+
 
 const UserIcon = () => {
 	return <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -32,22 +35,27 @@ const EditIcon = () => {
   </svg>
 }
 
+const SearchIcon = () => {
+	return <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+	<path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+}
+
 const User = () => {
 	const auth = useAuth();
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [activeTab, setActiveTab] = useState<number>(PROFILE_ACTIVE);
-
-	const handleLogout = () => {
-		auth?.logout();
-		navigate("/");
-	}
-
+	
 	return (
+		// bg-gradient-to-tl
+		// from-slate-200 to-white
 		<div
 		className='
 			sm:grid
 			sm:grid-cols-12
-			sm:gap-4
+			bg-[url("/assets/topography.svg")]
+			bg-zinc-50
 			min-h-screen
 		'
 		>
@@ -57,22 +65,26 @@ const User = () => {
 			hidden
 			sm:block
 			bg-slate-50
-			col-span-2
+			sm:col-span-2
+			lg:col-span-1
 			h-full
 			'
 			>
 				<div className="grid grid-rows-12 gap-0">
-					<MenuIcon className = "col-span-2" caption='Profile' onClick={()=>setActiveTab(PROFILE_ACTIVE)} active = {activeTab === PROFILE_ACTIVE}>
+					<MenuIcon className = "col-span-2" caption='Profile' onClick={()=>navigate("/users/profile/me")} active = {location.pathname.endsWith("profile")}>
 						<UserIcon/>
 					</MenuIcon>
-					<MenuIcon className = "col-span-2" caption='Friends' onClick={()=>setActiveTab(FRIENDS_ACTIVE)} active = {activeTab === FRIENDS_ACTIVE}>
+					<MenuIcon className = "col-span-2" caption='Friends' onClick={()=>navigate("/users/friends")} active = {location.pathname.endsWith("friends")}>
 						<FriendsIcon/>
 					</MenuIcon>
-					<MenuIcon className = "col-span-2" caption='Blocks' onClick={()=>setActiveTab(BLOCKS_ACTIVE)} active = {activeTab === BLOCKS_ACTIVE}>
+					<MenuIcon className = "col-span-2" caption='Blocks' onClick={()=>navigate("/users/blocks")} active = {location.pathname.endsWith("blocks")}>
 						<BlocksIcon/>
 					</MenuIcon>
-					<MenuIcon className = "col-span-2" caption='Edit' onClick={()=>setActiveTab(EDIT_ACTIVE)} active = {activeTab === EDIT_ACTIVE}>
+					<MenuIcon className = "col-span-2" caption='Edit' onClick={()=>navigate("/users/edit")} active = {location.pathname.endsWith("edit")}>
 						<EditIcon/>
+					</MenuIcon>
+					<MenuIcon className = "col-span-2" caption='Search' onClick={()=>navigate("/users/search")} active = {location.pathname.endsWith("search")}>
+						<SearchIcon/>
 					</MenuIcon>
 				</div>
 			</div>
@@ -81,7 +93,7 @@ const User = () => {
 				typeof auth?.user === "string" ? 
 				<h2>welcome {auth?.user}</h2>
 				:
-				<div>{activeTab}</div>
+				<UserDashboard/>
 			}
 
 			{/**Mobile bottom menu */}
@@ -96,7 +108,7 @@ const User = () => {
 			right-0
 			'
 			>
-				<div className="grid grid-cols-4 gap-0">
+				<div className="grid grid-cols-5 gap-0">
 					<MenuIcon caption='Profile' onClick={()=>setActiveTab(PROFILE_ACTIVE)} active = {activeTab === PROFILE_ACTIVE}>
 						<UserIcon/>
 					</MenuIcon>
@@ -108,6 +120,9 @@ const User = () => {
 					</MenuIcon>
 					<MenuIcon caption='Edit' onClick={()=>setActiveTab(EDIT_ACTIVE)} active = {activeTab === EDIT_ACTIVE}>
 						<EditIcon/>
+					</MenuIcon>
+					<MenuIcon caption='Search' onClick={()=>setActiveTab(SEARCH_ACTIVE)} active = {activeTab === SEARCH_ACTIVE}>
+						<SearchIcon/>
 					</MenuIcon>
 				</div>
 			</div>
