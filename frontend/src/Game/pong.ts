@@ -72,11 +72,12 @@ class Pong {
 			this.wall[w].draw();
 		
 		// create the balls
-		const vx: number = width / 120;	// take 2s to travel across
+		const speed: number = width / 120;	// initial speed of ball
 		for (let b = 0; b < this.ball_no; b++)
 		{
 			const y = (Math.random() - 0.5) * (height/2 - border) + height/2;
-			const vy = (Math.random() / 0.5 - 1) * vx * 2 / 3;
+			const vy = (Math.random() / 0.5 - 1) * speed * 2 / 3;
+			const vx = Math.sqrt(Math.pow(speed, 2) - Math.pow(vy, 2));
 			this.ball.push(new Ball(width/2, y, border/2, vx, vy));
 			this.ball[b].draw();
 		}
@@ -84,19 +85,19 @@ class Pong {
 		// create paddles
 		if (this.player_no >= 4)
 			this.paddle.push(new Paddle(
-				width/2, border*3/2, height*0.2, border, vx,
+				width/2, border*3/2, height*0.2, border, speed,
 				"a", "d", "", ""));
 		if (this.player_no >= 3)
 			this.paddle.push(new Paddle(
-				width/2, height - border*3/2, height*0.2, border, vx,
+				width/2, height - border*3/2, height*0.2, border, speed,
 				"ArrowLeft", "ArrowRight", "", ""));
 		if (this.player_no >= 2)
 			this.paddle.push(new Paddle(
-				border*3/2, height/2, border, height*0.2, vx,
+				border*3/2, height/2, border, height*0.2, speed,
 				"", "", "w", "s"));
 		if (this.player_no >= 1)
 			this.paddle.push(new Paddle(
-				width - border*3/2, height/2, border, height*0.2, vx,
+				width - border*3/2, height/2, border, height*0.2, speed,
 				"", "", "ArrowUp", "ArrowDown"));
 		for (const p in this.paddle)
 			this.paddle[p].draw();
@@ -220,7 +221,7 @@ abstract class Entity {
 		// 'this' is wholely inside the 'other', no reaction from the other
 		if (left && right && top && bottom)
 		{
-			this.react(left, right, top, bottom);
+			this.react(other, left, right, top, bottom);
 		}
 		else
 		{
@@ -229,13 +230,13 @@ abstract class Entity {
 				left = right = false;
 			if (top && bottom)
 				top = bottom = false;
-			this.react(left, right, top, bottom);
-			other.react(right, left, bottom, top);
+			this.react(other, left, right, top, bottom);
+			other.react(this, right, left, bottom, top);
 		}
 	}
 	
 	// function to be called when collision happens
-	abstract react(
+	abstract react(other: Entity,
 		left: boolean, right: boolean, top: boolean, bottom: boolean): void;
 }
 
@@ -278,7 +279,8 @@ class Wall extends RectangleEntity {
 	}
 	
 	// wall will not have any reaction upon collision
-	react(left: boolean, right: boolean, top: boolean, bottom: boolean): void {
+	react(other: Entity,
+		left: boolean, right: boolean, top: boolean, bottom: boolean): void {
 		return ;
 	}
 }
@@ -297,7 +299,7 @@ class Paddle extends RectangleEntity {
 			up: KeyboardEvent["key"],
 			down: KeyboardEvent["key"]) {
 		super(x, y, width, height, 0, 0);
-		this.dv = dv;
+		this.dv = 2 * dv;
 		this.left = left;
 		this.right = right;
 		this.up = up;
@@ -333,7 +335,8 @@ class Paddle extends RectangleEntity {
 	}
 	
 	// paddle halts its movement if collides with other object
-	react(left: boolean, right: boolean, top: boolean, bottom: boolean): void {
+	react(other: Entity,
+		left: boolean, right: boolean, top: boolean, bottom: boolean): void {
 		if ((this.vx < 0 && left) || (this.vx > 0 && right))
 			this.vx = 0;
 		if ((this.vy < 0 && top) || (this.vy > 0 && bottom))
@@ -344,15 +347,31 @@ class Paddle extends RectangleEntity {
 
 class Ball extends CircleEntity {
 	// ball always reflects upon collision
-	react(left: boolean, right: boolean, top: boolean, bottom: boolean): void {
-		if (left)
-			this.vx = Math.abs(this.vx);
-		else if (right)
-			this.vx = -Math.abs(this.vx);
-		if (top)
-			this.vy = Math.abs(this.vy);
-		else if (bottom)
-			this.vy = -Math.abs(this.vy);
+	react(other: Entity,
+		left: boolean, right: boolean, top: boolean, bottom: boolean): void {
+		let speed = Math.pow(this.vx, 2) + Math.pow(this.vy, 2);
+		if (other instanceof Paddle) {
+			speed *= 1.05; // speed up by ~2.5 percent to make game ends faster
+			
+			// priority is given to left or right collision, in the event
+			// of corner collision
+			if (left || right)
+			{
+				this.vy = (this.y - other.y) / other.height * Math.sqrt(speed);
+				this.vx = Math.sqrt(speed - Math.pow(this.vy, 2));
+			}
+			else if (top || bottom)
+			{
+				this.vx = (this.x - other.x) / other.width * Math.sqrt(speed);
+				this.vy = Math.sqrt(speed - Math.pow(this.vx, 2));
+			}
+		}
+		
+		// ensure correct reflection direction
+		if (left || right)
+			this.vx = (left ? 1 : -1) * Math.abs(this.vx);
+		if (top || bottom)
+			this.vy = (top ? 1 : -1) * Math.abs(this.vy);
 	}
 	
 	// return true if ball is in canvas, false otherwise
