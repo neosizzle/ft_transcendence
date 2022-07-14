@@ -164,7 +164,7 @@ class Pong {
 			if (!this.ball[b].in_canvas())
 			{
 				this.scoreboard.add(this.ball[b]);
-				console.log("Game Over!");
+				console.log("Score!");
 				this.isRunning = false;
 				
 				// reset game to initial condition
@@ -186,7 +186,7 @@ class ScoreBoard{
 	
 	constructor(player_no: number) {
 		this.player_no = player_no;
-		this.score = [0, 0, 0, 0];
+		this.reset();
 	}
 	
 	// add scores players depending to score location.
@@ -204,6 +204,13 @@ class ScoreBoard{
 			this.score[2]--;
 		if (ball.y < 0)
 			this.score[3]--;
+		
+		// Do something if there's a winner
+		const winner = this.get_winner();
+		if (winner != -1) {
+			console.log("Player " + (winner + 1).toString() + " has won!");
+			this.reset();
+		}
 	}
 	
 	// draw in all entities
@@ -251,6 +258,32 @@ class ScoreBoard{
 					Pong.canvas.width * 0.2, Pong.canvas.height * 0.1);
 		}
 		Pong.ctx.restore();
+	}
+	
+	/* Check whether any player has won. A player is deemed to have won
+	 * if he scores 11 or above and are at least 2 points above all other
+	 * players. Returns player number, or -1 if no winner. */
+	get_winner(): number {
+		for (let i = 0; i < this.score.length; i++) {
+			if (this.score[i] >= 11) {
+				let j = 0;
+				for (; j < this.score.length; j++) {
+					if (i != j && this.score[i] - this.score[j] < 2)
+						break ;
+				}
+				if (j == this.player_no)
+					return (i);
+			}
+		}
+		
+		return (-1);
+	}
+	
+	// reset the scores
+	reset(): void {
+		this.score = [];
+		for (let i = 0; i < this.player_no; i++)
+			this.score.push(0);
 	}
 }
 
