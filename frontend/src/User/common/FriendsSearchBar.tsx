@@ -50,11 +50,11 @@ const FriendsSearchBar: FunctionComponent<FriendsSearchBarProps> = ({setFriends}
 		flex
 		justify-center
 		w-full
-		mt-2
+		pt-2
 		"
 		>
 			<div className="
-			w-4/5
+			w-10/12
 			">
 				<form className="flex items-center" onSubmit={(e) => handleSubmit(e)}>   
 					<label className="sr-only">Search</label>

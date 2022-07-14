@@ -23,7 +23,7 @@ const FriendCard: FunctionComponent<FriendCardProps> = ({friendship, currUser, s
 	
 	return ( 
 		<div className =
-		"container w-full flex justify-center mt-2">
+		"w-full flex justify-center mt-2">
 			<div className="w-10/12 bg-white rounded-lg border border-gray-200 shadow-md p-3">
 				<div className="grid grid-cols-12 gap-4">
 
