@@ -12,11 +12,13 @@ class Pong {
 	private ball: Ball[] = [];
 	private entity: Entity[] = [];
 	private	isRunning: boolean;
-	private player_no;
-	private ball_no;
+	private player_no: number;
+	private ball_no: number;
+	private scoreboard: ScoreBoard;
 	
 	constructor(player_no: number, ball_no: number) {
 		// default text settings
+		Pong.ctx.textBaseline = "middle";
 		Pong.ctx.textAlign = "center";
 		Pong.ctx.font = "30px Arial";
 		
@@ -35,6 +37,9 @@ class Pong {
 		// register keydown and keyup events
 		window.addEventListener("keydown", this.keydown);
 		window.addEventListener("keyup", this.keyup);
+		
+		// create a scoreboard
+		this.scoreboard = new ScoreBoard(player_no);
 		
 		this.reset_background();
 		this.entities_init();
@@ -55,6 +60,7 @@ class Pong {
 	reset_background(): void {
 		Pong.ctx.fillStyle = "black";
 		Pong.ctx.fillRect(0, 0, Pong.canvas.width, Pong.canvas.height);
+		this.scoreboard.draw();
 	}
 	
 	// initialise all entities in the game
@@ -157,6 +163,7 @@ class Pong {
 		{
 			if (!this.ball[b].in_canvas())
 			{
+				this.scoreboard.add(this.ball[b]);
 				console.log("Game Over!");
 				this.isRunning = false;
 				
@@ -169,6 +176,81 @@ class Pong {
 		}
 		
 		requestAnimationFrame(this.start.bind(this));
+	}
+}
+
+
+class ScoreBoard{
+	player_no: number;
+	score: number[];
+	
+	constructor(player_no: number) {
+		this.player_no = player_no;
+		this.score = [0, 0, 0, 0];
+	}
+	
+	// add scores players depending to score location.
+	add(ball: Ball) {
+		// add 1 point for all players
+		for (const i in this.score)
+			this.score[i]++;
+		
+		// subtract 1 point for loser
+		if (ball.x > Pong.canvas.width)
+			this.score[0]--;
+		if (ball.x < 0)
+			this.score[1]--;
+		if (ball.y > Pong.canvas.height)
+			this.score[2]--;
+		if (ball.y < 0)
+			this.score[3]--;
+	}
+	
+	// draw in all entities
+	draw() {
+		Pong.ctx.save();
+		Pong.ctx.setLineDash([10, 10]);
+		Pong.ctx.fillStyle = 'lightgrey';
+		Pong.ctx.strokeStyle = 'lightgrey';
+		Pong.ctx.lineWidth = 5;
+		if (this.player_no <= 2) {
+			// draw line
+			Pong.ctx.beginPath();
+			Pong.ctx.moveTo(Pong.canvas.width / 2, 0);
+			Pong.ctx.lineTo(Pong.canvas.width / 2, Pong.canvas.height);
+			Pong.ctx.stroke();
+			
+			// draw scores
+			if (this.player_no == 2) {
+				Pong.ctx.fillText(this.score[0].toString(),
+					Pong.canvas.width * 0.9, Pong.canvas.height * 0.2);
+				Pong.ctx.fillText(this.score[1].toString(),
+					Pong.canvas.width * 0.1, Pong.canvas.height * 0.2);
+			}
+		}
+		else if (this.player_no <= 4) {
+			// draw lines
+			Pong.ctx.beginPath();
+			Pong.ctx.moveTo(0, 0);
+			Pong.ctx.lineTo(Pong.canvas.width, Pong.canvas.height);
+			Pong.ctx.stroke();
+			Pong.ctx.beginPath();
+			Pong.ctx.moveTo(0, Pong.canvas.height);
+			Pong.ctx.lineTo(Pong.canvas.width, 0);
+			Pong.ctx.stroke();
+			
+			// draw scores
+			Pong.ctx.fillText(this.score[0].toString(),
+				Pong.canvas.width * 0.9, Pong.canvas.height * 0.2);
+			Pong.ctx.fillText(this.score[1].toString(),
+				Pong.canvas.width * 0.1, Pong.canvas.height * 0.8);
+			Pong.ctx.fillText(this.score[2].toString(),
+				Pong.canvas.width * 0.8, Pong.canvas.height * 0.9);
+			if (this.player_no == 4)
+				Pong.ctx.fillText(this.score[3].toString(),
+					Pong.canvas.width * 0.2, Pong.canvas.height * 0.1);
+		}
+		Pong.ctx.restore();
 	}
 }
 
