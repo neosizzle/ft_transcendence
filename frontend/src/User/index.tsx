@@ -56,6 +56,7 @@ const User = () => {
 			sm:grid-cols-12
 			bg-[url("/assets/topography.svg")]
 			bg-zinc-50
+			bg-fixed
 			min-h-screen
 		'
 		>
@@ -71,19 +72,19 @@ const User = () => {
 			'
 			>
 				<div className="grid grid-rows-12 gap-0">
-					<MenuIcon className = "col-span-2" caption='Profile' onClick={()=>navigate("/users/profile/me")} active = {location.pathname.endsWith("profile")}>
+					<MenuIcon className = "col-span-2" caption='Profile' onClick={()=>navigate("/users/profile/me")} active = {location.pathname.includes("/me")}>
 						<UserIcon/>
 					</MenuIcon>
-					<MenuIcon className = "col-span-2" caption='Friends' onClick={()=>navigate("/users/friends")} active = {location.pathname.endsWith("friends")}>
+					<MenuIcon className = "col-span-2" caption='Friends' onClick={()=>navigate("/users/friends")} active = {location.pathname.includes("/friends")}>
 						<FriendsIcon/>
 					</MenuIcon>
-					<MenuIcon className = "col-span-2" caption='Blocks' onClick={()=>navigate("/users/blocks")} active = {location.pathname.endsWith("blocks")}>
+					<MenuIcon className = "col-span-2" caption='Blocks' onClick={()=>navigate("/users/blocks")} active = {location.pathname.includes("/blocks")}>
 						<BlocksIcon/>
 					</MenuIcon>
-					<MenuIcon className = "col-span-2" caption='Edit' onClick={()=>navigate("/users/edit")} active = {location.pathname.endsWith("edit")}>
+					<MenuIcon className = "col-span-2" caption='Edit' onClick={()=>navigate("/users/edit")} active = {location.pathname.includes("/edit")}>
 						<EditIcon/>
 					</MenuIcon>
-					<MenuIcon className = "col-span-2" caption='Search' onClick={()=>navigate("/users/search")} active = {location.pathname.endsWith("search")}>
+					<MenuIcon className = "col-span-2" caption='Search' onClick={()=>navigate("/users/search")} active = {location.pathname.includes("/search")}>
 						<SearchIcon/>
 					</MenuIcon>
 				</div>
@@ -109,19 +110,19 @@ const User = () => {
 			'
 			>
 				<div className="grid grid-cols-5 gap-0">
-					<MenuIcon caption='Profile' onClick={()=>setActiveTab(PROFILE_ACTIVE)} active = {activeTab === PROFILE_ACTIVE}>
+					<MenuIcon caption='Profile' onClick={()=>navigate('/users/profile/me')} active = {location.pathname.includes("/me")}>
 						<UserIcon/>
 					</MenuIcon>
-					<MenuIcon caption='Friends' onClick={()=>setActiveTab(FRIENDS_ACTIVE)} active = {activeTab === FRIENDS_ACTIVE}>
+					<MenuIcon caption='Friends' onClick={()=>navigate('/users/friends')} active = {location.pathname.includes("/friends")}>
 						<FriendsIcon/>
 					</MenuIcon>
-					<MenuIcon caption='Blocks' onClick={()=>setActiveTab(BLOCKS_ACTIVE)} active = {activeTab === BLOCKS_ACTIVE}>
+					<MenuIcon caption='Blocks' onClick={()=>navigate('/users/blocks')} active = {location.pathname.includes("/blocks")}>
 						<BlocksIcon/>
 					</MenuIcon>
-					<MenuIcon caption='Edit' onClick={()=>setActiveTab(EDIT_ACTIVE)} active = {activeTab === EDIT_ACTIVE}>
+					<MenuIcon caption='Edit' onClick={()=>navigate('/users/edit')} active = {location.pathname.includes("/edit")}>
 						<EditIcon/>
 					</MenuIcon>
-					<MenuIcon caption='Search' onClick={()=>setActiveTab(SEARCH_ACTIVE)} active = {activeTab === SEARCH_ACTIVE}>
+					<MenuIcon caption='Search' onClick={()=>navigate('/users/search')} active = {location.pathname.includes("/search")}>
 						<SearchIcon/>
 					</MenuIcon>
 				</div>

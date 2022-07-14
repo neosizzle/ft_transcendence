@@ -1,13 +1,13 @@
 import { createContext, useContext, useState } from "react";
 import React from 'react';
-import { APT_ROOT, TOKEN_KEY } from "../constants";
+import { API_ROOT, TOKEN_KEY } from "../constants";
 import { auth_net_get, net_get } from "../utils";
 
 // TODO HANDLE ERRORS
 
-const authEndpoint = `${APT_ROOT}/auth/authenticate`
-const userEndpoint = `${APT_ROOT}/users/me`
-const logoutEndpoint = `${APT_ROOT}/auth/logout`
+const authEndpoint = `${API_ROOT}/auth/authenticate`
+const userEndpoint = `${API_ROOT}/users/me`
+const logoutEndpoint = `${API_ROOT}/auth/logout`
 
 export interface User {
 	id : number,

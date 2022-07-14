@@ -34,10 +34,10 @@ const SideDialog: FunctionComponent<SideDialogProps> = ({setOpenMenu}) => {
                 h-full
                 w-${width}
                 z-20
-				duration-300
-				transform
-				transition-all
-				ease-out
+				        duration-300
+				        transform
+				        transition-all
+				        ease-out
 				`}
 				
 				>

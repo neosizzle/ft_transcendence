@@ -3,13 +3,12 @@ import { useAuth, User } from "../../context/authContext";
 import LevelBar from "../common/LevelBar";
 import MatchHistoryTable from "../common/MatchHistoryTable";
 import moment from 'moment';
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { auth_net_get } from "../../utils";
-import { APT_ROOT } from "../../constants";
+import { API_ROOT } from "../../constants";
+import { IngameBadge, OfflineBadge, OnlineBadge } from "../common/Badges";
 
-// TODO check nonexistent user
-
-const userEndpoint = `${APT_ROOT}/users?page=1&pageSize=1`
+const userEndpoint = `${API_ROOT}/users?page=1&pageSize=1`
 
 const VerifiedBadge = ()=>{
 	return <span
@@ -19,28 +18,16 @@ const VerifiedBadge = ()=>{
   </span>
 }
 
-const OnlineBadge = () => {
-	return <span className="bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-green-200 dark:text-green-900">ONLINE</span>
-}
-
-const IngameBadge = () => {
-	return <span className="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">INGAME</span>
-}
-
-const OfflineBadge = () => {
-	return <span className="bg-gray-100 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">OFFLINE</span>
-}
-
 const Profile: FunctionComponent = () => {
 	const auth = useAuth();
 	const [levelPercent, setlevelPercent] = useState<number>(0)
 	const [id, setId] = useState<string>("");
 	const [user, setUser] = useState<User | null>(null);
 	const location = useLocation();
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		const id = location.pathname.substring(location.pathname.lastIndexOf("/") + 1)
-		const user = auth?.user;
 
 		setId(id);
 		if (id === "me" && auth?.user) setUser(auth?.user);
@@ -49,118 +36,132 @@ const Profile: FunctionComponent = () => {
 			//else, get user by id
 			auth_net_get(`${userEndpoint}&filterBy=${id}&filterOn=id`)
 			.then(data => {
-				// console.log(data)
-
-				//check 404
+				//check error
+				if (data.error)
+				{
+					if (data.error === "Forbidden")
+						return navigate("/logout")
+					
+					console.error(data.error)
+				}
 
 				//set user data
 				setUser(data.data[0])
 			})
 		}
+	}, [location])
+	
+	// change level percent when user changes
+	useEffect(() => {
+		if (!user) return;
 		setlevelPercent(user?.level ? (user?.level - Math.floor(user?.level)) * 100 : 0)
-	}, [])
+	}, [user])
 	
 
 	return ( 
 		typeof auth === "string" ? null :
+		user?.id ? 
 		<div className="">
-			<div
-			className="
-			grid
-			gap-4
-			grid-rows-3
-			sm:grid-cols-3
-			sm:grid-rows-none
-			">
-				<div className="
-				flex
-				justify-center
-				">
-					<img className="
-					inline-block
-					h-20
-					w-20
-					sm:h-28
-					sm:w-28
-					rounded-full
-					ring-1
-					ring-white
-					mt-3
-					mb-1
-					" src={user?.avatar || '/assets/default-pp.webp'} alt=""/>
-				</div>
-
-				<div className="
-				flex
-				justify-center
-				sm:block
-				sm:p-5
-				">
-					<div>
-						<span className="
-						font-semibold
-						text-lg
-						block
-						"> {user?.username || user?.intraName }
-							<span className="
-							font-normal
-							text-sm
-							"> {user?.intraName} </span>
-							{user?.email ? <VerifiedBadge/> : null}
-							
-						</span>
-						<span className="
-						font-normal
-						text-base
-						block
-						">
-							{moment(user?.createdAt).format("DD-MM-YYYY")}
-						</span>
-						{user?.status === "LOGGEDIN" ? <OnlineBadge/> : user?.status === "OFFLINE" ? <OfflineBadge/> : user?.status === "INGAME" ? <IngameBadge/> : null}
-					</div>
-				</div>
-
-				<div className="
-				sm:p-5
-				flex
-				justify-center
-				sm:block
+				<div
+				className="
+				grid
+				gap-4
+				grid-rows-3
+				sm:grid-cols-3
+				sm:grid-rows-none
 				">
 					<div className="
-					bg-slate-100
-					h-full
-					w-full
-					rounded
+					flex
+					justify-center
 					">
-						more info
+						<img className="
+						inline-block
+						h-20
+						w-20
+						sm:h-28
+						sm:w-28
+						rounded-full
+						ring-1
+						ring-white
+						mt-3
+						mb-1
+						" src={user?.avatar || '/assets/default-pp.webp'} alt=""/>
+					</div>
+	
+					<div className="
+					flex
+					justify-center
+					sm:block
+					sm:p-5
+					">
+						<div>
+							<span className="
+							font-semibold
+							text-lg
+							block
+							"> {user?.username || user?.intraName }
+								<span className="
+								font-normal
+								text-sm
+								"> {user?.intraName} </span>
+								{user?.email ? <VerifiedBadge/> : null}
+								
+							</span>
+							<span className="
+							font-normal
+							text-base
+							block
+							">
+								{moment(user?.createdAt).format("DD-MM-YYYY")}
+							</span>
+							{user?.status === "LOGGEDIN" ? <OnlineBadge/> : user?.status === "OFFLINE" ? <OfflineBadge/> : user?.status === "INGAME" ? <IngameBadge/> : null}
+						</div>
+					</div>
+	
+					<div className="
+					sm:p-5
+					flex
+					justify-center
+					sm:block
+					">
+						<div className="
+						bg-slate-100
+						h-full
+						w-full
+						rounded
+						">
+							more info
+						</div>
 					</div>
 				</div>
-			</div>
-
-			<div>
-				<div
-				className = "flex justify-center"
-				>
-					<div className="w-5/6 flex justify-between">
-						<div 
-						className="
-						inline-block
-						">
-							Level {typeof user?.level === "number" ? Math.floor(user?.level) :"wut"}
-						</div>
-						<div 
-						className="
-						inline-block
-						ml-1
-						">
-							{levelPercent}/100
+	
+				<div>
+					<div
+					className = "flex justify-center"
+					>
+						<div className="w-5/6 flex justify-between">
+							<div 
+							className="
+							inline-block
+							">
+								Level {typeof user?.level === "number" ? Math.floor(user?.level) :"wut"}
+							</div>
+							<div 
+							className="
+							inline-block
+							ml-1
+							">
+								{levelPercent}/100
+							</div>
 						</div>
 					</div>
+					<LevelBar percent={levelPercent}/>
 				</div>
-				<LevelBar percent={levelPercent}/>
-			</div>
-
-			<MatchHistoryTable/>
+	
+				<MatchHistoryTable/>
+		</div> :
+		<div>
+			user not found
 		</div>
 	);
 }
