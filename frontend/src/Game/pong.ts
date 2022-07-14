@@ -78,18 +78,19 @@ class Pong {
 			this.wall.push(new Wall(border/2, height/2, border, height));
 		if (this.player_no < 1)
 			this.wall.push(new Wall(width - border/2, height/2, border, height));
-		for (const w in this.wall)
-			this.wall[w].draw();
+		for (const w of this.wall)
+			w.draw();
 		
 		// create the balls
 		const speed: number = width / 120;	// initial speed of ball
-		for (let b = 0; b < this.ball_no; b++)
+		for (let b = 0; b < this.ball_no; ++b)
 		{
 			const y = (Math.random() - 0.5) * (height/2 - border) + height/2;
 			const vy = (Math.random() / 0.5 - 1) * speed * 2 / 3;
 			const vx = Math.sqrt(Math.pow(speed, 2) - Math.pow(vy, 2));
-			this.ball.push(new Ball(width/2, y, border/2, vx, vy));
-			this.ball[b].draw();
+			const ball = new Ball(width/2, y, border/2, vx, vy);
+			this.ball.push(ball);
+			ball.draw();
 		}
 		
 		// create paddles
@@ -109,8 +110,8 @@ class Pong {
 			this.paddle.push(new Paddle(
 				width - border*3/2, height/2, border, height*0.2, speed,
 				"", "", "ArrowUp", "ArrowDown"));
-		for (const p in this.paddle)
-			this.paddle[p].draw();
+		for (const p of this.paddle)
+			p.draw();
 		
 		// concatenate all entities into an array
 		this.entity = this.entity.concat(this.wall, this.paddle, this.ball);
@@ -126,9 +127,10 @@ class Pong {
 	
 	// collide all the objects in the canvas
 	collide(): void {
-		for (let i = 0; i < this.entity.length - 1; i++)
-			for (let j = i + 1; j < this.entity.length; j++)
-				this.entity[i].collide(this.entity[j]);
+		for (const entity_0 of this.entity)
+			for (const entity_1 of this.entity)
+				if (entity_0 != entity_1)
+					entity_0.collide(entity_1);
 	}
 	
 	// update the objects in the canvas
@@ -149,8 +151,8 @@ class Pong {
 		this.reset_background();
 		
 		// update all the entities in the game
-		for (const i in this.entity)
-			this.entity[i].update();
+		for (const entity of this.entity)
+			entity.update();
 	}
 	
 	// start a new game
@@ -159,11 +161,11 @@ class Pong {
 		this.update();	// update velocity and redraw all entities
 		
 		// game over if any ball is outside the canvas
-		for (const b in this.ball)
+		for (const ball of this.ball)
 		{
-			if (!this.ball[b].in_canvas())
+			if (!ball.in_canvas())
 			{
-				this.scoreboard.add(this.ball[b]);
+				this.scoreboard.add(ball);
 				console.log("Score!");
 				this.isRunning = false;
 				
@@ -193,17 +195,17 @@ class ScoreBoard{
 	add(ball: Ball) {
 		// add 1 point for all players
 		for (const i in this.score)
-			this.score[i]++;
+			++this.score[i];
 		
 		// subtract 1 point for loser
 		if (ball.x > Pong.canvas.width)
-			this.score[0]--;
+			--this.score[0];
 		if (ball.x < 0)
-			this.score[1]--;
+			--this.score[1];
 		if (ball.y > Pong.canvas.height)
-			this.score[2]--;
+			--this.score[2];
 		if (ball.y < 0)
-			this.score[3]--;
+			--this.score[3];
 		
 		// Do something if there's a winner
 		const winner = this.get_winner();
@@ -264,10 +266,10 @@ class ScoreBoard{
 	 * if he scores 11 or above and are at least 2 points above all other
 	 * players. Returns player number, or -1 if no winner. */
 	get_winner(): number {
-		for (let i = 0; i < this.score.length; i++) {
+		for (let i = 0; i < this.score.length; ++i) {
 			if (this.score[i] >= 11) {
 				let j = 0;
-				for (; j < this.score.length; j++) {
+				for (; j < this.score.length; ++j) {
 					if (i != j && this.score[i] - this.score[j] < 2)
 						break ;
 				}
@@ -282,7 +284,7 @@ class ScoreBoard{
 	// reset the scores
 	reset(): void {
 		this.score = [];
-		for (let i = 0; i < this.player_no; i++)
+		for (let i = 0; i < this.player_no; ++i)
 			this.score.push(0);
 	}
 }
