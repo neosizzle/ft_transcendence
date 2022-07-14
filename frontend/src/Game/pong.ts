@@ -16,6 +16,10 @@ class Pong {
 	private ball_no;
 	
 	constructor(player_no: number, ball_no: number) {
+		// default text settings
+		Pong.ctx.textAlign = "center";
+		Pong.ctx.font = "30px Arial";
+		
 		this.isRunning = false;
 		
 		// record the number of players
@@ -129,7 +133,11 @@ class Pong {
 		
 		// do nothing if game is not running
 		if (!this.isRunning)
+		{
+			Pong.ctx.fillText(
+				"Press SPACE", Pong.canvas.width/2, Pong.canvas.height * 2/3);
 			return ;
+		}
 		
 		// reset the canvas to the background colour
 		this.reset_background();
