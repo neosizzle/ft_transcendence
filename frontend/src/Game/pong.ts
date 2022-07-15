@@ -46,16 +46,13 @@ class Pong {
 	static ctx: CanvasRenderingContext2D
 		= Pong.canvas.getContext('2d') as CanvasRenderingContext2D;
 	
-	private wall: Wall[] = [];
-	private paddle: Paddle[] = [];
-	private ball: Ball[] = [];
+	private ball: Ball;
 	private entity: Entity[] = [];
 	private	isRunning: boolean;
 	private player_no: number;
-	private ball_no: number;
 	private scoreboard: ScoreBoard;
 	
-	constructor(player_no: number, ball_no: number) {
+	constructor(player_no: number) {
 		// default text settings
 		Pong.ctx.textBaseline = "middle";
 		Pong.ctx.textAlign = "center";
@@ -67,11 +64,6 @@ class Pong {
 		if (player_no < 0 || player_no > 4)
 			throw new RangeError("Number of player must between 0 to 4.");
 		this.player_no = player_no;
-		
-		// record the number of balls
-		if (ball_no < 1)
-			throw new RangeError("There must be at least 1 ball.");
-		this.ball_no = ball_no;
 		
 		// create a scoreboard
 		this.scoreboard = new ScoreBoard(player_no);
@@ -90,63 +82,54 @@ class Pong {
 	
 	// initialise all entities in the game
 	entities_init(): void {
-		// create walls
 		const width = Pong.canvas.width;
 		const height = Pong.canvas.height;
 		const border = Pong.canvas.width * 0.025;
 		
-		if (this.player_no < 4)
-			this.wall.push(new Wall(width/2, border/2, width, border));
-		if (this.player_no < 3)
-			this.wall.push(new Wall(width/2, height - border/2, width, border));
-		if (this.player_no < 2)
-			this.wall.push(new Wall(border/2, height/2, border, height));
-		if (this.player_no < 1)
-			this.wall.push(new Wall(width - border/2, height/2, border, height));
-		for (const w of this.wall)
-			w.draw();
-		
 		// create the balls
 		const speed: number = width / 120;	// initial speed of ball
-		for (let b = 0; b < this.ball_no; ++b)
-		{
-			const y = (Math.random() - 0.5) * (height/2 - border) + height/2;
-			const vy = (Math.random() / 0.5 - 1) * speed * 2 / 3;
-			const vx = Math.sqrt(Math.pow(speed, 2) - Math.pow(vy, 2));
-			const ball = new Ball(width/2, y, border/2, vx, vy);
-			this.ball.push(ball);
-			ball.draw();
-		}
+		const y = (Math.random() - 0.5) * (height/2 - border) + height/2;
+		const vy = (Math.random() / 0.5 - 1) * speed * 2 / 3;
+		const vx = Math.sqrt(Math.pow(speed, 2) - Math.pow(vy, 2));
+		this.ball = new Ball(width/2, y, border/2, vx, vy);
+		this.entity.push(this.ball);
+		
+		// create walls
+		if (this.player_no < 4)
+			this.entity.push(new Wall(width/2, border/2, width, border));
+		if (this.player_no < 3)
+			this.entity.push(new Wall(width/2, height - border/2, width, border));
+		if (this.player_no < 2)
+			this.entity.push(new Wall(border/2, height/2, border, height));
+		if (this.player_no < 1)
+			this.entity.push(new Wall(width - border/2, height/2, border, height));
 		
 		// create paddles
 		if (this.player_no >= 4)
-			this.paddle.push(new Paddle(
+			this.entity.push(new Paddle(
 				width/2, border*3/2, height*0.2, border, speed,
 				"a", "d", "", ""));
 		if (this.player_no >= 3)
-			this.paddle.push(new Paddle(
+			this.entity.push(new Paddle(
 				width/2, height - border*3/2, height*0.2, border, speed,
 				"ArrowLeft", "ArrowRight", "", ""));
 		if (this.player_no >= 2)
-			this.paddle.push(new Paddle(
+			this.entity.push(new Paddle(
 				border*3/2, height/2, border, height*0.2, speed,
 				"", "", "w", "s"));
 		if (this.player_no >= 1)
-			this.paddle.push(new Paddle(
+			this.entity.push(new Paddle(
 				width - border*3/2, height/2, border, height*0.2, speed,
 				"", "", "ArrowUp", "ArrowDown"));
-		for (const p of this.paddle)
-			p.draw();
 		
-		// concatenate all entities into an array
-		this.entity = this.entity.concat(this.wall, this.paddle, this.ball);
+		// draw all entities
+		for (const e of this.entity)
+			e.draw()
 	}
 	
 	// clear all the entities in the game
 	entities_clear(): void {
-		this.wall = [];
-		this.paddle = [];
-		this.ball = [];
+		delete this.ball;
 		this.entity = [];
 	}
 	
@@ -185,21 +168,17 @@ class Pong {
 		this.collide();	// detect collision among all the entities in the game
 		this.update();	// update velocity and redraw all entities
 		
-		// game over if any ball is outside the canvas
-		for (const ball of this.ball)
+		// game over if ball is outside the canvas
+		if (!this.ball.in_canvas())
 		{
-			if (!ball.in_canvas())
-			{
-				this.scoreboard.add(ball);
-				console.log("Score!");
-				this.isRunning = false;
-				
-				// reset game to initial condition
-				this.entities_clear();
-				this.reset_background();
-				this.entities_init();
-				break ;
-			}
+			this.scoreboard.add(this.ball);
+			console.log("Score!");
+			this.isRunning = false;
+			
+			// reset game to initial condition
+			this.entities_clear();
+			this.reset_background();
+			this.entities_init();
 		}
 		
 		requestAnimationFrame(this.start.bind(this));
@@ -533,4 +512,4 @@ class Ball extends CircleEntity {
 }
 
 const keypress: KeyPressMonitor = KeyPressMonitor.get_instance();
-const pong: Pong = new Pong(2, 1);
+const pong: Pong = new Pong(2);
