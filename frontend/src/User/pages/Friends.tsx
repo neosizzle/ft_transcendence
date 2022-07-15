@@ -10,7 +10,7 @@ import Pagination from "../common/Pagination";
 import UnfriendModal from "../common/UnfriendModal";
 
 const friendsEndpoint = `${API_ROOT}/friends`
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 1;
 
 export interface FriendShip {
 	id?: number;

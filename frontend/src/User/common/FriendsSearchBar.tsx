@@ -41,7 +41,6 @@ const FriendsSearchBar: FunctionComponent<FriendsSearchBarProps> = ({setFriends}
 				//set total length
 			})
 		}
-		setInput("");
 	}
 
 	return ( 
