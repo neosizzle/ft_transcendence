@@ -1,7 +1,46 @@
+// class to monitor keypress, designed as a singleton
+class KeyPressMonitor {
+	private static _instance: KeyPressMonitor;
+	static keypress: Set<KeyboardEvent["key"]> = new Set();
+	
+	// since class is defined as singleton, make constructor function
+	// private to prevent direct construction call
+	private constructor() {
+		console.log(KeyPressMonitor.keypress);
+		
+		// register keydown and keyup events
+		window.addEventListener("keydown", KeyPressMonitor.keydown);
+		window.addEventListener("keyup", KeyPressMonitor.keyup);
+	}
+	
+	// create, if necessary, and return the singleton object
+	public static get_instance(): KeyPressMonitor {
+		if (!KeyPressMonitor._instance) {
+			KeyPressMonitor._instance = new KeyPressMonitor();
+		}
+		return KeyPressMonitor._instance;
+	}
+	
+	// add key to the set of pressed keys
+	private static keydown(e: KeyboardEvent): void {
+		KeyPressMonitor.keypress.add(e.key);
+	}
+	
+	// removed key to the set of pressed keys
+	private static keyup(e: KeyboardEvent): void {
+		KeyPressMonitor.keypress.delete(e.key);
+	}
+	
+	// expose the underlying has function of the set
+	public static has(value) {
+		return KeyPressMonitor.keypress.has(value);
+	}
+}
+
+
 // class representing the Pong game
 class Pong {
 	// map to remember the status of a key
-	static keypress: Set<KeyboardEvent["key"]> = new Set();
 	static canvas: HTMLCanvasElement
 		= document.getElementById('canvas') as HTMLCanvasElement;
 	static ctx: CanvasRenderingContext2D
@@ -34,26 +73,12 @@ class Pong {
 			throw new RangeError("There must be at least 1 ball.");
 		this.ball_no = ball_no;
 		
-		// register keydown and keyup events
-		window.addEventListener("keydown", this.keydown);
-		window.addEventListener("keyup", this.keyup);
-		
 		// create a scoreboard
 		this.scoreboard = new ScoreBoard(player_no);
 		
 		this.reset_background();
 		this.entities_init();
 		requestAnimationFrame(this.start.bind(this));
-	}
-	
-	// method to handle keydown event
-	keydown(e: KeyboardEvent) {
-		Pong.keypress.add(e.key);
-	}
-	
-	// method to handle keyup event
-	keyup(e: KeyboardEvent) {
-		Pong.keypress.delete(e.key);
 	}
 	
 	// reset the background with the background colour
@@ -136,7 +161,7 @@ class Pong {
 	// update the objects in the canvas
 	update(): void {
 		// start running game if space key is pressed
-		if (!this.isRunning && Pong.keypress.has(' '))
+		if (!this.isRunning && KeyPressMonitor.has(' '))
 			this.isRunning = true;
 		
 		// do nothing if game is not running
@@ -418,7 +443,8 @@ class Paddle extends RectangleEntity {
 	up: KeyboardEvent["key"];
 	down: KeyboardEvent["key"];
 	
-	constructor(x: number, y: number, width: number, height: number, dv: number,
+	constructor(
+			x: number, y: number, width: number, height: number, dv: number,
 			left: KeyboardEvent["key"],
 			right: KeyboardEvent["key"],
 			up: KeyboardEvent["key"],
@@ -441,13 +467,13 @@ class Paddle extends RectangleEntity {
 	change_speed(): void {
 		this.vx = 0;
 		this.vy = 0;
-		if (Pong.keypress.has(this.left))
+		if (KeyPressMonitor.has(this.left))
 			this.vx -= this.dv;
-		if (Pong.keypress.has(this.right))
+		if (KeyPressMonitor.has(this.right))
 			this.vx += this.dv;
-		if (Pong.keypress.has(this.up))
+		if (KeyPressMonitor.has(this.up))
 			this.vy -= this.dv;
-		if (Pong.keypress.has(this.down))
+		if (KeyPressMonitor.has(this.down))
 			this.vy += this.dv;
 		
 		// prevent paddles from moving out of boundary
@@ -506,5 +532,5 @@ class Ball extends CircleEntity {
 	}
 }
 
-
+const keypress: KeyPressMonitor = KeyPressMonitor.get_instance();
 const pong: Pong = new Pong(2, 1);
