@@ -70,6 +70,8 @@ class Pong {
 		
 		this.reset_background();
 		this.entities_init();
+		for (const entity of this.entity)
+			entity.draw(Pong.canvas);
 		requestAnimationFrame(this.start.bind(this));
 	}
 	
@@ -77,7 +79,7 @@ class Pong {
 	reset_background(): void {
 		Pong.ctx.fillStyle = "black";
 		Pong.ctx.fillRect(0, 0, Pong.canvas.width, Pong.canvas.height);
-		this.scoreboard.draw();
+		this.scoreboard.draw(Pong.canvas);
 	}
 	
 	// initialise all entities in the game
@@ -91,7 +93,8 @@ class Pong {
 		const y = (Math.random() - 0.5) * (h/2 - b) + h/2;
 		const vy = (Math.random() / 0.5 - 1) * s * 2 / 3;
 		const vx = Math.sqrt(Math.pow(s, 2) - Math.pow(vy, 2));
-		this.ball = new Ball(w/2, y, b/2, vx, vy);
+		this.ball = new Ball(
+			w/2, y, b/2, vx, vy, Pong.canvas.width, Pong.canvas.height);
 		this.entity.push(this.ball);
 		
 		// create walls
@@ -107,20 +110,20 @@ class Pong {
 		// create paddles
 		if (this.player_no >= 4)  // top paddle
 			this.entity.push(new Paddle(w/2, b*3/2, h*0.2, b, s,
+				Pong.canvas.width, Pong.canvas.height,
 				"a", "d", "", ""));
 		if (this.player_no >= 3)  // bottom paddle
 			this.entity.push(new Paddle(w/2, h - b*3/2, h*0.2, b, s,
+				Pong.canvas.width, Pong.canvas.height,
 				"ArrowLeft", "ArrowRight", "", ""));
 		if (this.player_no >= 2)  // left paddle
 			this.entity.push(new Paddle(b*3/2, h/2, b, h*0.2, s,
+				Pong.canvas.width, Pong.canvas.height,
 				"", "", "w", "s"));
 		if (this.player_no >= 1)  // right paddle
 			this.entity.push(new Paddle(w - b*3/2, h/2, b, h*0.2, s,
+				Pong.canvas.width, Pong.canvas.height,
 				"", "", "ArrowUp", "ArrowDown"));
-		
-		// draw all entities
-		for (const e of this.entity)
-			e.draw()
 	}
 	
 	// clear all the entities in the game
@@ -156,18 +159,31 @@ class Pong {
 		
 		// update all the entities in the game
 		for (const entity of this.entity)
+		{
 			entity.update();
+			entity.draw(Pong.canvas);
+		}
 	}
 	
 	// start a new game
 	start(): void {
 		this.collide();	// detect collision among all the entities in the game
-		this.update();	// update velocity and redraw all entities
+		this.update();	// update velocity
 		
 		// game over if ball is outside the canvas
 		if (!this.ball.in_canvas())
 		{
-			this.scoreboard.add(this.ball);
+			let loser: number;
+			if (this.ball.x > Pong.canvas.width)
+				loser = 0;
+			else if (this.ball.x < 0)
+				loser = 1;
+			else if (this.ball.y > Pong.canvas.height)
+				loser = 2;
+			else if (this.ball.y < 0)
+				loser = 3;
+			
+			this.scoreboard.add(loser);
 			console.log("Score!");
 			this.isRunning = false;
 			
@@ -175,6 +191,8 @@ class Pong {
 			this.entities_clear();
 			this.reset_background();
 			this.entities_init();
+			for (const entity of this.entity)
+				entity.draw(Pong.canvas);
 		}
 		
 		requestAnimationFrame(this.start.bind(this));
@@ -192,20 +210,13 @@ class ScoreBoard{
 	}
 	
 	// add scores players depending to score location.
-	add(ball: Ball) {
+	add(loser: number) {
 		// add 1 point for all players
 		for (const i in this.score)
 			++this.score[i];
 		
 		// subtract 1 point for loser
-		if (ball.x > Pong.canvas.width)
-			--this.score[0];
-		if (ball.x < 0)
-			--this.score[1];
-		if (ball.y > Pong.canvas.height)
-			--this.score[2];
-		if (ball.y < 0)
-			--this.score[3];
+		--this.score[loser];
 		
 		// Do something if there's a winner
 		const winner = this.get_winner();
@@ -216,50 +227,51 @@ class ScoreBoard{
 	}
 	
 	// draw in all entities
-	draw() {
-		Pong.ctx.save();
-		Pong.ctx.setLineDash([10, 10]);
-		Pong.ctx.fillStyle = 'lightgrey';
-		Pong.ctx.strokeStyle = 'lightgrey';
-		Pong.ctx.lineWidth = 5;
+	draw(canvas: HTMLCanvasElement) {
+		const ctx: CanvasRenderingContext2D = canvas.getContext('2d');
+		ctx.save();
+		ctx.setLineDash([10, 10]);
+		ctx.fillStyle = 'lightgrey';
+		ctx.strokeStyle = 'lightgrey';
+		ctx.lineWidth = 5;
 		if (this.player_no <= 2) {
 			// draw line
-			Pong.ctx.beginPath();
-			Pong.ctx.moveTo(Pong.canvas.width / 2, 0);
-			Pong.ctx.lineTo(Pong.canvas.width / 2, Pong.canvas.height);
-			Pong.ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(canvas.width / 2, 0);
+			ctx.lineTo(canvas.width / 2, canvas.height);
+			ctx.stroke();
 			
 			// draw scores
 			if (this.player_no == 2) {
-				Pong.ctx.fillText(this.score[0].toString(),
-					Pong.canvas.width * 0.9, Pong.canvas.height * 0.2);
-				Pong.ctx.fillText(this.score[1].toString(),
-					Pong.canvas.width * 0.1, Pong.canvas.height * 0.2);
+				ctx.fillText(this.score[0].toString(),
+					canvas.width * 0.9, canvas.height * 0.2);
+				ctx.fillText(this.score[1].toString(),
+					canvas.width * 0.1, canvas.height * 0.2);
 			}
 		}
 		else if (this.player_no <= 4) {
 			// draw lines
-			Pong.ctx.beginPath();
-			Pong.ctx.moveTo(0, 0);
-			Pong.ctx.lineTo(Pong.canvas.width, Pong.canvas.height);
-			Pong.ctx.stroke();
-			Pong.ctx.beginPath();
-			Pong.ctx.moveTo(0, Pong.canvas.height);
-			Pong.ctx.lineTo(Pong.canvas.width, 0);
-			Pong.ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(0, 0);
+			ctx.lineTo(canvas.width, canvas.height);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(0, canvas.height);
+			ctx.lineTo(canvas.width, 0);
+			ctx.stroke();
 			
 			// draw scores
-			Pong.ctx.fillText(this.score[0].toString(),
-				Pong.canvas.width * 0.9, Pong.canvas.height * 0.2);
-			Pong.ctx.fillText(this.score[1].toString(),
-				Pong.canvas.width * 0.1, Pong.canvas.height * 0.8);
-			Pong.ctx.fillText(this.score[2].toString(),
-				Pong.canvas.width * 0.8, Pong.canvas.height * 0.9);
+			ctx.fillText(this.score[0].toString(),
+				canvas.width * 0.9, canvas.height * 0.2);
+			ctx.fillText(this.score[1].toString(),
+				canvas.width * 0.1, canvas.height * 0.8);
+			ctx.fillText(this.score[2].toString(),
+				canvas.width * 0.8, canvas.height * 0.9);
 			if (this.player_no == 4)
-				Pong.ctx.fillText(this.score[3].toString(),
-					Pong.canvas.width * 0.2, Pong.canvas.height * 0.1);
+				ctx.fillText(this.score[3].toString(),
+					canvas.width * 0.2, canvas.height * 0.1);
 		}
-		Pong.ctx.restore();
+		ctx.restore();
 	}
 	
 	/* Check whether any player has won. A player is deemed to have won
@@ -318,13 +330,12 @@ abstract class Entity {
 	get y_max(): number { return this.y + this.height / 2; }
 	
 	// abstract draw method to be implemented by derived classes
-	abstract draw(): void;
+	abstract draw(canvas: HTMLCanvasElement): void;
 	
 	// move to new position and redraw
 	update(): void {
 		this.x += this.vx;
 		this.y += this.vy;
-		this.draw();
 	}
 	
 	// collide this object with other object
@@ -369,9 +380,10 @@ abstract class Entity {
 // class for which rectangle-shaped entities can be derived from
 abstract class RectangleEntity extends Entity {
 	// draw the wall using the context
-	draw(): void {
-		Pong.ctx.fillStyle = this.colour;
-		Pong.ctx.fillRect(
+	draw(canvas: HTMLCanvasElement): void {
+		const ctx: CanvasRenderingContext2D = canvas.getContext('2d');
+		ctx.fillStyle = this.colour;
+		ctx.fillRect(
 			this.x - this.width/2, this.y - this.height/2,
 			this.width, this.height);
 	}
@@ -388,12 +400,13 @@ abstract class CircleEntity extends Entity {
 	}
 	
 	// draw the circle entity with the specified colour
-	draw(): void {
-		Pong.ctx.fillStyle = this.colour;
-		Pong.ctx.beginPath();
-		Pong.ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-		Pong.ctx.fill();
-		Pong.ctx.stroke();
+	draw(canvas: HTMLCanvasElement): void {
+		const ctx: CanvasRenderingContext2D = canvas.getContext('2d');
+		ctx.fillStyle = this.colour;
+		ctx.beginPath();
+		ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+		ctx.fill();
+		ctx.stroke();
 	}
 }
 
@@ -413,6 +426,8 @@ class Wall extends RectangleEntity {
 
 class Paddle extends RectangleEntity {
 	dv: number;
+	boundary_width: number;
+	boundary_height: number;
 	left: KeyboardEvent["key"];
 	right: KeyboardEvent["key"];
 	up: KeyboardEvent["key"];
@@ -420,12 +435,15 @@ class Paddle extends RectangleEntity {
 	
 	constructor(
 			x: number, y: number, width: number, height: number, dv: number,
+			boundary_width: number, boundary_height: number,
 			left: KeyboardEvent["key"],
 			right: KeyboardEvent["key"],
 			up: KeyboardEvent["key"],
 			down: KeyboardEvent["key"]) {
 		super(x, y, width, height, 0, 0);
 		this.dv = 2 * dv;
+		this.boundary_width = boundary_width,
+		this.boundary_height = boundary_height,
 		this.left = left;
 		this.right = right;
 		this.up = up;
@@ -453,10 +471,10 @@ class Paddle extends RectangleEntity {
 		
 		// prevent paddles from moving out of boundary
 		if ((this.vx < 0 && this.x_min <= 0)
-			|| (this.vx > 0 && this.x_max >= Pong.canvas.width))
+			|| (this.vx > 0 && this.x_max >= this.boundary_width))
 			this.vx = 0;
 		if ((this.vy < 0 && this.y_min <= 0)
-			|| (this.vy > 0 && this.y_max >= Pong.canvas.height))
+			|| (this.vy > 0 && this.y_max >= this.boundary_height))
 			this.vy = 0;
 	}
 	
@@ -472,6 +490,16 @@ class Paddle extends RectangleEntity {
 
 
 class Ball extends CircleEntity {
+	boundary_width: number;
+	boundary_height: number;
+	
+	constructor(x: number, y: number, radius: number, vx:number, vy:number,
+			boundary_width: number, boundary_height: number) {
+		super(x, y, radius, vx, vy);
+		this.boundary_width = boundary_width;
+		this.boundary_height = boundary_height;
+	}
+	
 	// ball always reflects upon collision
 	react(other: Entity,
 		left: boolean, right: boolean, top: boolean, bottom: boolean): void {
@@ -502,8 +530,8 @@ class Ball extends CircleEntity {
 	
 	// return true if ball is in canvas, false otherwise
 	in_canvas(): boolean {
-		return (0 <= this.x && this.x <= Pong.canvas.width
-			&& 0 <= this.y && this.y <= Pong.canvas.height);
+		return (0 <= this.x && this.x <= this.boundary_width
+			&& 0 <= this.y && this.y <= this.boundary_height);
 	}
 }
 
