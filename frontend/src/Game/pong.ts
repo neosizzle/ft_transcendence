@@ -82,44 +82,40 @@ class Pong {
 	
 	// initialise all entities in the game
 	entities_init(): void {
-		const width = Pong.canvas.width;
-		const height = Pong.canvas.height;
-		const border = Pong.canvas.width * 0.025;
+		const w = Pong.canvas.width;
+		const h = Pong.canvas.height;
+		const b = Pong.canvas.width * 0.025;
 		
 		// create the balls
-		const speed: number = width / 120;	// initial speed of ball
-		const y = (Math.random() - 0.5) * (height/2 - border) + height/2;
-		const vy = (Math.random() / 0.5 - 1) * speed * 2 / 3;
-		const vx = Math.sqrt(Math.pow(speed, 2) - Math.pow(vy, 2));
-		this.ball = new Ball(width/2, y, border/2, vx, vy);
+		const s: number = w / 120;	// initial speed of ball
+		const y = (Math.random() - 0.5) * (h/2 - b) + h/2;
+		const vy = (Math.random() / 0.5 - 1) * s * 2 / 3;
+		const vx = Math.sqrt(Math.pow(s, 2) - Math.pow(vy, 2));
+		this.ball = new Ball(w/2, y, b/2, vx, vy);
 		this.entity.push(this.ball);
 		
 		// create walls
-		if (this.player_no < 4)
-			this.entity.push(new Wall(width/2, border/2, width, border));
-		if (this.player_no < 3)
-			this.entity.push(new Wall(width/2, height - border/2, width, border));
-		if (this.player_no < 2)
-			this.entity.push(new Wall(border/2, height/2, border, height));
-		if (this.player_no < 1)
-			this.entity.push(new Wall(width - border/2, height/2, border, height));
+		if (this.player_no < 4)  // top wall
+			this.entity.push(new Wall(w/2, b/2, w, b));
+		if (this.player_no < 3)  // bottom wall
+			this.entity.push(new Wall(w/2, h - b/2, w, b));
+		if (this.player_no < 2)  // left wall
+			this.entity.push(new Wall(b/2, h/2, b, h));
+		if (this.player_no < 1)  // right wall
+			this.entity.push(new Wall(w - b/2, h/2, b, h));
 		
 		// create paddles
-		if (this.player_no >= 4)
-			this.entity.push(new Paddle(
-				width/2, border*3/2, height*0.2, border, speed,
+		if (this.player_no >= 4)  // top paddle
+			this.entity.push(new Paddle(w/2, b*3/2, h*0.2, b, s,
 				"a", "d", "", ""));
-		if (this.player_no >= 3)
-			this.entity.push(new Paddle(
-				width/2, height - border*3/2, height*0.2, border, speed,
+		if (this.player_no >= 3)  // bottom paddle
+			this.entity.push(new Paddle(w/2, h - b*3/2, h*0.2, b, s,
 				"ArrowLeft", "ArrowRight", "", ""));
-		if (this.player_no >= 2)
-			this.entity.push(new Paddle(
-				border*3/2, height/2, border, height*0.2, speed,
+		if (this.player_no >= 2)  // left paddle
+			this.entity.push(new Paddle(b*3/2, h/2, b, h*0.2, s,
 				"", "", "w", "s"));
-		if (this.player_no >= 1)
-			this.entity.push(new Paddle(
-				width - border*3/2, height/2, border, height*0.2, speed,
+		if (this.player_no >= 1)  // right paddle
+			this.entity.push(new Paddle(w - b*3/2, h/2, b, h*0.2, s,
 				"", "", "ArrowUp", "ArrowDown"));
 		
 		// draw all entities
