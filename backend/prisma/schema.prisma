@@ -17,5 +17,18 @@ model Movie {
   yearReleased Int
 }
 
+model User {
+  UserID   Int    @id @default(autoincrement())
+  Username String
+}
+
+model Chat {
+  id        Int      @id @default(autoincrement())
+  UserID    Int
+  // RoomID    Int        //{Not using for now, testing purposes only}
+  timestamp DateTime
+  message   String
+}
+
 // cant really split prisma files , apologies for the merge conflcits :(
 // https://github.com/prisma/prisma/issues/2377
