@@ -6,7 +6,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ListObject, ListQuery, validateListquery } from 'src/utils';
 import { FriendsDto, FriendsPatchDto } from './dto';
 
-// TODO what about the other way around??
 // TODO handle bad user status enum
 
 const CURR_USER = 1;
@@ -264,8 +263,8 @@ export class FriendsService {
         const friendship = await this.prisma.friendship.findFirst({
             where : {
                 id : id,
-                userId : user.id,
-                friendId : dto.friendId,
+                friendId : user.id,
+                userId : dto.friendId,
             }
         })
         if (!friendship) throw new NotFoundException();
@@ -276,6 +275,10 @@ export class FriendsService {
         const res = await this.prisma.friendship.update({
             where : {
                 id : id,
+            },
+            include : {
+                user : true,
+                friend : true
             },
             data : {
                 reqStatus : <FriendshipStatus>dto.reqStatus,
