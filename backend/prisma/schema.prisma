@@ -73,3 +73,10 @@ model Block {
   blocker        User                @relation(name: "blocker_users", fields: [blockerId], references: [id])
   blockee        User                @relation(name: "blocked_users", fields: [blockeeId], references: [id])
 }
+
+model OTP {
+  id             Int                 @id @default(autoincrement())
+  otp            String
+  exprationTime  DateTime
+  verified       Boolean             @default(false)
+}

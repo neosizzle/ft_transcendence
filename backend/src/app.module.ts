@@ -8,9 +8,10 @@ import { FriendsModule } from './friends/friends.module';
 import { BlocksModule } from './blocks/blocks.module';
 import { BucketModule } from './bucket/bucket.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { OtpModule } from './otp/otp.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, UsersModule, FriendsModule, BlocksModule, BucketModule],
+  imports: [AuthModule, PrismaModule, UsersModule, FriendsModule, BlocksModule, BucketModule, OtpModule],
   controllers: [AppController],
   providers: [AppService],
 })
