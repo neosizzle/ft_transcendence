@@ -1,7 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Friendship, FriendshipStatus, Prisma, User, UserStatus } from '@prisma/client';
-import { equals } from 'class-validator';
-import { count } from 'console';
+import { FriendshipStatus, Prisma, User, UserStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ListObject, ListQuery, validateListquery } from 'src/utils';
 import { FriendsDto, FriendsPatchDto } from './dto';
