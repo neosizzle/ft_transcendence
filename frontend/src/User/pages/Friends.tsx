@@ -5,12 +5,14 @@ import { useAuth, User } from "../../context/authContext";
 import { auth_net_get } from "../../utils";
 import Alert, { AlertType } from "../common/Alert";
 import FriendCard from "../common/FriendCard";
-import FriendsSearchBar from "../common/FriendsSearchBar";
+import SearchBar from "../common/SearchBar";
 import Pagination from "../common/Pagination";
+import PendingCard from "../common/PendingCard";
 import UnfriendModal from "../common/UnfriendModal";
+import CardLoader from "../common/CardLoader";
 
 const friendsEndpoint = `${API_ROOT}/friends`
-const PAGE_SIZE = 1;
+const PAGE_SIZE = 5;
 
 export interface FriendShip {
 	id?: number;
@@ -33,6 +35,10 @@ const Friends: FunctionComponent = () => {
 	const [currRemovingUser, setCurrRemovingUser] = useState<User | null>(null); //current user to unfriend
 	const [openAlert, setOpenAlert] = useState<AlertType>({type: "", isOpen: false}); //open alert box
 	const [alertMsg, setAlertMsg] = useState<string>(""); //alert message
+	const [friendsSearchInput, setFriendsSearchInput] = useState<string>("");// friends search input
+	const [pendingFriendsSearchInput, setPendingFriendsSearchInput] = useState<string>("");// pending friends search input
+	const [loading, setLoading] = useState<boolean>(false); // loading state for search operation
+	const [pendingUserAction, setPendingUserAction] = useState<User | null>(null); //current user where a pending action is resolved
 	const navigate = useNavigate();
 	const auth = useAuth();
 
@@ -41,42 +47,64 @@ const Friends: FunctionComponent = () => {
 		if (!currRemovingUser)
 		{
 			//get active friends 
-			auth_net_get(`${friendsEndpoint}?page=${currPage}&pageSize=${PAGE_SIZE}&filterOn=reqStatus&filterBy=APPROVED`)
+			setLoading(true);
+			setFriends(null);
+			auth_net_get(`${friendsEndpoint}?&page=${currPage}&pageSize=${PAGE_SIZE}&filterOn=reqStatus,username&filterBy=APPROVED,${friendsSearchInput}`)
 			.then(data => {
 				if (data.error && data.error == "Forbidden") return navigate("/logout");
-				// console.log(data)
 				setFriends(data.data)
 				setTotalFriends(data.total_elements)
+				setLoading(false);
 			})
 		}
-	}, [currPage, currRemovingUser])
+	}, [currPage, currRemovingUser, friendsSearchInput, pendingUserAction])
 	
 	// get data every pending friends page change
 	useEffect(() => {
 		
 		// get pending friends
-		auth_net_get(`${friendsEndpoint}?page=${currPage}&pageSize=${PAGE_SIZE}&filterOn=reqStatus&filterBy=PENDING`)
-		.then(data => {
-			if (data.error && data.error == "Forbidden") return navigate("/logout");
-			// console.log(data)
-			setPendingFriends(data.data)
-			setTotalPendingFriends(data.total_elements)
-		})
+		if (!currRemovingUser)
+		{
+			setLoading(true);
+			setFriends(null);
+			auth_net_get(`${friendsEndpoint}?page=${currPage}&pageSize=${PAGE_SIZE}&filterOn=reqStatus,username&filterBy=PENDING,${pendingFriendsSearchInput}`)
+			.then(data => {
+				if (data.error && data.error == "Forbidden") return navigate("/logout");
+				setLoading(false);
+				
+				// only take pending incoming requests
+				const filtered = data.data.filter((e : FriendShip) => e.friendId === auth?.user?.id)
+
+				setPendingFriends(filtered)
+				setTotalPendingFriends(data.total_elements)
+			})
+		}
 			
-	}, [currPendingPage])
+	}, [currPendingPage, currRemovingUser, pendingFriendsSearchInput, pendingUserAction])
 	
 
 	return ( 
 		<div>
 			{/* Searchbar */}
-			<FriendsSearchBar setFriends={setFriends}/>
+			<SearchBar label = "Search by username" setSearchInput={setFriendsSearchInput} loading = {loading}/>
 
 			{
 				!friends ? 
-				<div>getting data...</div>
+				<CardLoader/>
 				:
 				friends.length < 1 ? 
-				<div>no friends..</div>
+				<div
+				className="
+				w-full
+				flex
+				justify-center
+				"
+				>
+					<div className="w-10/12 mt-4 bg-white rounded-lg border border-gray-200 shadow-md p-10 flex flex-col justify-center items-center ">
+						<img className="block h-20 sm:h-96 w-auto rounded" src="/assets/rock-sus.gif" alt="Workflow" />
+						<div className="text-xl sm:text-2xl mt-6">You have no friends.</div>
+					</div>
+				</div>
 				:
 				<div>
 
@@ -113,6 +141,51 @@ const Friends: FunctionComponent = () => {
 						openAlert.isOpen ? 
 						<Alert alert = {openAlert} setOpenAlert={setOpenAlert} message={alertMsg}/> : 
 						null
+					}
+				</div>
+			}
+
+			<div className="mt-6 flex justify-center w-full">
+				<p className="text-2xl block w-10/12">Pending requests</p>
+			</div>
+			{
+				!pendingFriends ? 
+				<CardLoader/>
+				:
+				pendingFriends.length < 1 ? 
+				<div
+				className="
+				w-full
+				flex
+				justify-center
+				"
+				>
+					<div className="w-10/12 mb-40 sm:mb-0 mt-4 bg-white rounded-lg border border-gray-200 shadow-md p-10 flex flex-col justify-center items-center ">
+						{
+							(new Date()).getHours() < 13 ?
+							<img className="block h-20 sm:h-96 w-auto rounded" src="/assets/goodmorning.gif" alt="Workflow" />
+							:
+							<img className="block h-20 sm:h-96 w-auto rounded" src="/assets/goodevening.gif" alt="Workflow" />
+						}
+						<div className="text-xl sm:text-2xl mt-6">You have no pending requests.</div>
+					</div>
+				</div>
+				:
+				<div className="pb-20 sm:pb-0">
+
+					{/* pending Searchbar */}
+					<SearchBar label = "Search by username" setSearchInput={setPendingFriendsSearchInput} loading = {loading}/>
+
+					{/* Friendslist */}
+					{
+						pendingFriends.map((elem) => {
+							return <PendingCard setPendingUserAction={setPendingUserAction} friendship={elem} currUser={auth?.user} key={elem.id}/>
+						})
+					}
+
+					{/* Pagination */}
+					{
+						<Pagination setCurrPage={setCurrPendingPage} currPage = {currPendingPage} totalElements = {totalPendingFriends} pageSize={PAGE_SIZE}/>
 					}
 				</div>
 			}

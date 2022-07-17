@@ -15,7 +15,7 @@ const Navbar = () => {
                 {/* Icon left */}
                 <div className="flex-shrink-0 flex items-center">
                   <Link to="/" className="" aria-current="page">
-                  <img className="block h-10 w-auto" src="/assets/logo/42logo.png" alt="Workflow" />
+                  <img className="block h-10 w-auto" src="/assets/logo/42logo.png" alt="42logo" />
                   </Link>
                 </div>
 

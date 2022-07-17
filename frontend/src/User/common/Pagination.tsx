@@ -10,14 +10,28 @@ interface PaginationProps {
 interface PaginationBtnProps {
 	children : React.ReactNode;
 	onClick: MouseEventHandler;
+	borderless? : boolean;
+	active? : boolean;
 }
 
 const MAX_INT = 2147483647;
 const FORWARD = 0;
 const BACKWARD = 1;
 
-const PaginationBtn: FunctionComponent<PaginationBtnProps>  = ({children, onClick}) => {
-	return <button onClick={onClick}>
+const BackIcon = () => {
+	return <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+	<path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+  </svg>
+}
+
+const FrontIcon = () => {
+	return <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+	<path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+  </svg>
+}
+
+const PaginationBtn: FunctionComponent<PaginationBtnProps>  = ({children, onClick, borderless, active}) => {
+	return <button onClick={onClick} className={`${active ? "bg-slate-500 text-white" : "bg-transparent text-slate-700"} font-semibold py-1 px-2 text-xs sm:text-base sm:py-2 sm:px-4 ${!borderless ? "border border-slate-500" : "border-0"} rounded`}>
 		{children}
 	</button>
 }
@@ -26,6 +40,7 @@ const Pagination: FunctionComponent<PaginationProps> = ({setCurrPage, currPage, 
 	const [totalPages, setTotalPages] = useState<number>(Math.ceil(totalElements / pageSize));
 	const [displayedPages, setDisplayedPages] = useState<number[]>([...Array(5)].fill(MAX_INT));
 
+	// reevaluate displayed pages
 	useEffect(() => {
 		const newDisplayedPages : number[] = [...Array(5)].fill(MAX_INT);
 
@@ -33,9 +48,14 @@ const Pagination: FunctionComponent<PaginationProps> = ({setCurrPage, currPage, 
 			if (i < totalPages)
 				newDisplayedPages[i] = i + 1;
 		})
-		// console.log("displaypages ",newDisplayedPages)
 		setDisplayedPages(newDisplayedPages);
-	}, [])
+	}, [totalPages])
+
+	//reevaluate total pages
+	useEffect(() => {
+		setTotalPages(Math.ceil(totalElements / pageSize));
+	}, [totalElements, pageSize])
+	
 
 	/**
 	 * Function that handles front / back shifting when the ... button is clicked
@@ -62,30 +82,44 @@ const Pagination: FunctionComponent<PaginationProps> = ({setCurrPage, currPage, 
 			<div
 			className="
 			w-4/5
+			flex
+			justify-between
 			"
 			>
-				<PaginationBtn onClick={()=>{{
-					if (currPage == 1) return
-					if (currPage === displayedPages[0]) return handleShift(BACKWARD);
-					setCurrPage(currPage - 1);
-				}}}> back </PaginationBtn>
-				<br/>
-				{displayedPages[0] != MAX_INT && displayedPages[0] > 1? <PaginationBtn onClick={()=>handleShift(BACKWARD)}> ...</PaginationBtn> : null }
-				{
-					displayedPages.map((e)=>{
-						if (e != MAX_INT)
-							return <div key = {e}><PaginationBtn onClick={()=>setCurrPage(e)}>{e} {currPage === e ? "active" : null}</PaginationBtn></div>
-						return null;
-					})
-				}
-				{displayedPages[displayedPages.length - 1] < totalPages? <PaginationBtn onClick={()=>handleShift(FORWARD)}>...</PaginationBtn> : null }
-				<br/>
-				<PaginationBtn onClick={()=>{{
-					if (currPage == totalPages) return
-					if (currPage === displayedPages[displayedPages.length - 1]) return handleShift(FORWARD);
-					setCurrPage(currPage + 1);
-				}}}> front </PaginationBtn>
-				{/* {totalPages}  */}
+				<div>
+					{currPage * pageSize - (pageSize - 1)} - {currPage * pageSize > totalElements ? totalElements : currPage * pageSize} out of {totalElements} items
+				</div>
+
+				<div>
+					{/* Backward button */}
+					<PaginationBtn
+					borderless
+					onClick={()=>{{
+						if (currPage == 1) return
+						if (currPage === displayedPages[0]) return handleShift(BACKWARD);
+						setCurrPage(currPage - 1);
+					}}}> <BackIcon/> </PaginationBtn>
+
+					{/* Page numbers */}
+					{displayedPages[0] != MAX_INT && displayedPages[0] > 1? <PaginationBtn borderless onClick={()=>handleShift(BACKWARD)}> ...</PaginationBtn> : null }
+					{
+						displayedPages.map((e)=>{
+							if (e != MAX_INT)
+								return <PaginationBtn key={e} onClick={()=>setCurrPage(e)} active = {currPage === e}>{e}</PaginationBtn>
+							return null;
+						})
+					}
+					{displayedPages[displayedPages.length - 1] < totalPages? <PaginationBtn borderless onClick={()=>handleShift(FORWARD)}>...</PaginationBtn> : null }
+					
+					{/* Forward button */}
+					<PaginationBtn
+					borderless
+					onClick={()=>{{
+						if (currPage == totalPages) return
+						if (currPage === displayedPages[displayedPages.length - 1]) return handleShift(FORWARD);
+						setCurrPage(currPage + 1);
+					}}}> <FrontIcon/> </PaginationBtn>
+				</div>
 			</div>
 		</div>
 	);
