@@ -1,6 +1,7 @@
 import React, { FunctionComponent } from "react";
 import { Route, Routes } from "react-router-dom";
 import Blocks from "./pages/Blocks";
+import Edit from "./pages/Edit";
 import Friends from "./pages/Friends";
 import Profile from "./pages/Profile";
 
@@ -11,7 +12,7 @@ const UserDashboard: FunctionComponent = () => {
 			<Routes>
 				<Route path = "profile/:id" element = {<Profile/>}/>
 				<Route path = "friends" element = {<Friends/>}/>
-				<Route path = "edit" element = {<div>EDIT_ACTIVE </div>}/>
+				<Route path = "edit" element = {<Edit/>}/>
 				<Route path = "search" element = {<div>search_ACTIVE </div>}/>
 				<Route path = "blocks" element = {<div><Blocks/> </div>}/>
 			</Routes>	
