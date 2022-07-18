@@ -1,8 +1,8 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { User } from "../../context/authContext";
-import { FriendShip } from "../pages/Friends";
-import { IngameBadge, OfflineBadge, OnlineBadge } from "./Badges";
+import { User } from "../../../../context/authContext";
+import { FriendShip } from "../Friends";
+import { IngameBadge, OfflineBadge, OnlineBadge } from "../../../common/Badges";
 
 interface FriendCardProps {
 	friendship?: FriendShip;

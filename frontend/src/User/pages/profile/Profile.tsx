@@ -1,12 +1,12 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { useAuth, User } from "../../context/authContext";
-import LevelBar from "../common/LevelBar";
-import MatchHistoryTable from "../common/MatchHistoryTable";
+import { useAuth, User } from "../../../context/authContext";
+import LevelBar from "../../common/LevelBar";
+import MatchHistoryTable from "../../common/MatchHistoryTable";
 import moment from 'moment';
 import { useLocation, useNavigate } from "react-router-dom";
-import { auth_net_get } from "../../utils";
-import { API_ROOT } from "../../constants";
-import { IngameBadge, OfflineBadge, OnlineBadge } from "../common/Badges";
+import { auth_net_get } from "../../../utils";
+import { API_ROOT } from "../../../constants";
+import { IngameBadge, OfflineBadge, OnlineBadge } from "../../common/Badges";
 
 const userEndpoint = `${API_ROOT}/users?page=1&pageSize=1`
 

@@ -1,11 +1,11 @@
 import React, { FunctionComponent, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_ROOT } from "../../constants";
-import { User } from "../../context/authContext";
-import { auth_net_delete } from "../../utils";
-import { AlertType } from "./Alert";
+import { API_ROOT } from "../../../../constants";
+import { User } from "../../../../context/authContext";
+import { auth_net_delete } from "../../../../utils";
+import { AlertType } from "../../../common/Alert";
 
-interface UnblockModalProps {
+interface UnfriendModalProps {
 	currRemovingUser: User | null;
 	setCurrRemovingUser: React.Dispatch<React.SetStateAction<User | null >>;
 	setCurrPage: React.Dispatch<React.SetStateAction<number>>;
@@ -14,9 +14,9 @@ interface UnblockModalProps {
 
 }
 
-const blocksEndpoint = `${API_ROOT}/blocks`
+const friendsEndpoint = `${API_ROOT}/friends`
 
-const UnblockModal: FunctionComponent<UnblockModalProps> = ({setCurrRemovingUser, setCurrPage, currRemovingUser, setAlertMsg, setOpenAlert}) => {
+const UnfriendModal: FunctionComponent<UnfriendModalProps> = ({setCurrRemovingUser, setCurrPage, currRemovingUser, setAlertMsg, setOpenAlert}) => {
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState<boolean>(false);
 
@@ -31,17 +31,17 @@ const UnblockModal: FunctionComponent<UnblockModalProps> = ({setCurrRemovingUser
 				</button>
 				<div className="p-6 text-center">
 					<svg className="mx-auto mb-4 text-gray-400 w-14 h-14 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-					<h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Are you sure you want to unblock <span className="font-medium">{currRemovingUser?.username}</span>?</h3>
+					<h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Are you sure you want to unfriend <span className="font-medium">{currRemovingUser?.username}</span>?</h3>
 					<button onClick={()=>{
 						if (loading) return ;
 						setLoading(true)
-						auth_net_delete(`${blocksEndpoint}/${currRemovingUser?.id}`)
+						auth_net_delete(`${friendsEndpoint}/${currRemovingUser?.id}`)
 						.then(data => {
 							if (data.error && data.error === "Forbidden") navigate("/logout")
 							setLoading(false)
 							setCurrRemovingUser(null);
 							setCurrPage(1);
-							setAlertMsg("Unblock successful");
+							setAlertMsg("Unfriend successful");
 							setOpenAlert({type: "success" , isOpen : true});
 						})
 						
@@ -59,4 +59,4 @@ const UnblockModal: FunctionComponent<UnblockModalProps> = ({setCurrRemovingUser
 	);
 }
  
-export default UnblockModal;
+export default UnfriendModal;

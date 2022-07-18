@@ -1,10 +1,10 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { API_ROOT, TOKEN_KEY } from "../../constants";
-import { User } from "../../context/authContext";
-import { auth_net_patch } from "../../utils";
-import { FriendShip } from "../pages/Friends";
-import { IngameBadge, OfflineBadge, OnlineBadge } from "./Badges";
+import { API_ROOT } from "../../../../constants";
+import { User } from "../../../../context/authContext";
+import { auth_net_patch } from "../../../../utils";
+import { FriendShip } from "../Friends";
+import { IngameBadge, OfflineBadge, OnlineBadge } from "../../../common/Badges";
 
 interface PendingCardProps {
 	friendship?: FriendShip;

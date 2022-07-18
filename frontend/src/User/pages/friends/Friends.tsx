@@ -1,15 +1,15 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_ROOT } from "../../constants";
-import { useAuth, User } from "../../context/authContext";
-import { auth_net_get } from "../../utils";
-import Alert, { AlertType } from "../common/Alert";
-import FriendCard from "../common/FriendCard";
-import SearchBar from "../common/SearchBar";
-import Pagination from "../common/Pagination";
-import PendingCard from "../common/PendingCard";
-import UnfriendModal from "../common/UnfriendModal";
-import CardLoader from "../common/CardLoader";
+import { API_ROOT } from "../../../constants";
+import { useAuth, User } from "../../../context/authContext";
+import { auth_net_get } from "../../../utils";
+import Alert, { AlertType } from "../../common/Alert";
+import FriendCard from "./components/FriendCard"
+import SearchBar from "../../common/SearchBar";
+import Pagination from "../../common/Pagination";
+import PendingCard from "./components/PendingCard";
+import UnfriendModal from "./components/UnfriendModal";
+import CardLoader from "../../common/CardLoader";
 
 const friendsEndpoint = `${API_ROOT}/friends`
 const PAGE_SIZE = 5;

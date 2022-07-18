@@ -1,16 +1,14 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_ROOT } from "../../constants";
-import { useAuth, User } from "../../context/authContext";
-import { auth_net_get } from "../../utils";
-import Alert, { AlertType } from "../common/Alert";
-import FriendCard from "../common/FriendCard";
-import SearchBar from "../common/SearchBar";
-import Pagination from "../common/Pagination";
-import UnfriendModal from "../common/UnfriendModal";
-import BlockCard from "../common/BlockCard";
-import UnblockModal from "../common/UnblockModal";
-import CardLoader from "../common/CardLoader";
+import { API_ROOT } from "../../../constants";
+import { useAuth, User } from "../../../context/authContext";
+import { auth_net_get } from "../../../utils";
+import Alert, { AlertType } from "../../common/Alert";
+import SearchBar from "../../common/SearchBar";
+import Pagination from "../../common/Pagination";
+import BlockCard from "./components/BlockCard";
+import UnblockModal from "./components/UnblockModal";
+import CardLoader from "../../common/CardLoader";
 
 const blocksEndpoint = `${API_ROOT}/blocks`;
 const PAGE_SIZE = 5;

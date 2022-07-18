@@ -1,9 +1,9 @@
 import React, { FunctionComponent } from "react";
 import { Route, Routes } from "react-router-dom";
-import Blocks from "./pages/Blocks";
-import Edit from "./pages/Edit";
-import Friends from "./pages/Friends";
-import Profile from "./pages/Profile";
+import Blocks from "./pages/blocks/Blocks";
+import Edit from "./pages/edit/Edit"
+import Friends from "./pages/friends/Friends"
+import Profile from "./pages/profile/Profile";
 
 const UserDashboard: FunctionComponent = () => {
 

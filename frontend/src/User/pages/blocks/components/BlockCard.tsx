@@ -1,8 +1,8 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { User } from "../../context/authContext";
-import { Block } from "../pages/Blocks";
-import { IngameBadge, OfflineBadge, OnlineBadge } from "./Badges";
+import { User } from "../../../../context/authContext";
+import { Block } from "../Blocks";
+import { IngameBadge, OfflineBadge, OnlineBadge } from "../../../common/Badges";
 
 interface BlockCardProps {
 	block?: Block;

@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useState } from "react";
-import UploadimgModal from "./UploadImgModal";
+import UploadImgModal from "./UploadImgModal";
 
 interface EditAvatarProps {
 	currAvatar :  string;
@@ -39,8 +39,9 @@ const EditAvatar: FunctionComponent<EditAvatarProps> = ({currAvatar, setCurrAvat
 				{/* Upload image modal */}
 				{
 					openUploadModal ? 
-					<UploadimgModal
+					<UploadImgModal
 					setOpenUploadModal={setOpenUploadModal}
+					setCurrAvatar={setCurrAvatar}
 					/>
 					:
 					null

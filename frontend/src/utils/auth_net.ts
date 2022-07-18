@@ -6,15 +6,23 @@ export const auth_net_get = async (url : string) =>
 	return res.json()
 }
 
-export const auth_net_post = async (url : string, body : any) =>
+export const auth_net_post = async (url : string, body : unknown, formBody? : boolean) =>
 {
-	const res = await fetch(url, {method : "POST", headers : {"Authorization" : `Bearer ${localStorage.getItem(TOKEN_KEY)}`, "Content-Type" : "application/json"}, body : JSON.stringify(body)})
+	let	res : Response;
+	if (formBody)
+		res = await fetch(url, {method : "POST", headers : {"Authorization" : `Bearer ${localStorage.getItem(TOKEN_KEY)}`}, body : <BodyInit>body})
+	else
+		res = await fetch(url, {method : "POST", headers : {"Authorization" : `Bearer ${localStorage.getItem(TOKEN_KEY)}`, "Content-Type" : "application/json"}, body : JSON.stringify(body)})
 	return res.json()
 }
 
-export const auth_net_patch = async (url : string, body : any) =>
+export const auth_net_patch = async (url : string, body : unknown, formBody? : boolean) =>
 {
-	const res = await fetch(url, {method : "PATCH", headers : {"Authorization" : `Bearer ${localStorage.getItem(TOKEN_KEY)}`, "Content-Type" : "application/json"}, body : JSON.stringify(body)})
+	let	res : Response;
+	if (formBody)
+		res = await fetch(url, {method : "PATCH", headers : {"Authorization" : `Bearer ${localStorage.getItem(TOKEN_KEY)}`}, body : <BodyInit>body})
+	else
+		res = await fetch(url, {method : "PATCH", headers : {"Authorization" : `Bearer ${localStorage.getItem(TOKEN_KEY)}`, "Content-Type" : "application/json"}, body : JSON.stringify(body)})
 	return res.json()
 }
 
