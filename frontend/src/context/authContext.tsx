@@ -29,8 +29,9 @@ interface Props {
 interface AuthCtx {
     // user : User | string | null,
 	user : User | null,
-	login: (code : string | null) => void ,
-	logout: () => void
+	login: (code? : string | null) => void ,
+	logout: () => void,
+	reset: () => void
 }
 
 const AuthContext = createContext<AuthCtx | null>(null);
@@ -39,7 +40,7 @@ export const AuthProvider = (props : Props) => {
 	// const [user, setUser] = useState<User | string | null>(null);
 	const [user, setUser] = useState<User | null>(null);
 
-	const login = async (code : string | null) => {
+	const login = async (code? : string | null) => {
 		// alert(code) // uncomment this to obtain the code for backend testing. Usable only once.
 		if (!code)
 		{
@@ -57,9 +58,12 @@ export const AuthProvider = (props : Props) => {
 		auth_net_get(logoutEndpoint)
 		localStorage.removeItem(TOKEN_KEY)
 	}
+	const reset = async () => {
+		await login();
+	}
 
 	return (
-		<AuthContext.Provider value = {{user, login, logout}}>
+		<AuthContext.Provider value = {{user, login, logout, reset}}>
 			{props.children}
 		</AuthContext.Provider>
 	)
