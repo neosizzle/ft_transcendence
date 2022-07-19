@@ -8,7 +8,14 @@ services:
     container_name: ft_transcendence-web
     restart: always
     environment:
+      - API_UID_42=${API_UID_42}
+      - API_SECRET_42=${API_SECRET_42}
+      - API_REDIR_URI_42=${API_REDIR_URI_42}
+      - API_HOST_42=${API_HOST_42}
       - DATABASE_URL=${DATABASE_URL}
+      - AES_KEY_OTP=${AES_KEY_OTP}
+      - NODEMAILER_EMAIL=${NODEMAILER_EMAIL}
+      - NODEMAILER_PASS=${NODEMAILER_PASS}
     ports:
       - 3001:3001 #webserver (change this port on prod)
       - 5555:5555 #prisma studio (change this port on prod)
