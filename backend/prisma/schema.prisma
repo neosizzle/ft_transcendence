@@ -12,3 +12,71 @@ datasource db {
 
 // cant really split prisma files , apologies for the merge conflcits :(
 // https://github.com/prisma/prisma/issues/2377
+
+enum UserStatus {
+  LOGGEDIN
+  OFFLINE
+  INGAME
+}
+
+enum FriendshipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id        Int           @id @default(autoincrement())
+  email     String?       @unique
+  avatar    String?
+  status    UserStatus    @default(LOGGEDIN)
+  level     Float         @default(0.0)
+  username  String        @unique
+  intraID   String
+  intraName String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  // feel free to add relations to your needs
+  auth              Auth[]
+  userFriends       Friendship[] @relation(name: "users")
+  friendUserFriends Friendship[] @relation(name: "friend_users")
+  userBlockers      Block[] @relation(name: "blocker_users")
+  userBlocked       Block[] @relation(name: "blocked_users")
+}
+
+model Auth {
+    id        Int           @id @default(autoincrement())
+    token     String
+    expiresAt DateTime
+    userId    Int           @unique
+    user      User          @relation(fields: [userId], references: [id])
+}
+
+model Friendship {
+  id             Int                 @id @default(autoincrement())
+  reqStatus      FriendshipStatus    @default(PENDING)
+  userId         Int
+  friendId       Int
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  user           User                @relation(name: "users", fields: [userId], references: [id])
+  friend         User                @relation(name: "friend_users", fields: [friendId], references: [id])
+}
+
+model Block {
+  id             Int                 @id @default(autoincrement())
+  blockerId      Int
+  blockeeId      Int
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  blocker        User                @relation(name: "blocker_users", fields: [blockerId], references: [id])
+  blockee        User                @relation(name: "blocked_users", fields: [blockeeId], references: [id])
+}
+
+model OTP {
+  id             Int                 @id @default(autoincrement())
+  otp            String
+  exprationTime  DateTime
+  verified       Boolean             @default(false)
+}
