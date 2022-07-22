@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User, UserStatus } from '@prisma/client';
 import * as moment from "moment";
+import { MailService } from 'src/mail/mail.service';
 
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -25,7 +26,7 @@ interface UserInfo {
 
 @Injectable()
 export class AuthService {
-	constructor(private prisma : PrismaService, private config : ConfigService){}
+	constructor(private prisma : PrismaService, private config : ConfigService, private mail : MailService){}
 
 	/**
 	 * gets access token via 42 oauth api
@@ -143,6 +144,10 @@ export class AuthService {
 			create : {expiresAt: expiresAt.toISOString(), token: tokenInfo.access_token, userId: user.id},
 			update: {expiresAt: expiresAt.toISOString(), token: tokenInfo.access_token}
 		})
+
+		// send email to uer if user has email
+		if (user.email)
+			this.mail.sendEmail(user.email, `New login to your 42Pong account at ${new Date().toDateString()} ${new Date().toTimeString()}`, "New login to 42Pong account");
 
 		// return access token and expire date
 		return {data : {token : auth.token, expiresAt : auth.expiresAt}}

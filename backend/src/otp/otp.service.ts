@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { OtpRequestDto, OtpVerifyDto } from './dto/otp.dto';
-import { OTP, User } from '@prisma/client';
+import { OTP } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import * as CryptoJS from "crypto-js";
 import * as otpGenerator from "otp-generator";
-import * as Nodemailer from "nodemailer"
+import { MailService } from 'src/mail/mail.service';
 
 interface OTPKey {
 	id : number;
@@ -40,31 +40,9 @@ const decodeEncKey = (key: string, secret: string) =>
 	return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
 };
 
-const sendEmail = async (from : string, to: string, content: string, subject : string, password :  string) =>
-{
-	// create reusable transporter object using the default SMTP transport
-	const transporter = Nodemailer.createTransport({
-		service: 'gmail',
-		auth: {
-		user: from,
-		pass: password,
-	},
-	});
-
-	// send mail with defined transport object
-	const info = await transporter.sendMail({
-		from: from, // sender address
-		to : to, // list of receivers
-		subject: subject, // Subject line
-		text: content, // plain text body
-	});
-
-	console.log("Message sent: %s", info.messageId);
-}
-
 @Injectable()
 export class OtpService {
-	constructor(private prisma : PrismaService, private config : ConfigService){}
+	constructor(private prisma : PrismaService, private config : ConfigService, private mailService : MailService){}
 
 	// request otp
 	async requestOtp(dto : OtpRequestDto)
@@ -90,7 +68,7 @@ export class OtpService {
 		})
 
 		// send otp via email
-		await sendEmail(this.config.get("NODEMAILER_EMAIL"), dto.email, `Your otp is ${otp} `, "42Pong OTP", this.config.get("NODEMAILER_PASS"));
+		await this.mailService.sendEmail(dto.email, `Your otp is ${otp} `, "42Pong OTP",);
 		return {data : {key : genEncKey(res.id, res, dto.email, this.config.get('AES_KEY_OTP')), check: dto.email }}
 	}
 

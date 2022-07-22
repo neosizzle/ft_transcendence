@@ -7,12 +7,14 @@ import { UsersModule } from './users/users.module';
 import { FriendsModule } from './friends/friends.module';
 import { BlocksModule } from './blocks/blocks.module';
 import { BucketModule } from './bucket/bucket.module';
-import { MulterModule } from '@nestjs/platform-express';
 import { OtpModule } from './otp/otp.module';
+import { MailService } from './mail/mail.service';
+import { MailModule } from './mail/mail.module';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
-  imports: [AuthModule, PrismaModule, UsersModule, FriendsModule, BlocksModule, BucketModule, OtpModule],
+  imports: [AuthModule, PrismaModule, UsersModule, FriendsModule, BlocksModule, BucketModule, OtpModule, MailModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, MailService, ConfigService],
 })
 export class AppModule {}
