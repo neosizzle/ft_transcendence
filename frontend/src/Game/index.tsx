@@ -1,7 +1,7 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
+import useCanvas from './useCanvas'
 
 const Game = (props: any) => {
-	const canvasRef = useRef<HTMLCanvasElement>(null);
 	
 	const draw = (ctx: CanvasRenderingContext2D, frameCount: number) => {
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
@@ -11,32 +11,7 @@ const Game = (props: any) => {
 		ctx.fill()
 	}
 	
-	// Effect Hook performs side effect in function components
-	useEffect(() => {
-		const canvas = canvasRef.current;
-		if (canvas == null)
-			return ;
-		
-		const context = canvas.getContext('2d');
-		if (context == null)
-			return ;
-		
-		let frameCount = 0;
-		let animationFrameId: number;
-		
-		const render = () => {
-			++frameCount;
-			draw(context, frameCount);
-			animationFrameId = window.requestAnimationFrame(render);
-		}
-		render();
-		
-		return () => {
-			// ensure animation frame is cancelled after canvas is unmounted
-			window.cancelAnimationFrame(animationFrameId)
-		}
-		
-		}, [draw]);
+	const canvasRef = useCanvas(draw);
 	
 	return (
 		<canvas
