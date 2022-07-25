@@ -56,8 +56,9 @@ class Canvas {
 
 // class representing the Pong game
 class Pong {
-	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
+	private width: number;
+	private height: number;
 	private ball: Ball;
 	private entity: Entity[] = [];
 	private	isRunning: boolean;
@@ -65,8 +66,9 @@ class Pong {
 	private scoreboard: ScoreBoard;
 	
 	constructor(canvas: HTMLCanvasElement, player_no: number) {
-		this.canvas = canvas;
-		this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+		this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+		this.width = canvas.width;
+		this.height = canvas.height;
 		this.isRunning = false;
 		
 		// record the number of players
@@ -77,25 +79,25 @@ class Pong {
 		// create a scoreboard
 		this.scoreboard = new ScoreBoard(player_no);
 		
-		this.reset_background();
+		this.reset_background(this.ctx);
 		this.entities_init();
 		for (const entity of this.entity)
-			entity.draw(this.canvas);
+			entity.draw(this.width, this.height, this.ctx);
 		requestAnimationFrame(this.start.bind(this));
 	}
 	
 	// reset the background with the background colour
-	reset_background(): void {
-		this.ctx.fillStyle = "black";
-		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		this.scoreboard.draw(this.canvas);
+	reset_background(ctx: CanvasRenderingContext2D): void {
+		ctx.fillStyle = "black";
+		ctx.fillRect(0, 0, this.width, this.height);
+		this.scoreboard.draw(this.width, this.height, this.ctx);
 	}
 	
 	// initialise all entities in the game
 	entities_init(): void {
-		const w = this.canvas.width;
-		const h = this.canvas.height;
-		const b = this.canvas.width * 0.025;
+		const w = this.width;
+		const h = this.height;
+		const b = this.width * 0.025;
 		
 		// create the balls
 		const s: number = w / 120;	// initial speed of ball
@@ -103,7 +105,7 @@ class Pong {
 		const vy = (Math.random() / 0.5 - 1) * s * 2 / 3;
 		const vx = Math.sqrt(Math.pow(s, 2) - Math.pow(vy, 2));
 		this.ball = new Ball(
-			w/2, y, b/2, vx, vy, this.canvas.width, this.canvas.height);
+			w/2, y, b/2, vx, vy, this.width, this.height);
 		this.entity.push(this.ball);
 		
 		// create walls
@@ -119,19 +121,19 @@ class Pong {
 		// create paddles
 		if (this.player_no >= 4)  // top paddle
 			this.entity.push(new Paddle(w/2, b*3/2, h*0.2, b, s,
-				this.canvas.width, this.canvas.height,
+				this.width, this.height,
 				"a", "d", "", ""));
 		if (this.player_no >= 3)  // bottom paddle
 			this.entity.push(new Paddle(w/2, h - b*3/2, h*0.2, b, s,
-				this.canvas.width, this.canvas.height,
+				this.width, this.height,
 				"ArrowLeft", "ArrowRight", "", ""));
 		if (this.player_no >= 2)  // left paddle
 			this.entity.push(new Paddle(b*3/2, h/2, b, h*0.2, s,
-				this.canvas.width, this.canvas.height,
+				this.width, this.height,
 				"", "", "w", "s"));
 		if (this.player_no >= 1)  // right paddle
 			this.entity.push(new Paddle(w - b*3/2, h/2, b, h*0.2, s,
-				this.canvas.width, this.canvas.height,
+				this.width, this.height,
 				"", "", "ArrowUp", "ArrowDown"));
 	}
 	
@@ -159,18 +161,18 @@ class Pong {
 		if (!this.isRunning)
 		{
 			this.ctx.fillText(
-				"Press SPACE", this.canvas.width/2, this.canvas.height * 2/3);
+				"Press SPACE", this.width/2, this.height * 2/3);
 			return ;
 		}
 		
 		// reset the canvas to the background colour
-		this.reset_background();
+		this.reset_background(this.ctx);
 		
 		// update all the entities in the game
 		for (const entity of this.entity)
 		{
 			entity.update();
-			entity.draw(this.canvas);
+			entity.draw(this.width, this.height, this.ctx);
 		}
 	}
 	
@@ -183,11 +185,11 @@ class Pong {
 		if (!this.ball.in_canvas())
 		{
 			let loser: number;
-			if (this.ball.x > this.canvas.width)
+			if (this.ball.x > this.width)
 				loser = 0;
 			else if (this.ball.x < 0)
 				loser = 1;
-			else if (this.ball.y > this.canvas.height)
+			else if (this.ball.y > this.height)
 				loser = 2;
 			else if (this.ball.y < 0)
 				loser = 3;
@@ -198,10 +200,10 @@ class Pong {
 			
 			// reset game to initial condition
 			this.entities_clear();
-			this.reset_background();
+			this.reset_background(this.ctx);
 			this.entities_init();
 			for (const entity of this.entity)
-				entity.draw(this.canvas);
+				entity.draw(this.width, this.height, this.ctx);
 		}
 		
 		requestAnimationFrame(this.start.bind(this));
@@ -236,8 +238,7 @@ class ScoreBoard{
 	}
 	
 	// draw in all entities
-	draw(canvas: HTMLCanvasElement) {
-		const ctx: CanvasRenderingContext2D = canvas.getContext('2d');
+	draw(width: number, height: number, ctx: CanvasRenderingContext2D) {
 		ctx.save();
 		ctx.setLineDash([10, 10]);
 		ctx.fillStyle = 'lightgrey';
@@ -246,39 +247,39 @@ class ScoreBoard{
 		if (this.player_no <= 2) {
 			// draw line
 			ctx.beginPath();
-			ctx.moveTo(canvas.width / 2, 0);
-			ctx.lineTo(canvas.width / 2, canvas.height);
+			ctx.moveTo(width / 2, 0);
+			ctx.lineTo(width / 2, height);
 			ctx.stroke();
 			
 			// draw scores
 			if (this.player_no == 2) {
 				ctx.fillText(this.score[0].toString(),
-					canvas.width * 0.9, canvas.height * 0.2);
+					width * 0.9, height * 0.2);
 				ctx.fillText(this.score[1].toString(),
-					canvas.width * 0.1, canvas.height * 0.2);
+					width * 0.1, height * 0.2);
 			}
 		}
 		else if (this.player_no <= 4) {
 			// draw lines
 			ctx.beginPath();
 			ctx.moveTo(0, 0);
-			ctx.lineTo(canvas.width, canvas.height);
+			ctx.lineTo(width, height);
 			ctx.stroke();
 			ctx.beginPath();
-			ctx.moveTo(0, canvas.height);
-			ctx.lineTo(canvas.width, 0);
+			ctx.moveTo(0, height);
+			ctx.lineTo(width, 0);
 			ctx.stroke();
 			
 			// draw scores
 			ctx.fillText(this.score[0].toString(),
-				canvas.width * 0.9, canvas.height * 0.2);
+				width * 0.9, height * 0.2);
 			ctx.fillText(this.score[1].toString(),
-				canvas.width * 0.1, canvas.height * 0.8);
+				width * 0.1, height * 0.8);
 			ctx.fillText(this.score[2].toString(),
-				canvas.width * 0.8, canvas.height * 0.9);
+				width * 0.8, height * 0.9);
 			if (this.player_no == 4)
 				ctx.fillText(this.score[3].toString(),
-					canvas.width * 0.2, canvas.height * 0.1);
+					width * 0.2, height * 0.1);
 		}
 		ctx.restore();
 	}
@@ -339,7 +340,8 @@ abstract class Entity {
 	get y_max(): number { return this.y + this.height / 2; }
 	
 	// abstract draw method to be implemented by derived classes
-	abstract draw(canvas: HTMLCanvasElement): void;
+	abstract draw(
+		width: number, height: number, ctx: CanvasRenderingContext2D): void;
 	
 	// move to new position and redraw
 	update(): void {
@@ -389,8 +391,7 @@ abstract class Entity {
 // class for which rectangle-shaped entities can be derived from
 abstract class RectangleEntity extends Entity {
 	// draw the wall using the context
-	draw(canvas: HTMLCanvasElement): void {
-		const ctx: CanvasRenderingContext2D = canvas.getContext('2d');
+	draw(width: number, height: number, ctx: CanvasRenderingContext2D): void {
 		ctx.fillStyle = this.colour;
 		ctx.fillRect(
 			this.x - this.width/2, this.y - this.height/2,
@@ -409,8 +410,7 @@ abstract class CircleEntity extends Entity {
 	}
 	
 	// draw the circle entity with the specified colour
-	draw(canvas: HTMLCanvasElement): void {
-		const ctx: CanvasRenderingContext2D = canvas.getContext('2d');
+	draw(width: number, height: number, ctx: CanvasRenderingContext2D): void {
 		ctx.fillStyle = this.colour;
 		ctx.beginPath();
 		ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
