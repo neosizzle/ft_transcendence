@@ -12,16 +12,7 @@ const Game = (props: any) => {
 	}
 	
 	const canvasRef = useCanvas(draw);
-	
-	return (
-		<canvas
-			ref={canvasRef}
-			width="400"
-			height="300"
-			style={{border: "1px solid black"}}
-			{...props}
-		/>
-	)
+	return <canvas ref={canvasRef} {...props}/>;
 }
 
 export default Game;
