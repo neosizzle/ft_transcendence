@@ -29,7 +29,9 @@ export abstract class Entity {
 	get y_max(): number { return this.y + this.height / 2; }
 	
 	// abstract draw method to be implemented by derived classes
-	abstract draw(canvas: HTMLCanvasElement): void;
+	abstract draw(
+		width: number, height: number, ctx: CanvasRenderingContext2D | null
+		): void;
 	
 	// move to new position and redraw
 	update(): void {
@@ -79,9 +81,10 @@ export abstract class Entity {
 // class for which rectangle-shaped entities can be derived from
 abstract class RectangleEntity extends Entity {
 	// draw the wall using the context
-	draw(canvas: HTMLCanvasElement): void {
-		const ctx: CanvasRenderingContext2D
-			= canvas.getContext('2d') as CanvasRenderingContext2D;
+	draw(width: number, height: number, ctx: CanvasRenderingContext2D | null)
+			: void {
+		if (ctx === null)
+			return ;
 		ctx.fillStyle = this.colour;
 		ctx.fillRect(
 			this.x - this.width/2, this.y - this.height/2,
@@ -100,9 +103,10 @@ abstract class CircleEntity extends Entity {
 	}
 	
 	// draw the circle entity with the specified colour
-	draw(canvas: HTMLCanvasElement): void {
-		const ctx: CanvasRenderingContext2D
-			= canvas.getContext('2d') as CanvasRenderingContext2D;
+	draw(width: number, height: number, ctx: CanvasRenderingContext2D | null)
+			: void {
+		if (ctx === null)
+			return ;
 		ctx.fillStyle = this.colour;
 		ctx.beginPath();
 		ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
@@ -117,7 +121,7 @@ export class Wall extends RectangleEntity {
 		super(x, y, width, height, 0, 0);
 	}
 	
-	/* eslint-disable @typescript-eslint/no-unused-vars */
+	/* eslint-disable @typescript-eslint/no-unused-vars  */
 	// wall will not have any reaction upon collision
 	react(other: Entity,
 		left: boolean, right: boolean, top: boolean, bottom: boolean): void {

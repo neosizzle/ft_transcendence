@@ -6,8 +6,6 @@ export class KeyPressMonitor {
 	// since class is defined as singleton, make constructor function
 	// private to prevent direct construction call
 	private constructor() {
-		console.log(KeyPressMonitor.keypress);
-		
 		// register keydown and keyup events
 		window.addEventListener("keydown", KeyPressMonitor.keydown);
 		window.addEventListener("keyup", KeyPressMonitor.keyup);

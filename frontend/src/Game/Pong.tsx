@@ -2,25 +2,47 @@ import { KeyPressMonitor } from "./KeyPressMonitor";
 import { Entity, Wall, Paddle, Ball } from "./Entity"
 
 
+class Canvas {
+	// map to remember the status of a key
+	canvas: HTMLCanvasElement | null;
+	ctx: CanvasRenderingContext2D | null;
+	
+	constructor() {
+		this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
+		if (this.canvas === null)
+			throw new Error("Canvas cannot be null");
+		this.ctx = this.canvas.getContext('2d');
+		if (this.ctx === null)
+			throw new Error("Canvas context cannot be null");
+		
+		// default text settings
+		this.ctx.textBaseline = "middle";
+		this.ctx.textAlign = "center";
+		this.ctx.font = "30px Arial";
+	}
+}
+
+
 // class representing the Pong game
 export class Pong {
-	// map to remember the status of a key
-	static canvas: HTMLCanvasElement
-		= document.getElementById('canvas') as HTMLCanvasElement;
-	static ctx: CanvasRenderingContext2D
-		= Pong.canvas.getContext('2d') as CanvasRenderingContext2D;
-	
+	private width = 100;	// defaults to 100 unit
+	private height = 75;	// defaults t 75 unit to keep aspect ratio
 	private ball: Ball | undefined;
 	private entity: Entity[] = [];
 	private	isRunning: boolean;
 	private player_no: number;
 	private scoreboard: ScoreBoard;
 	
-	constructor(player_no: number) {
-		// default text settings
-		Pong.ctx.textBaseline = "middle";
-		Pong.ctx.textAlign = "center";
-		Pong.ctx.font = "30px Arial";
+	constructor(canvas: HTMLCanvasElement | null, player_no: number) {
+		let ctx: CanvasRenderingContext2D | null;
+		
+		if (canvas === null)
+			ctx = null;
+		else {
+			ctx = canvas.getContext('2d');
+			this.width = canvas.width;
+			this.height = canvas.height;
+		}
 		
 		this.isRunning = false;
 		
@@ -32,33 +54,34 @@ export class Pong {
 		// create a scoreboard
 		this.scoreboard = new ScoreBoard(player_no);
 		
-		this.reset_background();
+		this.reset_background(ctx);
 		this.entities_init();
 		for (const entity of this.entity)
-			entity.draw(Pong.canvas);
-		requestAnimationFrame(this.start.bind(this));
+			entity.draw(this.width, this.height, ctx);
+		requestAnimationFrame(this.start.bind(this, ctx));
 	}
 	
 	// reset the background with the background colour
-	reset_background(): void {
-		Pong.ctx.fillStyle = "black";
-		Pong.ctx.fillRect(0, 0, Pong.canvas.width, Pong.canvas.height);
-		this.scoreboard.draw(Pong.canvas);
+	reset_background(ctx: CanvasRenderingContext2D | null): void {
+		if ( ctx === null)
+			return ;
+		ctx.fillStyle = "black";
+		ctx.fillRect(0, 0, this.width, this.height);
+		this.scoreboard.draw(this.width, this.height, ctx);
 	}
 	
 	// initialise all entities in the game
 	entities_init(): void {
-		const w = Pong.canvas.width;
-		const h = Pong.canvas.height;
-		const b = Pong.canvas.width * 0.025;
+		const w = this.width;
+		const h = this.height;
+		const b = this.width * 0.025;
 		
 		// create the balls
 		const s: number = w / 120;	// initial speed of ball
 		const y = (Math.random() - 0.5) * (h/2 - b) + h/2;
 		const vy = (Math.random() / 0.5 - 1) * s * 2 / 3;
 		const vx = Math.sqrt(Math.pow(s, 2) - Math.pow(vy, 2));
-		this.ball = new Ball(
-			w/2, y, b/2, vx, vy, Pong.canvas.width, Pong.canvas.height);
+		this.ball = new Ball(w/2, y, b/2, vx, vy, w, h);
 		this.entity.push(this.ball);
 		
 		// create walls
@@ -73,20 +96,16 @@ export class Pong {
 		
 		// create paddles
 		if (this.player_no >= 4)  // top paddle
-			this.entity.push(new Paddle(w/2, b*3/2, h*0.2, b, s,
-				Pong.canvas.width, Pong.canvas.height,
+			this.entity.push(new Paddle(w/2, b*3/2, h*0.2, b, s, w, h,
 				"a", "d", "", ""));
 		if (this.player_no >= 3)  // bottom paddle
-			this.entity.push(new Paddle(w/2, h - b*3/2, h*0.2, b, s,
-				Pong.canvas.width, Pong.canvas.height,
+			this.entity.push(new Paddle(w/2, h - b*3/2, h*0.2, b, s, w, h,
 				"ArrowLeft", "ArrowRight", "", ""));
 		if (this.player_no >= 2)  // left paddle
-			this.entity.push(new Paddle(b*3/2, h/2, b, h*0.2, s,
-				Pong.canvas.width, Pong.canvas.height,
+			this.entity.push(new Paddle(b*3/2, h/2, b, h*0.2, s, w, h,
 				"", "", "w", "s"));
 		if (this.player_no >= 1)  // right paddle
-			this.entity.push(new Paddle(w - b*3/2, h/2, b, h*0.2, s,
-				Pong.canvas.width, Pong.canvas.height,
+			this.entity.push(new Paddle(w - b*3/2, h/2, b, h*0.2, s, w, h,
 				"", "", "ArrowUp", "ArrowDown"));
 	}
 	
@@ -105,7 +124,7 @@ export class Pong {
 	}
 	
 	// update the objects in the canvas
-	update(): void {
+	update(ctx: CanvasRenderingContext2D | null): void {
 		// start running game if space key is pressed
 		if (!this.isRunning && KeyPressMonitor.has(' '))
 			this.isRunning = true;
@@ -113,36 +132,36 @@ export class Pong {
 		// do nothing if game is not running
 		if (!this.isRunning)
 		{
-			Pong.ctx.fillText(
-				"Press SPACE", Pong.canvas.width/2, Pong.canvas.height * 2/3);
+			if (ctx !== null)
+				ctx.fillText("Press SPACE", this.width/2, this.height * 2/3);
 			return ;
 		}
 		
 		// reset the canvas to the background colour
-		this.reset_background();
+		this.reset_background(ctx);
 		
 		// update all the entities in the game
 		for (const entity of this.entity)
 		{
 			entity.update();
-			entity.draw(Pong.canvas);
+			entity.draw(this.width, this.height, ctx);
 		}
 	}
 	
 	// start a new game
-	start(): void {
+	start(ctx: CanvasRenderingContext2D | null): void {
 		this.collide();	// detect collision among all the entities in the game
-		this.update();	// update velocity
+		this.update(ctx);	// update velocity
 		
 		// game over if ball is outside the canvas
-		if (this.ball !== undefined && this.ball.in_canvas())
+		if (this.ball !== undefined && !this.ball.in_canvas())
 		{
 			let loser = -1;
-			if (this.ball.x > Pong.canvas.width)
+			if (this.ball.x > this.width)
 				loser = 0;
 			else if (this.ball.x < 0)
 				loser = 1;
-			else if (this.ball.y > Pong.canvas.height)
+			else if (this.ball.y > this.height)
 				loser = 2;
 			else if (this.ball.y < 0)
 				loser = 3;
@@ -153,13 +172,13 @@ export class Pong {
 			
 			// reset game to initial condition
 			this.entities_clear();
-			this.reset_background();
+			this.reset_background(ctx);
 			this.entities_init();
 			for (const entity of this.entity)
-				entity.draw(Pong.canvas);
+				entity.draw(this.width, this.height, ctx);
 		}
 		
-		requestAnimationFrame(this.start.bind(this));
+		requestAnimationFrame(this.start.bind(this, ctx));
 	}
 }
 
@@ -192,9 +211,9 @@ class ScoreBoard{
 	}
 	
 	// draw in all entities
-	draw(canvas: HTMLCanvasElement) {
-		const ctx: CanvasRenderingContext2D
-			= canvas.getContext('2d') as CanvasRenderingContext2D;
+	draw(width: number, height: number, ctx: CanvasRenderingContext2D | null) {
+		if (ctx === null)
+			return ;
 		ctx.save();
 		ctx.setLineDash([10, 10]);
 		ctx.fillStyle = 'lightgrey';
@@ -203,39 +222,39 @@ class ScoreBoard{
 		if (this.player_no <= 2) {
 			// draw line
 			ctx.beginPath();
-			ctx.moveTo(canvas.width / 2, 0);
-			ctx.lineTo(canvas.width / 2, canvas.height);
+			ctx.moveTo(width / 2, 0);
+			ctx.lineTo(width / 2, height);
 			ctx.stroke();
 			
 			// draw scores
 			if (this.player_no == 2) {
 				ctx.fillText(this.score[0].toString(),
-					canvas.width * 0.9, canvas.height * 0.2);
+					width * 0.9, height * 0.2);
 				ctx.fillText(this.score[1].toString(),
-					canvas.width * 0.1, canvas.height * 0.2);
+					width * 0.1, height * 0.2);
 			}
 		}
 		else if (this.player_no <= 4) {
 			// draw lines
 			ctx.beginPath();
 			ctx.moveTo(0, 0);
-			ctx.lineTo(canvas.width, canvas.height);
+			ctx.lineTo(width, height);
 			ctx.stroke();
 			ctx.beginPath();
-			ctx.moveTo(0, canvas.height);
-			ctx.lineTo(canvas.width, 0);
+			ctx.moveTo(0, height);
+			ctx.lineTo(width, 0);
 			ctx.stroke();
 			
 			// draw scores
 			ctx.fillText(this.score[0].toString(),
-				canvas.width * 0.9, canvas.height * 0.2);
+				width * 0.9, height * 0.2);
 			ctx.fillText(this.score[1].toString(),
-				canvas.width * 0.1, canvas.height * 0.8);
+				width * 0.1, height * 0.8);
 			ctx.fillText(this.score[2].toString(),
-				canvas.width * 0.8, canvas.height * 0.9);
+				width * 0.8, height * 0.9);
 			if (this.player_no == 4)
 				ctx.fillText(this.score[3].toString(),
-					canvas.width * 0.2, canvas.height * 0.1);
+					width * 0.2, height * 0.1);
 		}
 		ctx.restore();
 	}
