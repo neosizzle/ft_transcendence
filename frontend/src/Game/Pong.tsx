@@ -135,16 +135,16 @@ export class Pong {
 		this.update();	// update velocity
 		
 		// game over if ball is outside the canvas
-		if (!this.ball!.in_canvas())
+		if (this.ball !== undefined && this.ball.in_canvas())
 		{
 			let loser = -1;
-			if (this.ball!.x > Pong.canvas.width)
+			if (this.ball.x > Pong.canvas.width)
 				loser = 0;
-			else if (this.ball!.x < 0)
+			else if (this.ball.x < 0)
 				loser = 1;
-			else if (this.ball!.y > Pong.canvas.height)
+			else if (this.ball.y > Pong.canvas.height)
 				loser = 2;
-			else if (this.ball!.y < 0)
+			else if (this.ball.y < 0)
 				loser = 3;
 			
 			this.scoreboard.add(loser);

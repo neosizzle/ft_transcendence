@@ -1,7 +1,14 @@
 import React from 'react';
 import useCanvas from './useCanvas'
 
-const Game = (props: any) => {
+interface GameProps {
+	width: number,
+	height: number,
+	style: object
+}
+
+
+const Game = (props: GameProps) => {
 	
 	const draw = (ctx: CanvasRenderingContext2D, frameCount: number) => {
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)

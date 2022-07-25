@@ -117,11 +117,13 @@ export class Wall extends RectangleEntity {
 		super(x, y, width, height, 0, 0);
 	}
 	
+	/* eslint-disable @typescript-eslint/no-unused-vars */
 	// wall will not have any reaction upon collision
 	react(other: Entity,
 		left: boolean, right: boolean, top: boolean, bottom: boolean): void {
 		return ;
 	}
+	/* eslint-enable @typescript-eslint/no-unused-vars */
 }
 
 

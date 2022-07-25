@@ -36,7 +36,7 @@ function App() {
               renders the first one that matches the current URL. */}
         <Routes>
           <Route path="/chat" element={<Chat />} />
-          <Route path="/game" element={<Game />} />
+          <Route path="/game" element={<Game width={400} height={300} style={{border: "1px solid black"}} />} />
           <Route path="/users" element={<User />} />
           <Route path="/" element={<Home />} />
         </Routes>
