@@ -32,7 +32,7 @@ class KeyPressMonitor {
 	}
 	
 	// expose the underlying has function of the set
-	public static has(value) {
+	public static has(value: string) {
 		return KeyPressMonitor.keypress.has(value);
 	}
 }
@@ -59,7 +59,7 @@ class Pong {
 	private ctx: CanvasRenderingContext2D;
 	private width: number;
 	private height: number;
-	private ball: Ball;
+	private ball: Ball | undefined;
 	private entity: Entity[] = [];
 	private	isRunning: boolean;
 	private player_no: number;
@@ -182,7 +182,7 @@ class Pong {
 		this.update();	// update velocity
 		
 		// game over if ball is outside the canvas
-		if (!this.ball.in_canvas())
+		if (this.ball !== undefined && !this.ball.in_canvas())
 		{
 			let loser: number;
 			if (this.ball.x > this.width)
@@ -193,6 +193,8 @@ class Pong {
 				loser = 2;
 			else if (this.ball.y < 0)
 				loser = 3;
+			else
+				return ;
 			
 			this.scoreboard.add(loser);
 			console.log("Score!");
@@ -217,6 +219,7 @@ class ScoreBoard{
 	
 	constructor(player_no: number) {
 		this.player_no = player_no;
+		this.score = [];
 		this.reset();
 	}
 	
@@ -425,11 +428,13 @@ class Wall extends RectangleEntity {
 		super(x, y, width, height, 0, 0);
 	}
 	
+	/* eslint-disable @typescript-eslint/no-unused-vars  */
 	// wall will not have any reaction upon collision
 	react(other: Entity,
 		left: boolean, right: boolean, top: boolean, bottom: boolean): void {
 		return ;
 	}
+	/* eslint-enable @typescript-eslint/no-unused-vars */
 }
 
 
