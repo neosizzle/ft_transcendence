@@ -37,12 +37,16 @@ class KeyPressMonitor {
 
 class Canvas {
 	// map to remember the status of a key
-	canvas: HTMLCanvasElement;
-	ctx: CanvasRenderingContext2D;
+	canvas: HTMLCanvasElement | null;
+	ctx: CanvasRenderingContext2D | null;
 	
 	constructor() {
 		this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
-		this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+		if (this.canvas === null)
+			throw new Error("Canvas cannot be null");
+		this.ctx = this.canvas.getContext('2d');
+		if (this.ctx === null)
+			throw new Error("Canvas context cannot be null");
 		
 		// default text settings
 		this.ctx.textBaseline = "middle";
@@ -54,18 +58,25 @@ class Canvas {
 
 // class representing the Pong game
 class Pong {
-	private width: number;
-	private height: number;
+	private width = 100;	// defaults to 100 unit
+	private height = 75;	// defaults t 75 unit to keep aspect ratio
 	private ball: Ball | undefined;
 	private entity: Entity[] = [];
 	private	isRunning: boolean;
 	private player_no: number;
 	private scoreboard: ScoreBoard;
 	
-	constructor(canvas: HTMLCanvasElement, player_no: number) {
-		const ctx: CanvasRenderingContext2D | null = canvas.getContext('2d');
-		this.width = canvas.width;
-		this.height = canvas.height;
+	constructor(canvas: HTMLCanvasElement | null, player_no: number) {
+		let ctx: CanvasRenderingContext2D | null;
+		
+		if (canvas === null)
+			ctx = null;
+		else {
+			ctx = canvas.getContext('2d');
+			this.width = canvas.width;
+			this.height = canvas.height;
+		}
+		
 		this.isRunning = false;
 		
 		// record the number of players
