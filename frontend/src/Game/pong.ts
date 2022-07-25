@@ -37,27 +37,36 @@ class KeyPressMonitor {
 	}
 }
 
+class Canvas {
+	// map to remember the status of a key
+	canvas: HTMLCanvasElement;
+	ctx: CanvasRenderingContext2D;
+	
+	constructor() {
+		this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
+		this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+		
+		// default text settings
+		this.ctx.textBaseline = "middle";
+		this.ctx.textAlign = "center";
+		this.ctx.font = "30px Arial";
+	}
+}
+
 
 // class representing the Pong game
 class Pong {
-	// map to remember the status of a key
-	static canvas: HTMLCanvasElement
-		= document.getElementById('canvas') as HTMLCanvasElement;
-	static ctx: CanvasRenderingContext2D
-		= Pong.canvas.getContext('2d') as CanvasRenderingContext2D;
-	
+	private canvas: HTMLCanvasElement;
+	private ctx: CanvasRenderingContext2D;
 	private ball: Ball;
 	private entity: Entity[] = [];
 	private	isRunning: boolean;
 	private player_no: number;
 	private scoreboard: ScoreBoard;
 	
-	constructor(player_no: number) {
-		// default text settings
-		Pong.ctx.textBaseline = "middle";
-		Pong.ctx.textAlign = "center";
-		Pong.ctx.font = "30px Arial";
-		
+	constructor(canvas: HTMLCanvasElement, player_no: number) {
+		this.canvas = canvas;
+		this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
 		this.isRunning = false;
 		
 		// record the number of players
@@ -71,22 +80,22 @@ class Pong {
 		this.reset_background();
 		this.entities_init();
 		for (const entity of this.entity)
-			entity.draw(Pong.canvas);
+			entity.draw(this.canvas);
 		requestAnimationFrame(this.start.bind(this));
 	}
 	
 	// reset the background with the background colour
 	reset_background(): void {
-		Pong.ctx.fillStyle = "black";
-		Pong.ctx.fillRect(0, 0, Pong.canvas.width, Pong.canvas.height);
-		this.scoreboard.draw(Pong.canvas);
+		this.ctx.fillStyle = "black";
+		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		this.scoreboard.draw(this.canvas);
 	}
 	
 	// initialise all entities in the game
 	entities_init(): void {
-		const w = Pong.canvas.width;
-		const h = Pong.canvas.height;
-		const b = Pong.canvas.width * 0.025;
+		const w = this.canvas.width;
+		const h = this.canvas.height;
+		const b = this.canvas.width * 0.025;
 		
 		// create the balls
 		const s: number = w / 120;	// initial speed of ball
@@ -94,7 +103,7 @@ class Pong {
 		const vy = (Math.random() / 0.5 - 1) * s * 2 / 3;
 		const vx = Math.sqrt(Math.pow(s, 2) - Math.pow(vy, 2));
 		this.ball = new Ball(
-			w/2, y, b/2, vx, vy, Pong.canvas.width, Pong.canvas.height);
+			w/2, y, b/2, vx, vy, this.canvas.width, this.canvas.height);
 		this.entity.push(this.ball);
 		
 		// create walls
@@ -110,19 +119,19 @@ class Pong {
 		// create paddles
 		if (this.player_no >= 4)  // top paddle
 			this.entity.push(new Paddle(w/2, b*3/2, h*0.2, b, s,
-				Pong.canvas.width, Pong.canvas.height,
+				this.canvas.width, this.canvas.height,
 				"a", "d", "", ""));
 		if (this.player_no >= 3)  // bottom paddle
 			this.entity.push(new Paddle(w/2, h - b*3/2, h*0.2, b, s,
-				Pong.canvas.width, Pong.canvas.height,
+				this.canvas.width, this.canvas.height,
 				"ArrowLeft", "ArrowRight", "", ""));
 		if (this.player_no >= 2)  // left paddle
 			this.entity.push(new Paddle(b*3/2, h/2, b, h*0.2, s,
-				Pong.canvas.width, Pong.canvas.height,
+				this.canvas.width, this.canvas.height,
 				"", "", "w", "s"));
 		if (this.player_no >= 1)  // right paddle
 			this.entity.push(new Paddle(w - b*3/2, h/2, b, h*0.2, s,
-				Pong.canvas.width, Pong.canvas.height,
+				this.canvas.width, this.canvas.height,
 				"", "", "ArrowUp", "ArrowDown"));
 	}
 	
@@ -149,8 +158,8 @@ class Pong {
 		// do nothing if game is not running
 		if (!this.isRunning)
 		{
-			Pong.ctx.fillText(
-				"Press SPACE", Pong.canvas.width/2, Pong.canvas.height * 2/3);
+			this.ctx.fillText(
+				"Press SPACE", this.canvas.width/2, this.canvas.height * 2/3);
 			return ;
 		}
 		
@@ -161,7 +170,7 @@ class Pong {
 		for (const entity of this.entity)
 		{
 			entity.update();
-			entity.draw(Pong.canvas);
+			entity.draw(this.canvas);
 		}
 	}
 	
@@ -174,11 +183,11 @@ class Pong {
 		if (!this.ball.in_canvas())
 		{
 			let loser: number;
-			if (this.ball.x > Pong.canvas.width)
+			if (this.ball.x > this.canvas.width)
 				loser = 0;
 			else if (this.ball.x < 0)
 				loser = 1;
-			else if (this.ball.y > Pong.canvas.height)
+			else if (this.ball.y > this.canvas.height)
 				loser = 2;
 			else if (this.ball.y < 0)
 				loser = 3;
@@ -192,7 +201,7 @@ class Pong {
 			this.reset_background();
 			this.entities_init();
 			for (const entity of this.entity)
-				entity.draw(Pong.canvas);
+				entity.draw(this.canvas);
 		}
 		
 		requestAnimationFrame(this.start.bind(this));
@@ -536,4 +545,5 @@ class Ball extends CircleEntity {
 }
 
 const keypress: KeyPressMonitor = KeyPressMonitor.get_instance();
-const pong: Pong = new Pong(2);
+const canvas: Canvas = new Canvas();
+const pong: Pong = new Pong(canvas.canvas, 2);
