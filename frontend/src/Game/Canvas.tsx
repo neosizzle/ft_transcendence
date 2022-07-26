@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { KeyPressMonitor } from './KeyPressMonitor';
+import KeyPressMonitor from './KeyPressMonitor';
 import Pong from './Pong';
 
 

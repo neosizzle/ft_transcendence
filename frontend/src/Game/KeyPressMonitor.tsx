@@ -1,5 +1,5 @@
 // class to monitor keypress, designed as a singleton
-export class KeyPressMonitor {
+export default class KeyPressMonitor {
 	private static _instance: KeyPressMonitor;
 	static keypress: Set<KeyboardEvent["key"]> = new Set();
 	

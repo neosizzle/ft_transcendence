@@ -1,4 +1,4 @@
-import { KeyPressMonitor } from "./KeyPressMonitor";
+import KeyPressMonitor from "./KeyPressMonitor";
 
 
 // A generic entity with bounding box for other classes to derive from
