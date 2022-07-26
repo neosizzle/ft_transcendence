@@ -2,27 +2,6 @@ import { KeyPressMonitor } from "./KeyPressMonitor";
 import { Entity, Wall, Paddle, Ball } from "./Entity"
 
 
-class Canvas {
-	// map to remember the status of a key
-	canvas: HTMLCanvasElement | null;
-	ctx: CanvasRenderingContext2D | null;
-	
-	constructor() {
-		this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
-		if (this.canvas === null)
-			throw new Error("Canvas cannot be null");
-		this.ctx = this.canvas.getContext('2d');
-		if (this.ctx === null)
-			throw new Error("Canvas context cannot be null");
-		
-		// default text settings
-		this.ctx.textBaseline = "middle";
-		this.ctx.textAlign = "center";
-		this.ctx.font = "30px Arial";
-	}
-}
-
-
 // class representing the Pong game
 export class Pong {
 	private width = 100;	// defaults to 100 unit

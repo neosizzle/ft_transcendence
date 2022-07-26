@@ -1,22 +1,11 @@
 import React from 'react';
-import useCanvas from './useCanvas'
-import { KeyPressMonitor } from './KeyPressMonitor'
-import { Pong } from './Pong'
-
-interface GameProps {
-	width: number,
-	height: number,
-	style: object
-}
+import { Canvas } from './Canvas';
 
 
-const Game = (props: GameProps) => {
-	const keypress: KeyPressMonitor = KeyPressMonitor.get_instance();
-	const canvasRef = useCanvas();
-	// console.log(canvasRef);
-	const pong: Pong = new Pong(canvasRef.current, 2);
-	
-	return <canvas ref={canvasRef} {...props}/>;
+class Game extends React.Component {
+	render() {
+		return <Canvas width={400} height={300} style={{border: "1px solid black"}}/>;
+	}
 }
 
 export default Game;
