@@ -7,7 +7,7 @@ export default class Pong {
 	private height;
 	private ball: Ball | undefined;
 	private entity: Entity[] = [];
-	private isRunning: boolean;
+	private isRunning = false;
 	private player_no: number;
 	private scoreboard: ScoreBoard;
 	
@@ -23,7 +23,7 @@ export default class Pong {
 		// create a scoreboard
 		this.scoreboard = new ScoreBoard(player_no);
 		
-		this.isRunning = false;
+		// initialise entities of the game
 		this.entities_init();
 	}
 	
@@ -31,14 +31,25 @@ export default class Pong {
 	entities_init(): void {
 		const w = this.width;
 		const h = this.height;
-		const b = this.width * 0.025;
+		const b = this.width * 0.025;	// border thickness
 		
 		// create the balls
 		const s: number = w / 120;	// initial speed of ball
-		const y = (Math.random() - 0.5) * (h/2 - b) + h/2;
-		const vy = (Math.random() / 0.5 - 1) * s * 2 / 3;
-		const vx = Math.sqrt(Math.pow(s, 2) - Math.pow(vy, 2));
-		this.ball = new Ball(w/2, y, b/2, vx, vy, w, h);
+		let vy = (Math.random() / 0.5 - 1) * s * 2 / 3;
+		let vx = Math.sqrt(Math.pow(s, 2) - Math.pow(vy, 2));
+		
+		// aim ball towards last loser, or player 0 initially
+		if (this.player_no <= 2) {
+			if (this.scoreboard.last_loser == 1)
+				vx *= -1;
+		}
+		else {
+			[vx, vy] = [vy, vx];
+			if (this.scoreboard.last_loser == 3)
+				vy = -Math.abs(vy);
+		}
+		
+		this.ball = new Ball(w/2, h/2, b/2, vx, vy, w, h);
 		this.entity.push(this.ball);
 		
 		// create walls
@@ -153,11 +164,11 @@ export default class Pong {
 
 class ScoreBoard{
 	player_no: number;
-	score: number[];
+	last_loser = 0;
+	score: number[] = [];
 	
 	constructor(player_no: number) {
 		this.player_no = player_no;
-		this.score = [];
 		this.reset();
 	}
 	
@@ -169,6 +180,7 @@ class ScoreBoard{
 		
 		// subtract 1 point for loser
 		--this.score[loser];
+		this.last_loser = loser;
 		
 		// Do something if there's a winner
 		const winner = this.get_winner();
@@ -251,5 +263,6 @@ class ScoreBoard{
 		this.score = [];
 		for (let i = 0; i < this.player_no; ++i)
 			this.score.push(0);
+		this.last_loser = 0;
 	}
 }
