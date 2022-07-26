@@ -1,29 +1,19 @@
-import { KeyPressMonitor } from "./KeyPressMonitor";
 import { Entity, Wall, Paddle, Ball } from "./Entity"
 
 
 // class representing the Pong game
-export class Pong {
-	private width = 100;	// defaults to 100 unit
-	private height = 75;	// defaults t 75 unit to keep aspect ratio
+export default class Pong {
+	private width;
+	private height;
 	private ball: Ball | undefined;
 	private entity: Entity[] = [];
-	private	isRunning: boolean;
+	private isRunning: boolean;
 	private player_no: number;
 	private scoreboard: ScoreBoard;
 	
-	constructor(canvas: HTMLCanvasElement | null, player_no: number) {
-		let ctx: CanvasRenderingContext2D | null;
-		
-		if (canvas === null)
-			ctx = null;
-		else {
-			ctx = canvas.getContext('2d');
-			this.width = canvas.width;
-			this.height = canvas.height;
-		}
-		
-		this.isRunning = false;
+	constructor(width: number, height: number, player_no: number) {
+		this.width = width;
+		this.height = height;
 		
 		// record the number of players
 		if (player_no < 0 || player_no > 4)
@@ -33,20 +23,8 @@ export class Pong {
 		// create a scoreboard
 		this.scoreboard = new ScoreBoard(player_no);
 		
-		this.reset_background(ctx);
+		this.isRunning = false;
 		this.entities_init();
-		for (const entity of this.entity)
-			entity.draw(this.width, this.height, ctx);
-		requestAnimationFrame(this.start.bind(this, ctx));
-	}
-	
-	// reset the background with the background colour
-	reset_background(ctx: CanvasRenderingContext2D | null): void {
-		if ( ctx === null)
-			return ;
-		ctx.fillStyle = "black";
-		ctx.fillRect(0, 0, this.width, this.height);
-		this.scoreboard.draw(this.width, this.height, ctx);
 	}
 	
 	// initialise all entities in the game
@@ -94,70 +72,81 @@ export class Pong {
 		this.entity = [];
 	}
 	
-	// collide all the objects in the canvas
-	collide(): void {
+	start(): void {
+		this.isRunning = true;
+	}
+	
+	// draw all the elements on screen using context 'ctx'
+	draw(ctx: CanvasRenderingContext2D | null): void {
+		// do nothing if there's no valid context
+		if (ctx === null)
+			return ;
+		
+		// reset the canvas an empty black canvas
+		ctx.fillStyle = "black";
+		ctx.fillRect(0, 0, this.width, this.height);
+		
+		// if game is not running, show the "Press SPACE" text
+		if (!this.isRunning)
+		{
+			ctx.fillStyle = "white";
+			ctx.fillText("Press SPACE", this.width * 0.525, this.height * 2/3);
+		}
+		
+		// draw the score board
+		this.scoreboard.draw(this.width, this.height, ctx);
+		
+		// draw all the entities in the game
+		for (const entity of this.entity)
+			entity.draw(this.width, this.height, ctx);
+	}
+	
+	// update all the entities in the game, taking account collision
+	update(): void {
+		// nothing to update if game is not running
+		if (!this.isRunning)
+			return ;
+		
+		// collide all permutation of entities in the game
 		for (const entity_0 of this.entity)
 			for (const entity_1 of this.entity)
 				if (entity_0 != entity_1)
 					entity_0.collide(entity_1);
-	}
-	
-	// update the objects in the canvas
-	update(ctx: CanvasRenderingContext2D | null): void {
-		// start running game if space key is pressed
-		if (!this.isRunning && KeyPressMonitor.has(' '))
-			this.isRunning = true;
 		
-		// do nothing if game is not running
-		if (!this.isRunning)
-		{
-			if (ctx !== null)
-				ctx.fillText("Press SPACE", this.width/2, this.height * 2/3);
-			return ;
-		}
-		
-		// reset the canvas to the background colour
-		this.reset_background(ctx);
-		
-		// update all the entities in the game
+		// update all the entities to their new position
 		for (const entity of this.entity)
-		{
-			entity.update();
-			entity.draw(this.width, this.height, ctx);
-		}
+		entity.update();
+
+		// detect out-of-bound ball
+		this.score()
 	}
 	
-	// start a new game
-	start(ctx: CanvasRenderingContext2D | null): void {
-		this.collide();	// detect collision among all the entities in the game
-		this.update(ctx);	// update velocity
+	// detect if ball is out of bound. If so, update the score and set up
+	// for for next round
+	score(): void {
+		if (this.ball === undefined || this.ball.in_canvas())
+			return ;
 		
 		// game over if ball is outside the canvas
-		if (this.ball !== undefined && !this.ball.in_canvas())
-		{
-			let loser = -1;
-			if (this.ball.x > this.width)
-				loser = 0;
-			else if (this.ball.x < 0)
-				loser = 1;
-			else if (this.ball.y > this.height)
-				loser = 2;
-			else if (this.ball.y < 0)
-				loser = 3;
-			
-			this.scoreboard.add(loser);
-			console.log("Score!");
-			this.isRunning = false;
-			
-			// reset game to initial condition
-			this.entities_clear();
-			this.reset_background(ctx);
-			this.entities_init();
-			for (const entity of this.entity)
-				entity.draw(this.width, this.height, ctx);
-		}
+		let loser: number;
+		if (this.ball.x > this.width)
+			loser = 0;
+		else if (this.ball.x < 0)
+			loser = 1;
+		else if (this.ball.y > this.height)
+			loser = 2;
+		else if (this.ball.y < 0)
+			loser = 3;
+		else
+			return ;
 		
-		requestAnimationFrame(this.start.bind(this, ctx));
+		this.scoreboard.add(loser);	// update the score
+		console.log("Score!");
+		this.isRunning = false;	// stop the current round
+		
+		// reset game to initial condition
+		this.entities_clear();
+		this.entities_init();
 	}
 }
 
