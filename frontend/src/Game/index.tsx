@@ -1,5 +1,7 @@
 import React from 'react';
 import useCanvas from './useCanvas'
+import { KeyPressMonitor } from './KeyPressMonitor'
+import { Pong } from './Pong'
 
 interface GameProps {
 	width: number,
@@ -9,16 +11,11 @@ interface GameProps {
 
 
 const Game = (props: GameProps) => {
+	const keypress: KeyPressMonitor = KeyPressMonitor.get_instance();
+	const canvasRef = useCanvas();
+	// console.log(canvasRef);
+	const pong: Pong = new Pong(canvasRef.current, 2);
 	
-	const draw = (ctx: CanvasRenderingContext2D, frameCount: number) => {
-		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-		ctx.fillStyle = '#000000'
-		ctx.beginPath()
-		ctx.arc(50, 100, 20*Math.sin(frameCount*0.05)**2, 0, 2*Math.PI)
-		ctx.fill()
-	}
-	
-	const canvasRef = useCanvas(draw);
 	return <canvas ref={canvasRef} {...props}/>;
 }
 

@@ -1,7 +1,6 @@
 import { useRef, useEffect } from 'react'
 
-const useCanvas
-	= (draw: (ctx: CanvasRenderingContext2D, frameCount: number) => void) => {
+const useCanvas = () => {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	
 	useEffect(() => {
@@ -13,12 +12,9 @@ const useCanvas
 		if (context == null)
 			return ;
 		
-		let frameCount = 0
 		let animationFrameId: number;
 		
 		const render = () => {
-			frameCount++
-			draw(context, frameCount)
 			animationFrameId = window.requestAnimationFrame(render)
 		}
 		render()
@@ -26,7 +22,7 @@ const useCanvas
 		return () => {
 			window.cancelAnimationFrame(animationFrameId)
 		}
-	}, [draw]);
+	}, []);
 	
 	return canvasRef;
 }
