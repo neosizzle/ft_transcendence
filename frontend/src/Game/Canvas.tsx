@@ -1,4 +1,6 @@
 import React from 'react';
+import { KeyPressMonitor } from './KeyPressMonitor';
+import { Pong } from './Pong';
 
 
 interface CanvasProps {
@@ -35,6 +37,10 @@ export class Canvas extends React.Component<CanvasProps> {
 		this.ctx.textBaseline = "middle";
 		this.ctx.textAlign = "center";
 		this.ctx.font = "30px Arial";
+		
+		// initialise KeyPressMonitor and Pong game
+		const keypress: KeyPressMonitor = KeyPressMonitor.get_instance();
+		const pong: Pong = new Pong(this.canvas, 2);
 	}
 	
 	render() {
