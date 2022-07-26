@@ -25,7 +25,7 @@ export class Canvas extends React.Component<CanvasProps> {
 	}
 	
 	// initialise canvas, context and games once it is component is mounted
-	componentDidMount = () => {
+	componentDidMount() {
 		if (this.canvasRef === null)
 			return ;
 			
@@ -44,7 +44,14 @@ export class Canvas extends React.Component<CanvasProps> {
 		
 		// initialise KeyPressMonitor and Pong game
 		KeyPressMonitor.get_instance();
-		this.pong = new Pong(this.canvas.width, this.canvas.height, 2);
+		
+		// with React running under StrictMode, componentDidMount function
+		// will be called twice. The condition below ensures that there is
+		// only one game created. Refer: https://stackoverflow.com/a/72072443
+		if (this.pong == null)
+			this.pong = new Pong(this.canvas.width, this.canvas.height, 2);
+		
+		// run the animation loop
 		this.animationID = window.requestAnimationFrame(this.update.bind(this));
 	}
 	
