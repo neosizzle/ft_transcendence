@@ -8,7 +8,14 @@ services:
     container_name: ft_transcendence-web
     restart: always
     environment:
+      - API_UID_42=${API_UID_42}
+      - API_SECRET_42=${API_SECRET_42}
+      - API_REDIR_URI_42=${API_REDIR_URI_42}
+      - API_HOST_42=${API_HOST_42}
       - DATABASE_URL=${DATABASE_URL}
+      - AES_KEY_OTP=${AES_KEY_OTP}
+      - NODEMAILER_EMAIL=${NODEMAILER_EMAIL}
+      - NODEMAILER_PASS=${NODEMAILER_PASS}
     ports:
       - 3001:3001 #webserver (change this port on prod)
       - 5555:5555 #prisma studio (change this port on prod)
@@ -18,12 +25,13 @@ services:
       - ./backend:/ft_transcendence-web #maps current host dir to docker working dir
 
   db:
-    image: postgres
+    image: postgres:13.4-buster
     container_name: ft_transcendence-db
     restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - '5432:5432' #database 
     networks:
