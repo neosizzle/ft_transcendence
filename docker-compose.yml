@@ -18,6 +18,7 @@ services:
       - NODEMAILER_PASS=${NODEMAILER_PASS}
     ports:
       - 3001:3001 #webserver (change this port on prod)
+      - 4896:4896 #game socket.io
       - 5555:5555 #prisma studio (change this port on prod)
     networks:
       - ft_trans
