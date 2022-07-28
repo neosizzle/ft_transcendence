@@ -5,7 +5,6 @@ import { ListObject, ListQuery, validateListquery } from 'src/utils';
 import { UserPatchDto } from './dto';
 
 //TODO user delete
-// TODO handle bad user status enum
 // very ugly solution
 /**
  * Transforms string values into values of their specific type 
@@ -28,7 +27,7 @@ const transformFilterUser = (filterBy : string, filterOn : string) : string | nu
 			case "OFFLINE":
 				return UserStatus.OFFLINE;
 			default:
-				return undefined;
+				throw new BadRequestException("Bad status field. Must be 'LOGGEDIN', 'INGAME' or 'OFFLINE'")
 		}
 	}
 	if (filterOn === "createdAt" || filterOn === "updatedAt")

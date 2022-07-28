@@ -19,4 +19,5 @@ export class FriendsPatchDto {
 	@IsString()
 	@IsNotEmpty()
 	reqStatus : string;
+
 }

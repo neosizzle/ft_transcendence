@@ -13,12 +13,14 @@ const MenuIcon: FunctionComponent<MenuIconProps> = ({children, caption, active, 
 		<div
 		className={`
 		${className}
-		${active ? "bg-gray-100" : null}
+		${active ? "bg-gray-200" : null}
 		p-3
 		flex
 		flex-col
 		justify-center
 		items-center
+		cursor-pointer
+		hover:${active ? "bg-gray-300" : "bg-gray-100" }
 		`}
 		onClick = {onClick}
 		>

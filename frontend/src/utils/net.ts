@@ -4,13 +4,13 @@ export const net_get = async (url : string) =>
 	return res.json()
 }
 
-export const net_post = async (url : string, body : any) =>
+export const net_post = async (url : string, body : unknown) =>
 {
 	const res = await fetch(url, {method : "POST", body : JSON.stringify(body)})
 	return res.json()
 }
 
-export const net_patch = async (url : string, body : any) =>
+export const net_patch = async (url : string, body : unknown) =>
 {
 	const res = await fetch(url, {method : "PATCH", body : JSON.stringify(body)})
 	return res.json()

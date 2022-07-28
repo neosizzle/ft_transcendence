@@ -75,7 +75,6 @@ const Pagination: FunctionComponent<PaginationProps> = ({setCurrPage, currPage, 
 		className="
 		w-full
 		flex
-		justify-center
 		mt-2
 		"
 		>
