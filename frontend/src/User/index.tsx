@@ -39,14 +39,14 @@ const User = () => {
 	
 	return (
 		<div
-		className='
+		className="
 			sm:grid
 			sm:grid-cols-12
-			bg-[url("/assets/topography.svg")]
+			bg-[url('/public/assets/topography.svg')]
 			bg-zinc-50
 			bg-fixed
 			min-h-screen
-		'
+		"
 		>
 			{/**PC side menu */}
 			<div
