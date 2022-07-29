@@ -1,7 +1,7 @@
 import React from 'react';
 
-import KeyPressMonitor from './KeyPressMonitor';
-import Pong from './Pong';
+import KeyPressMonitor from '../common/game/KeyPressMonitor';
+import Pong from '../common/game/Pong';
 
 
 interface CanvasProps {

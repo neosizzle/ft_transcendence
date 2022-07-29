@@ -24,6 +24,7 @@ services:
       - ft_trans
     volumes:
       - ./backend:/ft_transcendence-web #maps current host dir to docker working dir
+      - ./common:/ft_transcendence-web/src/common
 
   db:
     image: postgres:13.4-buster
@@ -53,6 +54,7 @@ services:
 
     volumes:
       - ./frontend:/ft_transcendence-front #maps current host dir to docker working dir
+      - ./common:/ft_transcendence-front/src/common
 
 volumes:
   db:
