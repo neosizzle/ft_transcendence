@@ -11,7 +11,7 @@ interface CanvasProps {
 }
 
 
-export class Canvas extends React.Component<CanvasProps> {
+export default class Canvas extends React.Component<CanvasProps> {
 	// map to remember the status of a key
 	canvasRef: React.RefObject<HTMLCanvasElement>;
 	canvas: HTMLCanvasElement | null = null;
