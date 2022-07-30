@@ -4,14 +4,21 @@ import { Observable } from 'rxjs';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 interface Req {
-	headers: {authorization : string | null}
-	user? : User
+	headers?: {authorization : string | null}
+	user? : User,
+	httpVersion? : string | null,
+	handshake?: {headers : {authorization : string | null}, auth : {user : User}}
 }
 
 const validateRequest = async (req : Req, prisma : PrismaService) => {
 	
+	let token : string | null;
+	
 	// extract token from header
-	let token : string | null = req.headers.authorization;
+	if (req.httpVersion)
+		token = req.headers.authorization;
+	else
+		token = req.handshake.headers.authorization;
 	token = token?.slice(token.indexOf("Bearer ") + 7, token.length)
 
 	// check if no token, return false
@@ -25,7 +32,10 @@ const validateRequest = async (req : Req, prisma : PrismaService) => {
 	if (new Date().toISOString() > authObj.expiresAt.toISOString()) return false;
 
 	// append user to request
-	req.user = await prisma.user.findUnique({where : {id : authObj.userId}});
+	const user = await prisma.user.findUnique({where : {id : authObj.userId}});
+	if (req.httpVersion) req.user = user;
+	else req.handshake.auth.user = user;
+
 	return true;
 }
 
