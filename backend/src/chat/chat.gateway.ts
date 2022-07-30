@@ -1,4 +1,4 @@
-import { BadRequestException, UseGuards } from '@nestjs/common';
+import { BadRequestException, NotImplementedException, UseGuards } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayConnection, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
 import { IsString } from 'class-validator';
 import { Socket } from 'socket.io';
@@ -7,11 +7,26 @@ import { BlocksService } from 'src/blocks/blocks.service';
 
 class MessageEventDto {
   @IsString()
-  room_id : string;
+  roomId: string;
 
   @IsString()
-  password : string;
+  message : string;
+}
 
+class BanEventDto {
+  @IsString()
+  roomId : string;
+
+  @IsString()
+  baneeId : string;
+}
+
+class MuteEventDto {
+  @IsString()
+  roomId : string;
+
+  @IsString()
+  muteeId : string;
 }
 
 @UseGuards(AuthGuard)
@@ -37,7 +52,73 @@ export class ChatGateway implements OnGatewayConnection {
   }
 
   /**
-   * 
+   * Handles create new dm / gc
+   * @param client Client socket
+   * @param payload Request payload
+   */
+   @SubscribeMessage('create')
+   handleCreate(@ConnectedSocket() client: Socket,  @MessageBody() payload: string) {
+     // parse payload and assign it to dto
+ 
+     // if its a dm, create room in db with initial user and no admin
+
+     // if its a gc, create room in db with admin as current user and no initial users (if got initial users, send system message to inform users)
+
+
+     client.emit("messageReceived", new NotImplementedException())
+   }
+
+  /**
+   * Handles leave gc
+   * @param client Client socket
+   * @param payload Request payload
+   */
+   @SubscribeMessage('leave')
+   handleLeave(@ConnectedSocket() client: Socket,  @MessageBody() payload: string) {
+     // parse payload and assign it to dto
+
+     // leave room in db
+
+     // emmit brodcast and notification to roomid that this user left
+ 
+     client.emit("messageReceived", new NotImplementedException())
+   }
+
+  /**
+   * Handles join dm / gc
+   * @param client Client socket
+   * @param payload Request payload
+   */
+  @SubscribeMessage('join')
+  handleJoin(@ConnectedSocket() client: Socket,  @MessageBody() payload: string) {
+    // parse payload and assign it to dto
+
+    // check if room exists, user has permission to join, password is correct
+    // join room in db
+
+    // if its a gc, emmit brodcast and notification to roomid that this user left
+
+    client.emit("messageReceived", new NotImplementedException())
+  }
+
+  /**
+   * Handles gc admintransfer
+   * @param client Client socket
+   * @param payload Request payload
+   */
+  @SubscribeMessage('admintransfer')
+  handleAdminTransfer(@ConnectedSocket() client: Socket,  @MessageBody() payload: string) {
+    // parse payload and assign it to dto
+
+    // modify room in db
+
+    // emmit broadcast message and notification that admin had been tranferred
+
+    client.emit("messageReceived", new NotImplementedException())
+  }
+
+  /**
+   * Handles new message
    * @param client Client socket
    * @param payload Request payload
    */
@@ -57,8 +138,56 @@ export class ChatGateway implements OnGatewayConnection {
 
     // broadcast message into roomId
 
-    // broadcast notification event to notify all other users
+    // broadcast notification event into roomid to notify all other users
 
-    client.emit("messageReceived", new BadRequestException())
+    client.emit("messageReceived", new NotImplementedException())
+  }
+
+  /**
+   * Handles ban 
+   * @param client Client socket
+   * @param payload Request payload
+  */
+  @SubscribeMessage('ban')
+  handleBan(@ConnectedSocket() client: Socket,  @MessageBody() payload: string) {
+    // parse payload and assign it to dto
+
+    // check if room id exists
+
+    // check if its a gc
+
+    // check if user has privelleges
+
+    // create new ban record in database
+
+    // broadcast system message into roomId
+
+    // broadcast notification event into roomid to notify all other users
+
+    client.emit("messageReceived", new NotImplementedException())
+  }
+
+  /**
+   * Handles mute
+   * @param client Client socket
+   * @param payload Request payload
+   */
+  @SubscribeMessage('mute')
+  handleMute(@ConnectedSocket() client: Socket,  @MessageBody() payload: string) {
+    // parse payload and assign it to dto
+
+    // check if room id exists
+
+    // check if its a gc
+
+    // check if user has privelleges
+
+    // create new mute record in database
+
+    // broadcast system message into roomId
+
+    // broadcast notification event into roomid to notify all other users
+
+    client.emit("messageReceived", new NotImplementedException())
   }
 }
