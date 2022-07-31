@@ -10,7 +10,7 @@ CREATE TABLE "user_rooms" (
 -- CreateTable
 CREATE TABLE "room" (
     "RoomID" SERIAL NOT NULL,
-    "RoomName" INTEGER NOT NULL,
+    "RoomName" TEXT NOT NULL,
 
     CONSTRAINT "room_pkey" PRIMARY KEY ("RoomID")
 );

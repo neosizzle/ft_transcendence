@@ -9,9 +9,10 @@ import { FriendsModule } from './friends/friends.module';
 import { BlocksModule } from './blocks/blocks.module';
 import { BucketModule } from './bucket/bucket.module';
 import { OtpModule } from './otp/otp.module';
+import { RoomModule } from './room/room.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, UsersModule, FriendsModule, BlocksModule, BucketModule, OtpModule, ChatModule],
+  imports: [AuthModule, PrismaModule, UsersModule, FriendsModule, BlocksModule, BucketModule, OtpModule, ChatModule, RoomModule],
   controllers: [AppController],
   providers: [AppService],
 })

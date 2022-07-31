@@ -34,7 +34,7 @@ model user_rooms {
 
 model room {
   RoomID   Int @id @default(autoincrement())
-  RoomName Int
+  RoomName String
 }
 
 // cant really split prisma files , apologies for the merge conflcits :(
