@@ -34,13 +34,6 @@ class Game extends React.Component {
 				this.onKeyDown.bind(this), this.onKeyUp.bind(this));
 		});
 		
-		// receives the player number from server
-		this.socket.on('identity', (n: number) => {
-			console.log(`I am player ${n}`);
-			this.game.set_player(n);
-			this.player = n;
-		})
-		
 		this.socket.on('exception', function(data) {
 			console.log('event', data);
 		});
@@ -74,12 +67,21 @@ class Game extends React.Component {
 		this.game.control(KeyPressMonitor.keypress);
 	}
 	
+	joinClick(n: number): void {
+		this.socket.emit("join", n, (n: number) => {
+			console.log(`I am player ${n}`);
+			this.game.set_player(n);
+			this.player = n;
+		});
+	}
+	
 	render() {
 		return <Canvas
 			width={400}
 			height={300}
 			style={{border: "1px solid black"}}
 			game={this.game}
+			joinClick={this.joinClick.bind(this)}
 			/>;
 	}
 }

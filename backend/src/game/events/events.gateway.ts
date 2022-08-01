@@ -21,7 +21,7 @@ export class GameEventsGateway
 		implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer()
 	server: Server;
-	players: Map<string, number> = new Map();
+	players: string[] = ["", ""];
 	private keys: Map<number, string[]> = new Map([
 		[0, ["ArrowUp", "ArrowDown"]],
 		[1, ["w", "s"]],
@@ -31,42 +31,44 @@ export class GameEventsGateway
 	
 	// records a connected client
 	handleConnection(client: Socket): void {
-		if (this.players.size >= 2)
-			return ;
-		// record player and send back the player number
-		let n: number
-		if (this.players.size == 0)
-			n = 0;
-		else {
-			for (const player of this.players.entries())
-			{
-				n = (player[1] + 1) % 2;
-				break ;
-			}
-		}
-		this.players.set(client.id, n);
-		console.log(`user ${client.id} connected`);
-		client.emit('identity', n);
+		console.log(`spectator ${client.id} connected`);
 	}
 	
 	// records an unconnected player
 	handleDisconnect(client: Socket): void {
-		const player = this.players.get(client.id);
-		if (player === undefined)
-			return ;
-		console.log(`player ${player} disconnected`);
-		// Assume that the disconnected player no longer presses the key
-		for (const k of this.keys.get(player))
-			KeyPressMonitorBase.delete(k);
-		this.players.delete(client.id);
+		for (let player = 0; this.players.length; ++player)
+		{
+			if (this.players[player] != client.id)
+				continue ;
+			console.log(`player ${player} disconnected`);
+			// Assume that the disconnected player no longer presses the key
+			for (const k of this.keys.get(player))
+				KeyPressMonitorBase.delete(k);
+			this.players[player] = "";
+		}
+	}
+	
+	// attempts to join a game
+	@SubscribeMessage('join')
+	joinGame(@MessageBody() n: number, @ConnectedSocket() client: Socket)
+			: number {
+		console.log(this.players);
+		
+		// let player join if not occupied
+		if (this.players[n] == "" || this.players[n] == client.id) {
+			this.players[n] = client.id;
+			return n;
+		}
+		else
+			return -1;
 	}
 	
 	// records a keydown event from players only
 	@SubscribeMessage('keydown')
 	keyDown(@MessageBody() key: string, @ConnectedSocket() client: Socket)
 			: void {
-		const player = this.players.get(client.id);
-		if (player === undefined || this.keys.get(player).indexOf(key) < 0) {
+		const player = this.players.indexOf(client.id);
+		if (player < 0 || this.keys.get(player).indexOf(key) < 0) {
 			return ;
 		}
 		console.log(`Received keydown ${key} from ${client.id}`);
@@ -77,8 +79,8 @@ export class GameEventsGateway
 	@SubscribeMessage('keyup')
 	keyUp(@MessageBody() key: string, @ConnectedSocket() client: Socket)
 			: void {
-		const player = this.players.get(client.id);
-		if (player === undefined || this.keys.get(player).indexOf(key) < 0)
+		const player = this.players.indexOf(client.id);
+		if (player < 0 || this.keys.get(player).indexOf(key) < 0)
 			return ;
 		console.log(`Received keyup ${key} from ${client.id}`);
 		KeyPressMonitorBase.delete(key);

@@ -1,6 +1,20 @@
 import React from 'react';
 
 import { GameInterface } from '../common/game/Pong';
+import './Canvas.css';
+
+
+export function Button(props: any) {
+	return (
+		<button
+			type="button"
+			className="join_button"
+			style={props.style}
+			onClick={props.onClick}>
+				Click to join
+		</button>
+	);
+}
 
 
 interface CanvasProps {
@@ -8,6 +22,7 @@ interface CanvasProps {
 	height: number,
 	style: object,
 	game: GameInterface,
+	joinClick: (n: number) => void;
 }
 
 
@@ -61,11 +76,22 @@ export default class Canvas extends React.Component<CanvasProps> {
 	
 	render() {
 		return (
-			<canvas
-				ref={this.canvasRef}
-				width={this.props.width}
-				height={this.props.height}
-				style={this.props.style} />
+			<div className="game_div">
+				<div className="canvas_div">
+				<canvas
+					ref={this.canvasRef}
+					width={this.props.width}
+					height={this.props.height}
+					style={this.props.style}
+				/>
+				</div>
+				<div className="button_div">
+					<Button style={{float: "left"}}
+						onClick={() => this.props.joinClick(1)}/>
+					<Button style={{float: "right"}}
+						onClick={() => this.props.joinClick(0)}/>
+				</div>
+			</div>
 		);
 	}
 }
