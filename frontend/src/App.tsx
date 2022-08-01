@@ -40,7 +40,7 @@ function App() {
           {/* A <Route> looks through its children <Route>s and
               renders the first one that matches the current URL. */}
           <Routes>
-            <Route path="/chat" element = {<Chat/>}/>
+            <Route path="/chat" element = {<Protected><Chat/></Protected>}/>
             <Route path="/game" element = {<Game/>}/>
             <Route path="/users/*" element = {<Protected><User/></Protected>}/>
             <Route path="/logout" element = {<Protected><Logout/></Protected>}/>
