@@ -10,6 +10,7 @@ type GameState = {
 export interface GameInterface {
 	entity: Entity[];	// stores all the game entitities
 	control(keypress: Set<KeyboardEvent["key"]>): void;	// handles key presses
+	set_player(n: number): void;	// record the current player number
 	start(): void;	// start a new round of game
 	update(): void;	// update the state of all entities in the game
 	draw(ctx: CanvasRenderingContext2D | null): void;	// draw game onto canvas
@@ -19,6 +20,13 @@ export interface GameInterface {
 
 // class representing the Pong game
 export default class Pong implements GameInterface {
+	private control_keys: KeyboardEvent["key"][][] = [
+		["", "", "ArrowUp", "ArrowDown"],
+		["", "", "w", "s"],
+		["ArrowLeft", "ArrowRight", "", ""],
+		["a", "d", "", ""],
+	]
+	private player = -1;
 	private width;
 	private height;
 	private ball: Ball | undefined;
@@ -44,10 +52,19 @@ export default class Pong implements GameInterface {
 		this.entities_init();
 	}
 	
+	// set which player is controlling the game
+	set_player(player: number): void {
+		this.player = player;
+	}
+	
 	// redirects the key events to all entities in the game
 	control(keypress: Set<KeyboardEvent["key"]>): void {
+		if (this.player < 0)
+			return ;
+		const filtered_keypress: Set<KeyboardEvent["key"]> = new Set(
+			this.control_keys[this.player].filter(elem => keypress.has(elem)));
 		for (const ent of this.entity)
-			ent.control(keypress);
+			ent.control(filtered_keypress);
 	}
 	
 	// set a state of the whole game
@@ -108,16 +125,16 @@ export default class Pong implements GameInterface {
 		// create paddles
 		if (this.player_no >= 4)  // top paddle
 			this.entity.push(new Paddle(w/2, b*3/2, h*0.2, b, s, w, h,
-				"a", "d", "", ""));
+				this.control_keys[3]));
 		if (this.player_no >= 3)  // bottom paddle
 			this.entity.push(new Paddle(w/2, h - b*3/2, h*0.2, b, s, w, h,
-				"ArrowLeft", "ArrowRight", "", ""));
+				this.control_keys[2]));
 		if (this.player_no >= 2)  // left paddle
 			this.entity.push(new Paddle(b*3/2, h/2, b, h*0.2, s, w, h,
-				"", "", "w", "s"));
+				this.control_keys[1]));
 		if (this.player_no >= 1)  // right paddle
 			this.entity.push(new Paddle(w - b*3/2, h/2, b, h*0.2, s, w, h,
-				"", "", "ArrowUp", "ArrowDown"));
+				this.control_keys[0]));
 	}
 	
 	// clear all the entities in the game

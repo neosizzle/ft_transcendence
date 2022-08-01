@@ -37,6 +37,7 @@ class Game extends React.Component {
 		// receives the player number from server
 		this.socket.on('identity', (n: number) => {
 			console.log(`I am player ${n}`);
+			this.game.set_player(n);
 			this.player = n;
 		})
 		

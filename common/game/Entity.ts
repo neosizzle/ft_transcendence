@@ -168,18 +168,15 @@ export class Paddle extends RectangleEntity {
 	constructor(
 			x: number, y: number, width: number, height: number, dv: number,
 			boundary_width: number, boundary_height: number,
-			left: KeyboardEvent["key"],
-			right: KeyboardEvent["key"],
-			up: KeyboardEvent["key"],
-			down: KeyboardEvent["key"]) {
+			keys: KeyboardEvent["key"][]) {
 		super(x, y, width, height, 0, 0);
 		this.dv = 2 * dv;
 		this.boundary_width = boundary_width,
 		this.boundary_height = boundary_height,
-		this.left = left;
-		this.right = right;
-		this.up = up;
-		this.down = down;
+		this.left = keys[0];
+		this.right = keys[1];
+		this.up = keys[2];
+		this.down = keys[3];
 	}
 	
 	// move the paddle by changing the speed
