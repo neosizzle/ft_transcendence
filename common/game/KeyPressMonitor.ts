@@ -2,14 +2,34 @@ import { Socket } from 'socket.io-client';
 
 
 // class to monitor keypress, designed as a singleton
-export default class KeyPressMonitor {
-	private static _instance: KeyPressMonitor;
-	private static keypress: Set<KeyboardEvent["key"]> = new Set();
+class KeyPressMonitorBase {
+	protected static _instance: KeyPressMonitorBase;
+	protected static keypress: Set<KeyboardEvent["key"]> = new Set();
+	
+	public static add(value: string): void {
+		KeyPressMonitorBase.keypress.add(value);
+	}
+	
+	public static delete(value: string): void {
+		KeyPressMonitorBase.keypress.delete(value);
+	}
+	
+	// expose the underlying has function of the set
+	public static has(value: string) {
+		return KeyPressMonitorBase.keypress.has(value);
+	}
+}
+
+
+// KeyPressMonitor version meant to be run by client
+export default class KeyPressMonitor extends KeyPressMonitorBase {
+	
 	private static socket: Socket | null = null;
 	
 	// since class is defined as singleton, make constructor function
 	// private to prevent direct construction call
 	private constructor() {
+		super();
 		if (typeof window !== 'undefined') {
 			// at client register keydown and keyup events
 			window.addEventListener("keydown", KeyPressMonitor.keydown);
@@ -22,7 +42,8 @@ export default class KeyPressMonitor {
 		if (!KeyPressMonitor._instance) {
 			KeyPressMonitor._instance = new KeyPressMonitor();
 		}
-		const instance: KeyPressMonitor = KeyPressMonitor._instance;
+		const instance: KeyPressMonitor
+			= KeyPressMonitor._instance as KeyPressMonitor;
 		if (typeof socket !== "undefined") {
 			instance.add_socket(socket);
 		}
@@ -33,7 +54,6 @@ export default class KeyPressMonitor {
 	add_socket(socket: Socket) {
 		if (typeof socket !== "undefined" && socket != null) {
 			KeyPressMonitor.socket = socket;
-			console.log("added socket:", typeof KeyPressMonitor.socket)
 		}
 	}
 	
@@ -50,17 +70,5 @@ export default class KeyPressMonitor {
 		if (KeyPressMonitor.socket != null)
 			KeyPressMonitor.socket.emit("keyup", e.key);
 	}
-	
-	public static add(value: string): void {
-		KeyPressMonitor.keypress.add(value);
-	}
-	
-	public static delete(value: string): void {
-		KeyPressMonitor.keypress.delete(value);
-	}
-	
-	// expose the underlying has function of the set
-	public static has(value: string) {
-		return KeyPressMonitor.keypress.has(value);
-	}
 }
+
