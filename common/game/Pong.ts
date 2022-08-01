@@ -171,10 +171,15 @@ export default class Pong implements GameInterface {
 		ctx.fillRect(0, 0, this.width, this.height);
 		
 		// if game is not running, show the "Press SPACE" text
-		if (this.all_players_ready() == false)
+		ctx.fillStyle = "white";
+		for (let i = 0; i < this.isRunning.length; ++i)
 		{
-			ctx.fillStyle = "white";
-			ctx.fillText("Press SPACE", this.width * 0.525, this.height * 2/3);
+			const x = this.width * (0.75 - 0.5*i);
+			const y = this.height * 0.5
+			if (this.isRunning[i] == false) {
+				ctx.fillText("Press", x, y);
+				ctx.fillText("SPACE", x, y + 30);
+			}
 		}
 		
 		// draw the score board
