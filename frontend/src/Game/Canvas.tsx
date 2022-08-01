@@ -1,13 +1,14 @@
 import React from 'react';
 
 import KeyPressMonitor from '../common/game/KeyPressMonitor';
-import Pong from '../common/game/Pong';
+import { GameInterface } from '../common/game/Pong';
 
 
 interface CanvasProps {
 	width: number,
 	height: number,
 	style: object,
+	game: GameInterface,
 }
 
 
@@ -16,11 +17,12 @@ export default class Canvas extends React.Component<CanvasProps> {
 	canvasRef: React.RefObject<HTMLCanvasElement>;
 	canvas: HTMLCanvasElement | null = null;
 	ctx: CanvasRenderingContext2D | null = null;
-	pong: Pong | null = null;
+	game: GameInterface;
 	animationID = 0;
 	
 	constructor(props: CanvasProps) {
 		super(props);
+		this.game = props.game;
 		this.canvasRef = React.createRef();
 	}
 	
@@ -42,29 +44,17 @@ export default class Canvas extends React.Component<CanvasProps> {
 		this.ctx.textAlign = "center";
 		this.ctx.font = "30px Arial";
 		
-		// initialise KeyPressMonitor and Pong game
-		KeyPressMonitor.get_instance();
-		
-		// with React running under StrictMode, componentDidMount function
-		// will be called twice. The condition below ensures that there is
-		// only one game created. Refer: https://stackoverflow.com/a/72072443
-		if (this.pong == null)
-			this.pong = new Pong(this.canvas.width, this.canvas.height, 2);
-		
 		// run the animation loop
 		this.animationID = window.requestAnimationFrame(this.update.bind(this));
 	}
 	
 	// main game loop
 	update() {
-		if (this.pong != null)
-		{
-			// start the game if space is presed
-			if (KeyPressMonitor.has(' '))
-				this.pong.start();
-			this.pong.update();	// update to the next frame
-			this.pong.draw(this.ctx);	// draw game state to canvas
-		}
+		// start the game if space is presed
+		if (KeyPressMonitor.has(' '))
+			this.game.start();
+		this.game.update();	// update to the next frame
+		this.game.draw(this.ctx);	// draw game state to canvas
 		this.animationID = window.requestAnimationFrame(this.update.bind(this));
 	}
 	

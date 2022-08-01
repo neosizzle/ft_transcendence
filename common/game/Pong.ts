@@ -7,9 +7,12 @@ type GameState = {
 	entity: EntityState[];	// array of entity states
 }
 
-interface GameInterface {
+export interface GameInterface {
 	entity: Entity[];	// stores all the game entitities
+	control(keypress: Set<KeyboardEvent["key"]>): void;	// handles key presses
+	start(): void;	// start a new round of game
 	update(): void;	// update the state of all entities in the game
+	draw(ctx: CanvasRenderingContext2D | null): void;	// draw game onto canvas
 	set_state(state: GameState): void;	// set the state of the game
 	get_state(): GameState;	// get the state of the game
 }
@@ -41,6 +44,13 @@ export default class Pong implements GameInterface {
 		this.entities_init();
 	}
 	
+	// redirects the key events to all entities in the game
+	control(keypress: Set<KeyboardEvent["key"]>): void {
+		for (const ent of this.entity)
+			ent.control(keypress);
+	}
+	
+	// set a state of the whole game
 	set_state(state: GameState) {
 		this.isRunning = state.isRunning;
 		this.scoreboard.set_state(state.score);

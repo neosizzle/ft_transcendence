@@ -1,6 +1,3 @@
-import KeyPressMonitor from "./KeyPressMonitor";
-
-
 export type EntityState = {
 	x: number,	// x-coordinate of centre point
 	y: number,	// y-coordinate of centre point
@@ -29,8 +26,12 @@ export abstract class Entity {
 		this.colour = "white";	// white by default
 	}
 	
+	/* eslint-disable @typescript-eslint/no-empty-function */
+	control(keypress: Set<KeyboardEvent["key"]>): void {}
+	/* eslint-enable @typescript-eslint/no-empty-function */
+	
 	// set the x, y, vx, vy of the entity
-	set_state(state: EntityState) {
+	set_state(state: EntityState): void {
 		this.x = state.x;
 		this.y = state.y
 		this.vx = state.vx;
@@ -181,23 +182,17 @@ export class Paddle extends RectangleEntity {
 		this.down = down;
 	}
 	
-	// change speed after updating the object
-	update(): void {
-		super.update();
-		this.change_speed();
-	}
-	
 	// move the paddle by changing the speed
-	change_speed(): void {
+	control(keypress: Set<KeyboardEvent["key"]>): void {
 		this.vx = 0;
 		this.vy = 0;
-		if (KeyPressMonitor.has(this.left))
+		if (keypress.has(this.left))
 			this.vx -= this.dv;
-		if (KeyPressMonitor.has(this.right))
+		if (keypress.has(this.right))
 			this.vx += this.dv;
-		if (KeyPressMonitor.has(this.up))
+		if (keypress.has(this.up))
 			this.vy -= this.dv;
-		if (KeyPressMonitor.has(this.down))
+		if (keypress.has(this.down))
 			this.vy += this.dv;
 		
 		// prevent paddles from moving out of boundary

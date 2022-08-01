@@ -8,7 +8,7 @@ import {
 	WebSocketServer,
 	} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import KeyPressMonitor from '../../common/game/KeyPressMonitor'
+import { KeyPressMonitorBase } from '../../common/game/KeyPressMonitor'
 
 
 @WebSocketGateway({
@@ -21,7 +21,6 @@ export class GameEventsGateway
 		implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer()
 	server: Server;
-	keypress: KeyPressMonitor = KeyPressMonitor.get_instance();
 	players: Map<string, number> = new Map();
 	private keys: Map<number, string[]> = new Map([
 		[0, ["ArrowUp", "ArrowDown"]],
@@ -58,7 +57,7 @@ export class GameEventsGateway
 		console.log(`player ${player} disconnected`);
 		// Assume that the disconnected player no longer presses the key
 		for (const k of this.keys.get(player))
-			KeyPressMonitor.delete(k);
+			KeyPressMonitorBase.delete(k);
 		this.players.delete(client.id);
 	}
 	
@@ -71,7 +70,7 @@ export class GameEventsGateway
 			return ;
 		}
 		console.log(`Received keydown ${key} from ${client.id}`);
-		KeyPressMonitor.add(key);
+		KeyPressMonitorBase.add(key);
 	}
 	
 	// records a keyup event from players only
@@ -82,6 +81,6 @@ export class GameEventsGateway
 		if (player === undefined || this.keys.get(player).indexOf(key) < 0)
 			return ;
 		console.log(`Received keyup ${key} from ${client.id}`);
-		KeyPressMonitor.delete(key);
+		KeyPressMonitorBase.delete(key);
 	}
 }

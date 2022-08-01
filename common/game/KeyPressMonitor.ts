@@ -1,10 +1,7 @@
-import { Socket } from 'socket.io-client';
-
-
 // class to monitor keypress, designed as a singleton
-class KeyPressMonitorBase {
+export class KeyPressMonitorBase {
 	protected static _instance: KeyPressMonitorBase;
-	protected static keypress: Set<KeyboardEvent["key"]> = new Set();
+	static keypress: Set<KeyboardEvent["key"]> = new Set();
 	
 	public static add(value: string): void {
 		KeyPressMonitorBase.keypress.add(value);
@@ -23,8 +20,8 @@ class KeyPressMonitorBase {
 
 // KeyPressMonitor version meant to be run by client
 export default class KeyPressMonitor extends KeyPressMonitorBase {
-	
-	private static socket: Socket | null = null;
+	private static onKeyDown: (() => void) | null = null;
+	private static onKeyUp: (() => void) | null = null;
 	
 	// since class is defined as singleton, make constructor function
 	// private to prevent direct construction call
@@ -38,37 +35,28 @@ export default class KeyPressMonitor extends KeyPressMonitorBase {
 	}
 	
 	// create, if necessary, and return the singleton object
-	public static get_instance(socket?: Socket): KeyPressMonitor {
+	public static get_instance(onKeyDown: (() => void), onKeyUp: (() => void)):
+			KeyPressMonitor {
 		if (!KeyPressMonitor._instance) {
 			KeyPressMonitor._instance = new KeyPressMonitor();
 		}
-		const instance: KeyPressMonitor
-			= KeyPressMonitor._instance as KeyPressMonitor;
-		if (typeof socket !== "undefined") {
-			instance.add_socket(socket);
-		}
-		return instance;
-	}
-	
-	// add socket to the instance
-	add_socket(socket: Socket) {
-		if (typeof socket !== "undefined" && socket != null) {
-			KeyPressMonitor.socket = socket;
-		}
+		KeyPressMonitor.onKeyDown = onKeyDown;
+		KeyPressMonitor.onKeyUp = onKeyUp;
+		return KeyPressMonitor._instance;
 	}
 	
 	// add key to the set of pressed keys
 	public static keydown(e: KeyboardEvent): void {
 		KeyPressMonitor.keypress.add(e.key);
-		if (KeyPressMonitor.socket != null)
-			KeyPressMonitor.socket.emit("keydown", e.key);
+		if (KeyPressMonitor.onKeyDown != null)
+			KeyPressMonitor.onKeyDown();
 	}
 	
 	// removed key to the set of pressed keys
 	public static keyup(e: KeyboardEvent): void {
 		KeyPressMonitor.keypress.delete(e.key);
-		if (KeyPressMonitor.socket != null)
-			KeyPressMonitor.socket.emit("keyup", e.key);
+		if (KeyPressMonitor.onKeyUp != null)
+			KeyPressMonitor.onKeyUp();
 	}
 }
 
