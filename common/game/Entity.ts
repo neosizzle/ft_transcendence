@@ -1,6 +1,13 @@
 import KeyPressMonitor from "./KeyPressMonitor";
 
 
+export type EntityState = {
+	x: number,	// x-coordinate of centre point
+	y: number,	// y-coordinate of centre point
+	vx: number,	// velocity along x direction
+	vy: number,	// velocity along y direction
+}
+
 // A generic entity with bounding box for other classes to derive from
 export abstract class Entity {
 	x: number;	// x-coordinate of centre point
@@ -20,6 +27,23 @@ export abstract class Entity {
 		this.vx = vx;
 		this.vy = vy;
 		this.colour = "white";	// white by default
+	}
+	
+	// set the x, y, vx, vy of the entity
+	set_state(state: EntityState) {
+		this.x = state.x;
+		this.y = state.y
+		this.vx = state.vx;
+		this.vy = state.vy;
+	}
+	
+	get_state(): EntityState {
+		return {
+			x: this.x,
+			y: this.y,
+			vx: this.vx,
+			vy: this.vy,
+		};
 	}
 	
 	// getter functions for object boundary

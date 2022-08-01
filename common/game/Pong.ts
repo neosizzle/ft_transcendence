@@ -1,15 +1,29 @@
-import { Entity, Wall, Paddle, Ball } from "./Entity"
+import { EntityState, Entity, Wall, Paddle, Ball } from "./Entity"
 
+
+type GameState = {
+	isRunning: boolean;	// true if game is running, false otherwise
+	score: number[];	// current running score of the game
+	entity: EntityState[];	// array of entity states
+}
+
+interface GameInterface {
+	entity: Entity[];	// stores all the game entitities
+	update(): void;	// update the state of all entities in the game
+	set_state(state: GameState): void;	// set the state of the game
+	get_state(): GameState;	// get the state of the game
+}
 
 // class representing the Pong game
-export default class Pong {
+export default class Pong implements GameInterface {
 	private width;
 	private height;
 	private ball: Ball | undefined;
-	private entity: Entity[] = [];
-	private isRunning = false;
 	private player_no: number;
 	private scoreboard: ScoreBoard;
+	
+	entity: Entity[] = [];
+	isRunning = false;
 	
 	constructor(width: number, height: number, player_no: number) {
 		this.width = width;
@@ -25,6 +39,25 @@ export default class Pong {
 		
 		// initialise entities of the game
 		this.entities_init();
+	}
+	
+	set_state(state: GameState) {
+		this.isRunning = state.isRunning;
+		this.scoreboard.set_state(state.score);
+		for (const i in state.entity)
+			this.entity[i].set_state(state.entity[i]);
+	}
+	
+	get_state(): GameState {
+		const entity_state: EntityState[] = [];
+		for (const i of this.entity)
+			entity_state.push(i.get_state());
+		
+		return {
+			isRunning: this.isRunning,
+			score: this.scoreboard.get_state(),
+			entity: entity_state,
+		};
 	}
 	
 	// initialise all entities in the game
@@ -170,6 +203,14 @@ class ScoreBoard{
 	constructor(player_no: number) {
 		this.player_no = player_no;
 		this.reset();
+	}
+	
+	set_state(score: number[]): void {
+		this.score = score;
+	}
+	
+	get_state(): number[] {
+		return this.score;
 	}
 	
 	// add scores players depending to score location.
