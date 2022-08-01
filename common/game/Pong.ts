@@ -2,7 +2,7 @@ import { EntityState, Entity, Wall, Paddle, Ball } from "./Entity"
 
 
 type GameState = {
-	isRunning: boolean;	// true if game is running, false otherwise
+	isRunning: boolean[];	// true if game is running, false otherwise
 	score: number[];	// current running score of the game
 	entity: EntityState[];	// array of entity states
 }
@@ -34,7 +34,7 @@ export default class Pong implements GameInterface {
 	private scoreboard: ScoreBoard;
 	
 	entity: Entity[] = [];
-	isRunning = false;
+	isRunning: boolean[];
 	
 	constructor(width: number, height: number, player_no: number) {
 		this.width = width;
@@ -48,6 +48,10 @@ export default class Pong implements GameInterface {
 		// create a scoreboard
 		this.scoreboard = new ScoreBoard(player_no);
 		
+		this.isRunning = [];
+		for (let i = 0; i < player_no; ++i)
+			this.isRunning.push(false);
+		
 		// initialise entities of the game
 		this.entities_init();
 	}
@@ -59,6 +63,8 @@ export default class Pong implements GameInterface {
 	
 	// redirects the key events to all entities in the game
 	control(keypress: Set<KeyboardEvent["key"]>): void {
+		if (keypress.has(' '))
+			this.start();
 		if (this.player < 0)
 			return ;
 		const filtered_keypress: Set<KeyboardEvent["key"]> = new Set(
@@ -85,6 +91,11 @@ export default class Pong implements GameInterface {
 			score: this.scoreboard.get_state(),
 			entity: entity_state,
 		};
+	}
+	
+	// return whether all players have started the game
+	private all_players_ready(): boolean {
+		return this.isRunning.reduce((a, b) => a && b, true);
 	}
 	
 	// initialise all entities in the game
@@ -144,7 +155,9 @@ export default class Pong implements GameInterface {
 	}
 	
 	start(): void {
-		this.isRunning = true;
+		if (this.player < 0)
+			return ;
+		this.isRunning[this.player] = true;
 	}
 	
 	// draw all the elements on screen using context 'ctx'
@@ -158,7 +171,7 @@ export default class Pong implements GameInterface {
 		ctx.fillRect(0, 0, this.width, this.height);
 		
 		// if game is not running, show the "Press SPACE" text
-		if (!this.isRunning)
+		if (this.all_players_ready() == false)
 		{
 			ctx.fillStyle = "white";
 			ctx.fillText("Press SPACE", this.width * 0.525, this.height * 2/3);
@@ -175,7 +188,7 @@ export default class Pong implements GameInterface {
 	// update all the entities in the game, taking account collision
 	update(): void {
 		// nothing to update if game is not running
-		if (!this.isRunning)
+		if (this.all_players_ready() == false)
 			return ;
 		
 		// collide all permutation of entities in the game
@@ -213,7 +226,8 @@ export default class Pong implements GameInterface {
 		
 		this.scoreboard.add(loser);	// update the score
 		console.log("Score!");
-		this.isRunning = false;	// stop the current round
+		if (this.player >=0)
+			this.isRunning[this.player] = false;	// stop the current round
 		
 		// reset game to initial condition
 		this.entities_clear();

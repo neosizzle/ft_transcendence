@@ -1,6 +1,5 @@
 import React from 'react';
 
-import KeyPressMonitor from '../common/game/KeyPressMonitor';
 import { GameInterface } from '../common/game/Pong';
 
 
@@ -50,9 +49,6 @@ export default class Canvas extends React.Component<CanvasProps> {
 	
 	// main game loop
 	update() {
-		// start the game if space is presed
-		if (KeyPressMonitor.has(' '))
-			this.game.start();
 		this.game.update();	// update to the next frame
 		this.game.draw(this.ctx);	// draw game state to canvas
 		this.animationID = window.requestAnimationFrame(this.update.bind(this));
