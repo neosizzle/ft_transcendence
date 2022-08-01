@@ -4,6 +4,7 @@ import Blocks from "./pages/blocks/Blocks";
 import Edit from "./pages/edit/Edit"
 import Friends from "./pages/friends/Friends"
 import Profile from "./pages/profile/Profile";
+import Search from "./pages/search/Search";
 
 const UserDashboard: FunctionComponent = () => {
 
@@ -13,7 +14,7 @@ const UserDashboard: FunctionComponent = () => {
 				<Route path = "profile/:id" element = {<Profile/>}/>
 				<Route path = "friends" element = {<Friends/>}/>
 				<Route path = "edit" element = {<Edit/>}/>
-				<Route path = "search" element = {<div>search_ACTIVE </div>}/>
+				<Route path = "search" element = {<Search/>}/>
 				<Route path = "blocks" element = {<div><Blocks/> </div>}/>
 			</Routes>	
 		</div>

@@ -11,7 +11,7 @@ interface BlockCardProps {
 	setCurrRemovingUser: React.Dispatch<React.SetStateAction<User | null >>;
 }
 
-const BlockCard: FunctionComponent<BlockCardProps> = ({block, currUser, setCurrRemovingUser}) => {
+const BlockCard: FunctionComponent<BlockCardProps> = ({block, setCurrRemovingUser}) => {
 	const [userToDisplay, setUserToDisplay] = useState<User | null>(null);
 
 	useEffect(() => {

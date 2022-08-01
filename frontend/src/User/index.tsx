@@ -1,15 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/authContext';
 import MenuIcon from './common/MenuIcon';
 import UserDashboard from './UserDashboard';
-
-const PROFILE_ACTIVE = 0;
-const FRIENDS_ACTIVE = 1;
-const BLOCKS_ACTIVE = 2;
-const EDIT_ACTIVE = 3;
-const SEARCH_ACTIVE = 4;
-
 
 const UserIcon = () => {
 	return <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -42,23 +34,19 @@ const SearchIcon = () => {
 }
 
 const User = () => {
-	const auth = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const [activeTab, setActiveTab] = useState<number>(PROFILE_ACTIVE);
 	
 	return (
-		// bg-gradient-to-tl
-		// from-slate-200 to-white
 		<div
-		className='
+		className="
 			sm:grid
 			sm:grid-cols-12
-			bg-[url("/assets/topography.svg")]
+			bg-[url('/public/assets/topography.svg')]
 			bg-zinc-50
 			bg-fixed
 			min-h-screen
-		'
+		"
 		>
 			{/**PC side menu */}
 			<div
@@ -90,12 +78,7 @@ const User = () => {
 				</div>
 			</div>
 
-			{
-				typeof auth?.user === "string" ? 
-				<h2>welcome {auth?.user}</h2>
-				:
-				<UserDashboard/>
-			}
+			<UserDashboard/>
 
 			{/**Mobile bottom menu */}
 			<div
