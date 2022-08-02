@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { TOKEN_KEY } from '../constants';
 import { useAuth } from '../context/authContext';
 
-const Login = (props: any) => {
+const Login = () => {
 	const auth = useAuth();
 	const navigate = useNavigate();
 

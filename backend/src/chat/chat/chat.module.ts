@@ -6,8 +6,13 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
+import { AdminModule } from '../admin/admin.module';
+import { BanModule } from '../ban/ban.module';
+import { MuteModule } from '../mute/mute.module';
+import { MemberModule } from '../member/member.module';
+import { RoomModule } from '../room/room.module';
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AdminModule, BanModule, MuteModule, MemberModule, RoomModule],
   controllers: [ChatController],
   providers: [PrismaService, ConfigService, ChatGateway, BlocksService, ChatService]
 })
