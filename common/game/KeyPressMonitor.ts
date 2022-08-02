@@ -51,6 +51,9 @@ export default class KeyPressMonitor extends KeyPressMonitorBase {
 	
 	// add key to the set of pressed keys
 	public static keydown(e: KeyboardEvent): void {
+		// do nothing if key is already pressed
+		if (KeyPressMonitor.has(e.key))
+			return ;
 		KeyPressMonitor.keypress.add(e.key);
 		if (KeyPressMonitor.onKeyDown != null)
 			KeyPressMonitor.onKeyDown(e.key);
