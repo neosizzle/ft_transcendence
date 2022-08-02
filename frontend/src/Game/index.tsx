@@ -31,7 +31,8 @@ class Game extends React.Component {
 			console.log('Connected');
 			// keypress monitor is created if connection is made
 			this.keypress = KeyPressMonitor.get_instance(
-				this.onKeyDown.bind(this), this.onKeyUp.bind(this));
+								this.onKeyDown.bind(this),
+								this.onKeyUp.bind(this));
 		});
 		
 		this.socket.on('exception', function(data) {
@@ -49,20 +50,22 @@ class Game extends React.Component {
 	}
 	
 	// callback function to be called by KeyPressMonitor class
-	onKeyDown(): void {
+	onKeyDown(key: KeyboardEvent["key"]): void {
 		// do nothing if not a player
 		if (this.player.size == 0)
 			return ;
 		// pass the current input to the game
+		this.socket.emit('keyDown', key);
 		if (this.game != null)
 			this.game.control(KeyPressMonitor.keypress);
 	}
 	
 	// callback function to be called by KeyPressMonitor class
-	onKeyUp(): void {
+	onKeyUp(key: KeyboardEvent["key"]): void {
 		// do nothing if not a player
 		if (this.player.size == 0)
 			return ;
+		this.socket.emit('keyUp', key);
 		// pass the current input to the game
 		this.game.control(KeyPressMonitor.keypress);
 	}

@@ -20,8 +20,10 @@ export class KeyPressMonitorBase {
 
 // KeyPressMonitor version meant to be run by client
 export default class KeyPressMonitor extends KeyPressMonitorBase {
-	private static onKeyDown: (() => void) | null = null;
-	private static onKeyUp: (() => void) | null = null;
+	private static onKeyDown: ((key: KeyboardEvent["key"]) => void) | null
+		= null;
+	private static onKeyUp: ((key: KeyboardEvent["key"]) => void) | null
+		= null;
 	
 	// since class is defined as singleton, make constructor function
 	// private to prevent direct construction call
@@ -35,8 +37,10 @@ export default class KeyPressMonitor extends KeyPressMonitorBase {
 	}
 	
 	// create, if necessary, and return the singleton object
-	public static get_instance(onKeyDown: (() => void), onKeyUp: (() => void)):
-			KeyPressMonitor {
+	public static get_instance(
+			onKeyDown: ((key: KeyboardEvent["key"]) => void),
+			onKeyUp: ((key: KeyboardEvent["key"]) => void)
+			): KeyPressMonitor {
 		if (!KeyPressMonitor._instance) {
 			KeyPressMonitor._instance = new KeyPressMonitor();
 		}
@@ -49,14 +53,14 @@ export default class KeyPressMonitor extends KeyPressMonitorBase {
 	public static keydown(e: KeyboardEvent): void {
 		KeyPressMonitor.keypress.add(e.key);
 		if (KeyPressMonitor.onKeyDown != null)
-			KeyPressMonitor.onKeyDown();
+			KeyPressMonitor.onKeyDown(e.key);
 	}
 	
 	// removed key to the set of pressed keys
 	public static keyup(e: KeyboardEvent): void {
 		KeyPressMonitor.keypress.delete(e.key);
 		if (KeyPressMonitor.onKeyUp != null)
-			KeyPressMonitor.onKeyUp();
+			KeyPressMonitor.onKeyUp(e.key);
 	}
 }
 

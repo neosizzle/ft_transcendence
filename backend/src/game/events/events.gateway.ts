@@ -1,6 +1,7 @@
 import {
 	OnGatewayConnection,
 	OnGatewayDisconnect,
+	OnGatewayInit,
 	MessageBody,
 	ConnectedSocket,
 	SubscribeMessage,
@@ -8,7 +9,8 @@ import {
 	WebSocketServer,
 	} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { KeyPressMonitorBase } from '../../common/game/KeyPressMonitor'
+
+import GameServer from '../server'
 
 
 @WebSocketGateway({
@@ -18,71 +20,49 @@ import { KeyPressMonitorBase } from '../../common/game/KeyPressMonitor'
 	namespace: 'game',
 })
 export class GameEventsGateway
-		implements OnGatewayConnection, OnGatewayDisconnect {
+		implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer()
 	server: Server;
-	players: string[] = ["", ""];
-	private keys: Map<number, string[]> = new Map([
-		[0, ["ArrowUp", "ArrowDown"]],
-		[1, ["w", "s"]],
-		[2, ["ArrowLeft", "ArrowRight"]],
-		[3, ["a", "d"]],
-	]);
+	clients: Set<Socket> = new Set();
+	game_server: GameServer;
+	
+	afterInit(): void {
+		this.game_server = new GameServer(this.server)
+	}
 	
 	// records a connected client
 	handleConnection(client: Socket): void {
 		console.log(`spectator ${client.id} connected`);
+		this.clients.add(client);
 	}
 	
-	// records an unconnected player
+	// records an unconnected client / player
 	handleDisconnect(client: Socket): void {
 		console.log(`spectator ${client.id} disconnected`);
-		
-		for (let player = 0; player < this.players.length; ++player)
-		{
-			if (this.players[player] != client.id)
-				continue ;
-			console.log(`player ${player} disconnected`);
-			// Assume that the disconnected player no longer presses the key
-			for (const k of this.keys.get(player))
-				KeyPressMonitorBase.delete(k);
-			this.players[player] = "";
-		}
+		this.clients.delete(client);
+		this.game_server.disconnect(client.id);
 	}
 	
 	// attempts to join a game
 	@SubscribeMessage('join')
 	joinGame(@MessageBody() n: number, @ConnectedSocket() client: Socket)
 			: number {
-		// let player join if not occupied
-		if (this.players[n] == "" || this.players[n] == client.id) {
-			this.players[n] = client.id;
-			return n;
-		}
-		else
-			return -1;
+		return this.game_server.connect(client.id, n);
 	}
 	
 	// records a keydown event from players only
-	@SubscribeMessage('keydown')
+	@SubscribeMessage('keyDown')
 	keyDown(@MessageBody() key: string, @ConnectedSocket() client: Socket)
 			: void {
-		const player = this.players.indexOf(client.id);
-		if (player < 0 || this.keys.get(player).indexOf(key) < 0) {
-			return ;
-		}
-		console.log(`Received keydown ${key} from ${client.id}`);
-		KeyPressMonitorBase.add(key);
+		if (key == ' ')
+			this.game_server.start(client.id);
+		this.game_server.keyDown(client.id, key);
 	}
 	
 	// records a keyup event from players only
-	@SubscribeMessage('keyup')
+	@SubscribeMessage('keyUp')
 	keyUp(@MessageBody() key: string, @ConnectedSocket() client: Socket)
 			: void {
-		const player = this.players.indexOf(client.id);
-		if (player < 0 || this.keys.get(player).indexOf(key) < 0)
-			return ;
-		console.log(`Received keyup ${key} from ${client.id}`);
-		KeyPressMonitorBase.delete(key);
+		this.game_server.keyUp(client.id, key);
 	}
 }

@@ -8,10 +8,11 @@ type GameState = {
 }
 
 export interface GameInterface {
+	control_keys: KeyboardEvent["key"][][]
 	entity: Entity[];	// stores all the game entitities
 	control(keypress: Set<KeyboardEvent["key"]>): void;	// handles key presses
 	set_player(n: number): void;	// record the current player number
-	start(): void;	// start a new round of game
+	start(n?: number): void;	// start a new round of game
 	update(): void;	// update the state of all entities in the game
 	draw(ctx: CanvasRenderingContext2D | null): void;	// draw game onto canvas
 	set_state(state: GameState): void;	// set the state of the game
@@ -20,7 +21,7 @@ export interface GameInterface {
 
 // class representing the Pong game
 export default class Pong implements GameInterface {
-	private control_keys: KeyboardEvent["key"][][] = [
+	control_keys: KeyboardEvent["key"][][] = [
 		["", "", "ArrowUp", "ArrowDown"],
 		["", "", "w", "s"],
 		["ArrowLeft", "ArrowRight", "", ""],
@@ -158,10 +159,15 @@ export default class Pong implements GameInterface {
 		this.entity = [];
 	}
 	
-	start(): void {
-		if (this.player.size == 0)
-			return ;
-		this.player.forEach((n) => { this.isRunning[n] = true; });
+	// if n is given, set player 'n' as ready; else set all recognised players
+	// as ready.
+	start(n?: number): void {
+		if (typeof n === 'undefined')
+			this.player.forEach((n) => { this.isRunning[n] = true; });
+		else {
+			this.isRunning[n] = true;
+			console.log(`Player ${n} is ready`);
+		}
 	}
 	
 	// draw all the elements on screen using context 'ctx'
