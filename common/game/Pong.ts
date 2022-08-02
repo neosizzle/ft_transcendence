@@ -15,7 +15,7 @@ export interface GameInterface {
 	start(n?: number): void;	// start a new round of game
 	update(): void;	// update the state of all entities in the game
 	draw(ctx: CanvasRenderingContext2D | null): void;	// draw game onto canvas
-	set_state(state: GameState): void;	// set the state of the game
+	set_state(latency: number, state: GameState): void;	// set the state of the game
 	get_state(): GameState;	// get the state of the game
 }
 
@@ -84,12 +84,12 @@ export default class Pong implements GameInterface {
 	}
 	
 	// set a state of the whole game
-	set_state(state: GameState) {
+	set_state(latency: number, state: GameState) {
 		console.log('setting game state');
 		this.isRunning = state.isRunning;
 		this.scoreboard.set_state(state.score);
 		for (const i in state.entity)
-			this.entity[i].set_state(state.entity[i]);
+			this.entity[i].set_state(latency, state.entity[i]);
 	}
 	
 	get_state(): GameState {

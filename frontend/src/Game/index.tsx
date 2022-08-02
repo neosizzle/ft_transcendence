@@ -16,12 +16,21 @@ class Game extends React.Component {
 	socket: Socket;
 	keypress: KeyPressMonitor | null = null;
 	game: GameInterface;
+	latency = 0;
 	
 	constructor(props: any) {
 		super(props);
 		this.game = new Pong(400, 300, 2);
 		this.socket = io("http://localhost:3001/game");  // change for production
 		this.socket_handlers();	// initialise socket message handlers
+		
+		// calculate connection latency every 1 second
+		setInterval(() => {
+			const start = Date.now();
+			this.socket.emit("ping", () => {
+				this.latency = (Date.now() - start) / 2;
+			});
+		}, 1000);
 	}
 	
 	// define handler for socket messages
@@ -36,7 +45,7 @@ class Game extends React.Component {
 		});
 		
 		this.socket.on('game_state', (game_state: GameState) => {
-			this.game.set_state(game_state);
+			this.game.set_state(this.latency, game_state);
 		});
 		
 		this.socket.on('exception', function(data) {

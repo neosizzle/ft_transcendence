@@ -44,6 +44,12 @@ export class GameEventsGateway
 		this.game_server.disconnect(client.id);
 	}
 	
+	// ping message
+	@SubscribeMessage('ping')
+	pingResponse(): boolean {
+		return true;
+	}
+	
 	// attempts to join a game
 	@SubscribeMessage('join')
 	joinGame(@MessageBody() n: number, @ConnectedSocket() client: Socket)
