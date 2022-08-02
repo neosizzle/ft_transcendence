@@ -33,6 +33,7 @@ export class GameEventsGateway
 	// records a connected client
 	handleConnection(client: Socket): void {
 		console.log(`spectator ${client.id} connected`);
+		this.game_server.spectate(client);
 		this.clients.add(client);
 	}
 	

@@ -2,7 +2,7 @@ import React from 'react';
 import io, { Socket } from 'socket.io-client';
 
 import Canvas from './Canvas';
-import Pong, { GameInterface } from '../common/game/Pong';
+import Pong, { GameInterface, GameState } from '../common/game/Pong';
 import KeyPressMonitor from '../common/game/KeyPressMonitor';
 
 
@@ -33,6 +33,10 @@ class Game extends React.Component {
 			this.keypress = KeyPressMonitor.get_instance(
 								this.onKeyDown.bind(this),
 								this.onKeyUp.bind(this));
+		});
+		
+		this.socket.on('game_state', (game_state: GameState) => {
+			this.game.set_state(game_state);
 		});
 		
 		this.socket.on('exception', function(data) {

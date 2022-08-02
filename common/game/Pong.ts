@@ -1,7 +1,7 @@
 import { EntityState, Entity, Wall, Paddle, Ball } from "./Entity"
 
 
-type GameState = {
+export type GameState = {
 	isRunning: boolean[];	// true if game is running, false otherwise
 	score: number[];	// current running score of the game
 	entity: EntityState[];	// array of entity states
@@ -66,20 +66,26 @@ export default class Pong implements GameInterface {
 	control(keypress: Set<KeyboardEvent["key"]>): void {
 		if (keypress.has(' '))
 			this.start();
-		if (this.player.size == 0)
-			return ;
-		let allowed_keys: string[] = [];
-		this.player.forEach((n) => {
-			allowed_keys = allowed_keys.concat(this.control_keys[n]);
-		});
-		const filtered_keypress: Set<KeyboardEvent["key"]> = new Set(
-			allowed_keys.filter(elem => keypress.has(elem)));
-		for (const ent of this.entity)
-			ent.control(filtered_keypress);
+		if (typeof window === 'undefined') {
+			for (const ent of this.entity)
+				ent.control(keypress);
+		} else {
+			if (this.player.size == 0)
+				return ;
+			let allowed_keys: string[] = [];
+			this.player.forEach((n) => {
+				allowed_keys = allowed_keys.concat(this.control_keys[n]);
+			});
+			const filtered_keypress: Set<KeyboardEvent["key"]> = new Set(
+				allowed_keys.filter(elem => keypress.has(elem)));
+			for (const ent of this.entity)
+				ent.control(filtered_keypress);
+		}
 	}
 	
 	// set a state of the whole game
 	set_state(state: GameState) {
+		console.log('setting game state');
 		this.isRunning = state.isRunning;
 		this.scoreboard.set_state(state.score);
 		for (const i in state.entity)
@@ -240,9 +246,10 @@ export default class Pong implements GameInterface {
 			return ;
 		
 		this.scoreboard.add(loser);	// update the score
-		console.log("Score!");
+		console.log(`Player ${loser} lost!`);
 		// stop the current round
-		this.player.forEach((n) => { this.isRunning[n] = false;	});
+		for (let n = 0; n < this.isRunning.length; ++n)
+			this.isRunning[n] = false;
 		
 		// reset game to initial condition
 		this.entities_clear();

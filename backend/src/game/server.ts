@@ -1,4 +1,4 @@
-import { Server } from 'socket.io';
+import { Socket, Server } from 'socket.io';
 
 import Pong, { GameInterface } from '../common/game/Pong';
 import { KeyPressMonitorBase } from '../common/game/KeyPressMonitor';
@@ -12,13 +12,16 @@ export default class GameServer {
 	constructor(server: Server) {
 		this.server = server;
 		this.game = new Pong(400, 300, 2);
-		// this.gameLoop(); 
+		
+		// run the game in an infinite loop at 60 Hz
+		setInterval(this.game.update.bind(this.game), 1000/60);
 	}
 	
-	// async gameLoop() {
-	// 	await this.game.update();
-	// 	this.gameLoop();
-	// }
+	// a new spectator joins. Broadcast game state to it.
+	spectate(client: Socket) {
+		client.emit('game_state', this.game.get_state());
+	}
+	
 	
 	/* client 'id' attemps to join as player 'n'. Return 'n' upon
 	 * success, or -1 upon failure. */ 
@@ -54,31 +57,39 @@ export default class GameServer {
 	/* Client 'id' requests to start game. Server checks whether client
 	 * is a player. */
 	start(id: string) {
-		console.log('Active players', this.players);
 		for (let n = 0; n < this.players.length; ++n) {
 			if (this.players[n] == id) {
 				this.game.start(n);	// game records that that player is ready
+				console.log(`Player ${n} pressed start.`)
+				this.game.control(KeyPressMonitorBase.keypress);
+				this.server.emit('game_state', this.game.get_state());
 			}
 		}
 	}
 	
+	// server receives key down event
 	keyDown(id: string, key: KeyboardEvent["key"]) {
 		for (let n = 0; n < this.players.length; ++n) {
 			if (this.players[n] == id
 					&& this.game.control_keys[n].indexOf(key) != -1) {
 				console.log(`Received keydown ${key} from player ${n}`);
 				KeyPressMonitorBase.add(key);
+				this.game.control(KeyPressMonitorBase.keypress);
+				this.server.emit('game_state', this.game.get_state());
 				break ;
 			}
 		}
 	}
 	
+	// server receives key up event
 	keyUp(id: string, key: KeyboardEvent["key"]) {
 		for (let n = 0; n < this.players.length; ++n) {
 			if (this.players[n] == id
 					&& this.game.control_keys[n].indexOf(key) != -1) {
 				console.log(`Received keyup ${key} from player ${n}`);
 				KeyPressMonitorBase.delete(key);
+				this.game.control(KeyPressMonitorBase.keypress);
+				this.server.emit('game_state', this.game.get_state());
 				break ;
 			}
 		}
