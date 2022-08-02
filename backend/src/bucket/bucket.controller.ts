@@ -4,7 +4,7 @@ import { Request } from 'express';
 import { createReadStream, readdirSync } from 'fs';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
-import { AuthGuard } from 'src/auth/guard';
+import { AuthGuard } from 'src/users/auth/guard';
 
 interface customReq extends Request
 {

@@ -5,11 +5,11 @@ export class chatDto {
 
     @IsNotEmpty()
     @IsNumber()
-    UserID: number;
+    userId: number;
 
     @IsNotEmpty()
-    @IsDateString()
-    timestamp: Date;
+    @IsNumber()
+    roomId: number;
 
     @IsNotEmpty()
     @IsString()

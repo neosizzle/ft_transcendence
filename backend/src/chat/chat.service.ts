@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { Chat } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 
 import { chatDto } from "./chat.dto";
@@ -8,7 +9,6 @@ export class ChatService {
     constructor(private readonly prismaService: PrismaService) {}
     
     insertChat(dto : chatDto) : Promise<chatDto>{
-        dto.timestamp = new Date(dto.timestamp)
         return this.prismaService.chat.create({
             data: dto,
         });

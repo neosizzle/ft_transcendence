@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { AuthGuard } from 'src/auth/guard';
+import { AuthGuard } from 'src/users/auth/guard';
 import { OtpRequestDto, OtpVerifyDto } from './dto/otp.dto';
 import { OtpService } from './otp.service';
 

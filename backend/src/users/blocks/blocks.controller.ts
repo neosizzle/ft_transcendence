@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
-import { GetUser } from 'src/auth/decorator';
-import { AuthGuard } from 'src/auth/guard';
+import { GetUser } from 'src/users/auth/decorator';
+import { AuthGuard } from 'src/users/auth/guard';
 import { ListQuery } from 'src/utils';
 import { BlocksService } from './blocks.service';
 import { BlocksDto } from './dto';

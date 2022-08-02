@@ -41,7 +41,7 @@ export const AuthProvider = (props : Props) => {
 	const [user, setUser] = useState<User | null>(null);
 
 	const login = async (code? : string | null) => {
-		// alert(code) // uncomment this to obtain the code for backend testing. Usable only once.
+		alert(code) // uncomment this to obtain the code for backend testing. Usable only once.
 		if (!code)
 		{
 			const user = await auth_net_get(userEndpoint)

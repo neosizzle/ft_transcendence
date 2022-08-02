@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Chat } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { chatDto } from './chat.dto';
 import { ChatService } from './chat.service';
@@ -8,8 +9,8 @@ export class ChatController {
     constructor(private readonly prismaService: PrismaService, private readonly chatService: ChatService) {}
 
     @Get()
-    getChat(): Promise<chatDto[]>{
-        return this.prismaService.chat.findMany();
+    getChat(): Promise<Chat[]>{
+        return this.prismaService.chat.findMany()
     }
     @Post()
     create(@Body() chatDto : chatDto): Promise<chatDto> {   

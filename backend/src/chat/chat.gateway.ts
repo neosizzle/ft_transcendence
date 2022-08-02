@@ -1,11 +1,10 @@
 import { BadRequestException, Logger, NotFoundException, NotImplementedException, UseGuards } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { IsString } from 'class-validator';
-import { disconnect } from 'process';
 import { Socket, Server, Namespace } from 'socket.io';
-import { AuthGuard } from 'src/auth/guard';
-import { BlocksService } from 'src/blocks/blocks.service';
-import { roomDto } from 'src/room/room.dto';
+import { AuthGuard } from 'src/users/auth/guard';
+import { BlocksService } from 'src/users/blocks/blocks.service';
+// import { roomDto } from 'src/room/room.dto';
 
 function getAllFuncs(toCheck) {
   const props = [];
@@ -57,6 +56,7 @@ class OwnerTransferDto {
 class ModifyAdminDto {
   userId : string;
   roomId : string;
+  action : string;
 }
 
 class MessageEventDto {
@@ -263,7 +263,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // modify room in db
 
     // emmit broadcast message and notification that admin had been tranferred
-    this.wsServer.to(dto.roomId).emit('newMessage', {userId : null, roomId : dto.roomId, message : `${dto.userId} has became admin`})
+    if (dto.action === PROMOTE_ADMIN)
+      this.wsServer.to(dto.roomId).emit('newMessage', {userId : null, roomId : dto.roomId, message : `${dto.userId} has became admin`})
+    else
+      this.wsServer.to(dto.roomId).emit('newMessage', {userId : null, roomId : dto.roomId, message : `${dto.userId} has been demoted`})
 
     client.emit("messageReceived", new NotImplementedException())
   }

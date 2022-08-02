@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Patch, Query, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
-import { GetUser } from 'src/auth/decorator';
-import { AuthGuard } from 'src/auth/guard';
 import { UserPatchDto } from './dto';
 import { UsersService } from "./users.service"
+import { AuthGuard } from '../auth/guard';
 import { ListQuery } from 'src/utils';
+import { GetUser } from '../auth/decorator';
 
 @Controller('api/v1/users')
 @UseGuards(AuthGuard)
