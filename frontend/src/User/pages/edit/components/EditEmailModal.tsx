@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect, useState } from "react";
+import React, { FunctionComponent, useState } from "react";
 import { API_ROOT } from "../../../../constants";
 import validator from 'validator'
 import { auth_net_post } from "../../../../utils";

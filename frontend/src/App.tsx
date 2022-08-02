@@ -1,23 +1,19 @@
 import React, { useEffect, useState } from 'react';
-//, { useEffect, useState }
 import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Link
 } from "react-router-dom";
 import User from './User';
 import Game from './Game';
 import Chat from './Chat';
-import { AuthProvider, useAuth } from './context/authContext';
+import { AuthProvider } from './context/authContext';
 import Login from './Login';
 import Protected from './commonComponents/Protected';
 import Logout from './Logout';
 import Navbar from './commonComponents/navbar';
 
-
 function App() {
-
   const [initLoad, setInitLoad] = useState<number>(0);
 
   // initial loading
@@ -34,9 +30,7 @@ function App() {
     <AuthProvider>
       <Router>
         <div>
-          
           <Navbar/>
-          
           {/* A <Route> looks through its children <Route>s and
               renders the first one that matches the current URL. */}
           <Routes>

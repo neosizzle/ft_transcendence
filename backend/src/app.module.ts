@@ -14,10 +14,13 @@ import { MemberModule } from './member/member.module';
 import { AdminModule } from './admin/admin.module';
 import { BanModule } from './ban/ban.module';
 import { MuteModule } from './mute/mute.module';
+import { MailService } from './mail/mail.service';
+import { MailModule } from './mail/mail.module';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
-  imports: [AuthModule, PrismaModule, UsersModule, FriendsModule, BlocksModule, BucketModule, OtpModule, ChatModule, RoomModule, MemberModule, AdminModule, BanModule, MuteModule],
+  imports: [AuthModule, PrismaModule, UsersModule, FriendsModule, BlocksModule, BucketModule, OtpModule, MailModule, ChatModule, RoomModule, MemberModule, AdminModule, BanModule, MuteModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, MailService, ConfigService],
 })
 export class AppModule {}

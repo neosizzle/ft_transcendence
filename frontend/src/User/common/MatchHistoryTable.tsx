@@ -77,7 +77,7 @@ const TableRow = () => {
 	"
 	>
 	<a
-		href="javascript:void(0)"
+		href=""
 		className="
 		border border-primary
 		py-2

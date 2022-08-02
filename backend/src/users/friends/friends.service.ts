@@ -30,7 +30,7 @@ const FRIEND_USER = 0;
              case "OFFLINE":
                  return UserStatus.OFFLINE;
              default:
-                 return undefined;
+                 throw new BadRequestException("Bad status field. Must be 'LOGGEDIN', 'INGAME' or 'OFFLINE'");
          }
      }
      if (filterOn === "createdAt" || filterOn === "updatedAt")
@@ -109,7 +109,7 @@ const FRIEND_USER = 0;
                     filterBy = FriendshipStatus.REJECTED
                     break;
                 default:
-                    break;
+                    throw new BadRequestException("Bad reqStatus field. Must be 'PENDING', 'APPROVED' or 'REJECTED'")
             }
             res.AND[1].OR.push({reqStatus : {equals : filterBy}})
         }

@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/authContext';
 import SideDialog from './SideDialog';
 
 const Navbar = () => {
     const auth = useAuth();
+    const location = useLocation();
     const [openMenu, setOpenMenu] = useState<boolean>(false);
-    
+
     return (
+      // Hide navbar when login or logout
+      location.pathname === "/login" || location.pathname === "/logout" ?
+      null
+      :
       <nav className='bg-black'>
             <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
               <div className="relative flex items-center justify-between h-16">

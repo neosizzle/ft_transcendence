@@ -114,7 +114,7 @@ const DragNDrop:FunctionComponent<DragNDropProps> = ({setCurrFileName, setCurrFi
 		// set loading state to false
 		setLoading(false)
 	}, [])
-	const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop, accept : {'image/*' : []}})
+	const {getRootProps, isDragActive} = useDropzone({onDrop, accept : {'image/*' : []}})
 	
 	return <div {...getRootProps({className: 'dropzone'})} className="w-full h-full">
 		{
