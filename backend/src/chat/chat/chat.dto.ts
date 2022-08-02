@@ -1,8 +1,6 @@
-import {IsDateString, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import {IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class chatDto {
-    id: number;
-
     @IsNotEmpty()
     @IsNumber()
     userId: number;
