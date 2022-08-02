@@ -36,7 +36,9 @@ export class GameEventsGateway
 	
 	// records an unconnected player
 	handleDisconnect(client: Socket): void {
-		for (let player = 0; this.players.length; ++player)
+		console.log(`spectator ${client.id} disconnected`);
+		
+		for (let player = 0; player < this.players.length; ++player)
 		{
 			if (this.players[player] != client.id)
 				continue ;
@@ -52,8 +54,6 @@ export class GameEventsGateway
 	@SubscribeMessage('join')
 	joinGame(@MessageBody() n: number, @ConnectedSocket() client: Socket)
 			: number {
-		console.log(this.players);
-		
 		// let player join if not occupied
 		if (this.players[n] == "" || this.players[n] == client.id) {
 			this.players[n] = client.id;

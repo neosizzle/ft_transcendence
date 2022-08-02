@@ -12,7 +12,7 @@ There are possibly two types of clients: player or spectator.
 Players can control their own game, spectators can only view the game.
 */
 class Game extends React.Component {
-	player = -1;	// -1 for spectator, 0 and above for player number
+	player: Set<number> = new Set<number>();
 	socket: Socket;
 	keypress: KeyPressMonitor | null = null;
 	game: GameInterface;
@@ -51,7 +51,7 @@ class Game extends React.Component {
 	// callback function to be called by KeyPressMonitor class
 	onKeyDown(): void {
 		// do nothing if not a player
-		if (this.player < 0)
+		if (this.player.size == 0)
 			return ;
 		// pass the current input to the game
 		if (this.game != null)
@@ -61,7 +61,7 @@ class Game extends React.Component {
 	// callback function to be called by KeyPressMonitor class
 	onKeyUp(): void {
 		// do nothing if not a player
-		if (this.player < 0)
+		if (this.player.size == 0)
 			return ;
 		// pass the current input to the game
 		this.game.control(KeyPressMonitor.keypress);
@@ -69,9 +69,11 @@ class Game extends React.Component {
 	
 	joinClick(n: number): void {
 		this.socket.emit("join", n, (n: number) => {
+			if (n == -1)
+				return ;
 			console.log(`I am player ${n}`);
 			this.game.set_player(n);
-			this.player = n;
+			this.player.add(n);
 		});
 	}
 	

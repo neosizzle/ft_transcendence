@@ -26,9 +26,9 @@ export default class Pong implements GameInterface {
 		["ArrowLeft", "ArrowRight", "", ""],
 		["a", "d", "", ""],
 	]
-	private player = -1;
-	private width;
-	private height;
+	private player: Set<number> = new Set<number>();
+	private width: number;
+	private height: number;
 	private ball: Ball | undefined;
 	private player_no: number;
 	private scoreboard: ScoreBoard;
@@ -58,17 +58,21 @@ export default class Pong implements GameInterface {
 	
 	// set which player is controlling the game
 	set_player(player: number): void {
-		this.player = player;
+		this.player.add(player);
 	}
 	
 	// redirects the key events to all entities in the game
 	control(keypress: Set<KeyboardEvent["key"]>): void {
 		if (keypress.has(' '))
 			this.start();
-		if (this.player < 0)
+		if (this.player.size == 0)
 			return ;
+		let allowed_keys: string[] = [];
+		this.player.forEach((n) => {
+			allowed_keys = allowed_keys.concat(this.control_keys[n]);
+		});
 		const filtered_keypress: Set<KeyboardEvent["key"]> = new Set(
-			this.control_keys[this.player].filter(elem => keypress.has(elem)));
+			allowed_keys.filter(elem => keypress.has(elem)));
 		for (const ent of this.entity)
 			ent.control(filtered_keypress);
 	}
@@ -155,9 +159,9 @@ export default class Pong implements GameInterface {
 	}
 	
 	start(): void {
-		if (this.player < 0)
+		if (this.player.size == 0)
 			return ;
-		this.isRunning[this.player] = true;
+		this.player.forEach((n) => { this.isRunning[n] = true; });
 	}
 	
 	// draw all the elements on screen using context 'ctx'
@@ -231,8 +235,8 @@ export default class Pong implements GameInterface {
 		
 		this.scoreboard.add(loser);	// update the score
 		console.log("Score!");
-		if (this.player >=0)
-			this.isRunning[this.player] = false;	// stop the current round
+		// stop the current round
+		this.player.forEach((n) => { this.isRunning[n] = false;	});
 		
 		// reset game to initial condition
 		this.entities_clear();
