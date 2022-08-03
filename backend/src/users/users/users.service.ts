@@ -80,7 +80,10 @@ const generateUserWhere = (listObj: ListObject): Prisma.UserWhereInput => {
       listObj.filterBys && index < listObj.filterBys.length;
       index++
     ) {
-      const filterBy = listObj.filterBys[index];
+      const filterBy = transformFilterUser(
+        listObj.filterBys[index],
+        listObj.filterOns[index]
+      );
       const filterOn = listObj.filterOns[index];
       const filterEntry = {};
       if (

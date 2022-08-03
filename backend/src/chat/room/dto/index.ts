@@ -1,2 +1,2 @@
-export * from './room.dto'
-export * from './roomPatch.dto'
+export * from "./room.dto";
+export * from "./roomPatch.dto";
