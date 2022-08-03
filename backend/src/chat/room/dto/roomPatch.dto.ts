@@ -1,4 +1,4 @@
-import { IsNegative, IsNumber, IsOptional, IsString, MinLength } from "class-validator";
+import { IsNumber, IsOptional, IsString, MinLength } from "class-validator";
 
 export class roomPatchDto {
   @IsOptional()
