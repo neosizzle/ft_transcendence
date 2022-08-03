@@ -15,7 +15,7 @@ import GameServer from '../server'
 
 @WebSocketGateway({
 	cors: {
-		origin: 'http://localhost:3000',	// change this for production
+		origin: '*',	// change this for production
 	},
 	namespace: 'game',
 })
