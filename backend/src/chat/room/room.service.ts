@@ -36,6 +36,8 @@ const transformFilterRoom = (
   }
   if (filterOn === "createdAt" || filterOn === "updatedAt")
     return new Date(filterBy);
+  if (filterOn === "id" || filterOn === "ownerId")
+    return parseInt(filterBy, 10);
   else return filterBy;
 };
 
@@ -72,7 +74,10 @@ const generateRoomWhere = (listObj: ListObject): Prisma.RoomWhereInput => {
       listObj.filterBys && index < listObj.filterBys.length;
       index++
     ) {
-      const filterBy = listObj.filterBys[index];
+      const filterBy = transformFilterRoom(
+        listObj.filterBys[index],
+        listObj.filterOns[index]
+      );
       const filterOn = listObj.filterOns[index];
       const filterEntry = {};
       if (filterBy == "GC" || filterBy == "DM" || typeof filterBy !== "string")
@@ -98,6 +103,7 @@ const generateRoomPayload = (listObj: ListObject): Prisma.RoomFindManyArgs => {
 
   res.take = listObj.pageSize;
   res.skip = (listObj.page - 1) * listObj.pageSize;
+  res.include = { owner: true };
   if (listObj.filterBys) res.where = generateRoomWhere(listObj);
   if (listObj.sortBy) {
     res.orderBy = [{}];
@@ -111,7 +117,7 @@ const generateRoomPayload = (listObj: ListObject): Prisma.RoomFindManyArgs => {
 export class RoomService {
   constructor(private prisma: PrismaService) {}
 
-  sampleRoom: Room = {
+  private sampleRoom: Room = {
     id: 0,
     roomName: "",
     password: "",
@@ -132,6 +138,7 @@ export class RoomService {
 
     // generate and send prisma query
     const payload = generateRoomPayload(listObj.data);
+    console.log(payload.where.OR);
     const res = await this.prisma.room.findMany(payload);
     delete payload.skip;
     delete payload.take;
@@ -159,7 +166,7 @@ export class RoomService {
 
     // check if existing user in DM
     if (dto.type === RoomType.DM && !initUsers)
-      throw new BadRequestException("DM Must be craeted with an initialuser");
+      throw new BadRequestException("DM Must be created with an initialuser");
     if (dto.type === RoomType.DM) {
       const commonDMRooms = await this.prisma.member.findMany({
         where: {
@@ -185,7 +192,24 @@ export class RoomService {
 
       if (commonDMRooms.length > 1)
         throw new BadRequestException("DM already exist");
+
+      // dm should have no password
+      if (dto.password)
+        throw new BadRequestException("Password forbidden for DMs");
+
+      // check if user is blocked
+      const blockered = await this.prisma.block.findFirst({
+        where: { blockeeId: parseInt(initUsers[0]), blockerId: user.id },
+      });
+
+      const blockeeed = await this.prisma.block.findFirst({
+        where: { blockerId: parseInt(initUsers[0]), blockeeId: user.id },
+      });
+
+      if (blockered || blockeeed)
+        throw new BadRequestException("Unable to create room");
     }
+    //  TODO if GC, make current user admin of room
 
     try {
       // create room in db
@@ -201,7 +225,7 @@ export class RoomService {
 
       //add initial users
       if (dto.initialUsers) {
-        // check if attempt to have intial users in DM
+        // check if attempt to have multiple intial users in DM
         if (initUsers.length > 1 && dto.type == RoomType.DM)
           throw new BadRequestException("Cannot add initial users in DM");
 
@@ -213,6 +237,7 @@ export class RoomService {
             roomId: res.id,
           } as Prisma.MemberCreateManyInput)
         );
+
         await this.prisma.member.createMany({
           data: payload,
         });
@@ -252,22 +277,15 @@ export class RoomService {
     if (originalRoom.type === "DM")
       throw new BadRequestException("Cant change a DM's properties");
 
-    // validate permissions
+    // validate password
+    if (dto.isProtected != undefined && !dto.isProtected) dto.password = null;
+    if (dto.isProtected && !dto.password)
+      throw new BadRequestException("Please provide a password");
 
     // update changes in db
     try {
       const res = await this.prisma.room.update({
-        data: {
-          ...dto,
-          isProtected:
-            dto.password === "" && originalRoom.isProtected
-              ? false
-              : dto.password &&
-                dto.password.length > 0 &&
-                !originalRoom.isProtected
-              ? true
-              : originalRoom.isProtected,
-        },
+        data: dto,
         where: {
           id: parseInt(id),
         },

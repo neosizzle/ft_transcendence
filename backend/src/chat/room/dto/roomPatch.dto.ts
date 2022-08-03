@@ -1,4 +1,10 @@
-import { IsNumber, IsOptional, IsString, MinLength } from "class-validator";
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MinLength,
+} from "class-validator";
 
 export class roomPatchDto {
   @IsOptional()
@@ -12,5 +18,9 @@ export class roomPatchDto {
 
   @IsNumber()
   @IsOptional()
-  ownerId : number;
+  ownerId: number;
+
+  @IsBoolean()
+  @IsOptional()
+  isProtected: boolean;
 }
