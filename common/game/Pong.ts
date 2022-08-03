@@ -33,6 +33,7 @@ export default class Pong implements GameInterface {
 	private ball: Ball | undefined;
 	private player_no: number;
 	private scoreboard: ScoreBoard;
+	private then?: number;
 	
 	entity: Entity[] = [];
 	isRunning: boolean[];
@@ -212,15 +213,33 @@ export default class Pong implements GameInterface {
 		if (this.all_players_ready() == false)
 			return ;
 		
-		// collide all permutation of entities in the game
-		for (const entity_0 of this.entity)
-			for (const entity_1 of this.entity)
-				if (entity_0 != entity_1)
-					entity_0.collide(entity_1);
+		// calculate how many frames needs to be updated
+		const now = new Date().getTime();
+		const interval = 1000 / 60;	// target 60 Hz
+		let frame: number;
+		if (this.then === undefined) {
+			frame = 1;
+			this.then = now;
+		} else {
+			const elapsed: number = now - this.then;
+			frame = Math.floor(elapsed / interval);
+			if (frame <= 0)
+				return ;
+			this.then += frame * interval;
+		}
 		
-		// update all the entities to their new position
-		for (const entity of this.entity)
-		entity.update();
+		// run update once per required frame
+		while (frame-- > 0) {
+			// collide all permutation of entities in the game
+			for (const entity_0 of this.entity)
+				for (const entity_1 of this.entity)
+					if (entity_0 != entity_1)
+						entity_0.collide(entity_1);
+			
+			// update all the entities to their new position
+			for (const entity of this.entity)
+				entity.update();
+		}
 
 		// detect out-of-bound ball
 		this.score()
@@ -254,6 +273,7 @@ export default class Pong implements GameInterface {
 		// reset game to initial condition
 		this.entities_clear();
 		this.entities_init();
+		this.then = undefined;
 	}
 }
 
