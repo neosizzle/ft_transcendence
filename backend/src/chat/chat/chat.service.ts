@@ -6,11 +6,11 @@ import { chatDto } from "./chat.dto";
 
 @Injectable()
 export class ChatService {
-    constructor(private readonly prismaService: PrismaService) {}
-    
-    insertChat(dto : chatDto) : Promise<chatDto>{
-        return this.prismaService.chat.create({
-            data: dto,
-        });
-    }
+  constructor(private readonly prismaService: PrismaService) {}
+
+  insertChat(dto: chatDto): Promise<chatDto> {
+    return this.prismaService.chat.create({
+      data: dto,
+    });
+  }
 }
