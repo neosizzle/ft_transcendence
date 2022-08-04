@@ -44,6 +44,11 @@ class Game extends React.Component {
 								this.onKeyUp.bind(this));
 		});
 		
+		this.socket.on('unjoin', (n: number) => {
+			console.log(`I quit as player ${n}`);
+			this.game.unset_player(n);
+		});
+		
 		this.socket.on('game_state', (game_state: GameState) => {
 			this.game.set_state(this.latency, game_state);
 		});

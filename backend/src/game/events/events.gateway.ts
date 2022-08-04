@@ -54,7 +54,7 @@ export class GameEventsGateway
 	@SubscribeMessage('join')
 	joinGame(@MessageBody() n: number, @ConnectedSocket() client: Socket)
 			: number {
-		return this.game_server.connect(client.id, n);
+		return this.game_server.connect(client, n);
 	}
 	
 	// records a keydown event from players only

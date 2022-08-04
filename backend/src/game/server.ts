@@ -6,12 +6,12 @@ import { KeyPressMonitorBase } from '../common/game/KeyPressMonitor';
 
 export default class GameServer {
 	server: Server;
-	players: string[] = ["", ""];	// records id of the players
+	players: Socket[] = [null, null];	// records player sockets
 	game: GameInterface;
 	
 	constructor(server: Server) {
 		this.server = server;
-		this.game = new Pong(400, 300, 2);
+		this.game = new Pong(400, 300, 2, this.onGameEnd.bind(this));
 		
 		// run the game in an infinite loop at 60 Hz
 		setInterval(this.game.update.bind(this.game), 1000/60);
@@ -25,32 +25,30 @@ export default class GameServer {
 	
 	/* client 'id' attemps to join as player 'n'. Return 'n' upon
 	 * success, or -1 upon failure. */ 
-	connect(id: string, n: number): number {
+	connect(client: Socket, n: number): number {
 		// let player join if not occupied
-		if (this.players[n] == "" || this.players[n] == id) {
-			this.players[n] = id
+		if (this.players[n] == null || this.players[n].id == client.id) {
+			this.players[n] = client;
 			return n;
 		}
 		else
 			return -1;
 	}
 	
-	// player disconnects
+	// A client disconnects. Check whether client is one of the players.
+	// If yes, remove player, and release any key that the player may be
+	// pressed.
 	disconnect(id: string): void {
-		for (let player = 0; player < this.players.length; ++player)
+		for (let n = 0; n < this.players.length; ++n)
 		{
-			if (this.players[player] != id)
+			if (this.players[n] == null || this.players[n].id != id)
 				continue ;
-			console.log(`player ${player} disconnected`);
+			console.log(`player ${n} disconnected`);
 			// Assume that the disconnected player no longer presses the key
-			for (let n = 0; n < this.players.length; ++n) {
-				if (this.players[n] == id) {
-					for (const key of this.game.control_keys[n]) {
-						KeyPressMonitorBase.delete(key);
-					}
-				}
+			for (const key of this.game.control_keys[n]) {
+				KeyPressMonitorBase.delete(key);
 			}
-			this.players[player] = "";
+			this.players[n] = null;
 		}
 	}
 	
@@ -58,19 +56,19 @@ export default class GameServer {
 	 * is a player. */
 	start(id: string) {
 		for (let n = 0; n < this.players.length; ++n) {
-			if (this.players[n] == id) {
-				this.game.start(n);	// game records that that player is ready
-				console.log(`Player ${n} pressed start.`)
-				this.game.control(KeyPressMonitorBase.keypress);
-				this.server.emit('game_state', this.game.get_state());
-			}
+			if (this.players[n] == null || this.players[n].id != id)
+				continue ;
+			this.game.start(n);	// game records that that player is ready
+			console.log(`Player ${n} pressed start.`)
+			this.game.control(KeyPressMonitorBase.keypress);
+			this.server.emit('game_state', this.game.get_state());
 		}
 	}
 	
 	// server receives key down event
 	keyDown(id: string, key: KeyboardEvent["key"]) {
 		for (let n = 0; n < this.players.length; ++n) {
-			if (this.players[n] == id
+			if (this.players[n].id == id
 					&& this.game.control_keys[n].indexOf(key) != -1) {
 				console.log(`Received keydown ${key} from player ${n}`);
 				KeyPressMonitorBase.add(key);
@@ -84,7 +82,7 @@ export default class GameServer {
 	// server receives key up event
 	keyUp(id: string, key: KeyboardEvent["key"]) {
 		for (let n = 0; n < this.players.length; ++n) {
-			if (this.players[n] == id
+			if (this.players[n].id == id
 					&& this.game.control_keys[n].indexOf(key) != -1) {
 				console.log(`Received keyup ${key} from player ${n}`);
 				KeyPressMonitorBase.delete(key);
@@ -95,4 +93,11 @@ export default class GameServer {
 		}
 	}
 	
+	// game has ended, so remove existing players from game
+	onGameEnd(): void {
+		console.log("Game has ended!");
+		for (let i = 0; i < this.players.length; ++i)
+			if (this.players[i] != null)
+				this.players[i].emit('unjoin', i);	// unjoin as player i
+	}
 }

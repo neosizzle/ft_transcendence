@@ -12,11 +12,13 @@ export interface GameInterface {
 	entity: Entity[];	// stores all the game entitities
 	control(keypress: Set<KeyboardEvent["key"]>): void;	// handles key presses
 	set_player(n: number): void;	// record the current player number
+	unset_player(n: number): void;	// remove player number from record
 	start(n?: number): void;	// start a new round of game
 	update(): void;	// update the state of all entities in the game
 	draw(ctx: CanvasRenderingContext2D | null): void;	// draw game onto canvas
 	set_state(latency: number, state: GameState): void;	// set the state of the game
 	get_state(): GameState;	// get the state of the game
+	onGameEnd?: () => void;	// callback function to be run on game end
 }
 
 // class representing the Pong game
@@ -37,8 +39,10 @@ export default class Pong implements GameInterface {
 	
 	entity: Entity[] = [];
 	isRunning: boolean[];
+	onGameEnd?: () => void;
 	
-	constructor(width: number, height: number, player_no: number) {
+	constructor(width: number, height: number, player_no: number,
+			onGameEnd?: () => void) {
 		this.width = width;
 		this.height = height;
 		
@@ -48,7 +52,7 @@ export default class Pong implements GameInterface {
 		this.player_no = player_no;
 		
 		// create a scoreboard
-		this.scoreboard = new ScoreBoard(player_no);
+		this.scoreboard = new ScoreBoard(player_no, onGameEnd);
 		
 		this.isRunning = [];
 		for (let i = 0; i < player_no; ++i)
@@ -61,6 +65,11 @@ export default class Pong implements GameInterface {
 	// set which player is controlling the game
 	set_player(player: number): void {
 		this.player.add(player);
+	}
+	
+	// remove player from controlling the game
+	unset_player(player: number): void {
+		this.player.delete(player);
 	}
 	
 	// redirects the key events to all entities in the game
@@ -280,12 +289,14 @@ export default class Pong implements GameInterface {
 
 class ScoreBoard{
 	player_no: number;
+	onGameEnd?: () => void;
 	last_loser = 0;
 	score: number[] = [];
 	
-	constructor(player_no: number) {
+	constructor(player_no: number, onGameEnd?: () => void) {
 		this.player_no = player_no;
 		this.reset();
+		this.onGameEnd = onGameEnd;
 	}
 	
 	set_state(score: number[]): void {
@@ -305,11 +316,15 @@ class ScoreBoard{
 		// subtract 1 point for loser
 		--this.score[loser];
 		this.last_loser = loser;
+		if (this.onGameEnd !== undefined)
+			this.onGameEnd();
 		
 		// Do something if there's a winner
 		const winner = this.get_winner();
 		if (winner != -1) {
 			console.log("Player " + (winner + 1).toString() + " has won!");
+			if (this.onGameEnd !== undefined)
+				this.onGameEnd();
 			this.reset();
 		}
 	}
