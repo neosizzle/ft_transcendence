@@ -138,10 +138,10 @@ export class RoomService {
 
     // generate and send prisma query
     const payload = generateRoomPayload(listObj.data);
-    console.log(payload.where.OR);
     const res = await this.prisma.room.findMany(payload);
     delete payload.skip;
     delete payload.take;
+    delete payload.include;
     const total_elements = await this.prisma.room.count(
       <Prisma.RoomCountArgs>payload
     );
@@ -281,6 +281,19 @@ export class RoomService {
     if (dto.isProtected != undefined && !dto.isProtected) dto.password = null;
     if (dto.isProtected && !dto.password)
       throw new BadRequestException("Please provide a password");
+
+    // validate ownerid change
+    if (dto.ownerId)
+    {
+      const inMember = await this.prisma.member.findFirst({
+        where : {
+          userId : dto.ownerId,
+          roomId : parseInt(id),
+        }
+      })
+
+      if (!inMember) throw new NotFoundException("Member not found");
+    }
 
     // update changes in db
     try {

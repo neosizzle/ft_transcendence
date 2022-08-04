@@ -126,6 +126,7 @@ export class MemberService {
     const res = await this.prisma.member.findMany(payload);
     delete payload.skip;
     delete payload.take;
+    delete payload.include;
     const total_elements = await this.prisma.member.count(
       <Prisma.MemberCountArgs>payload
     );

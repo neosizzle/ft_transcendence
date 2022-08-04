@@ -18,6 +18,8 @@ export class PrismaService extends PrismaClient {
   //clears database for testing
   cleanDb() {
     return this.$transaction([
+      this.member.deleteMany(),
+      this.room.deleteMany(),
       this.auth.deleteMany(),
       this.friendship.deleteMany(),
       this.block.deleteMany(),
