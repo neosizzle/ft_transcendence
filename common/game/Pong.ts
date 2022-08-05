@@ -316,8 +316,6 @@ class ScoreBoard{
 		// subtract 1 point for loser
 		--this.score[loser];
 		this.last_loser = loser;
-		if (this.onGameEnd !== undefined)
-			this.onGameEnd();
 		
 		// Do something if there's a winner
 		const winner = this.get_winner();

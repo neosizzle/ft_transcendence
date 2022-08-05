@@ -46,6 +46,7 @@ class Game extends React.Component {
 		
 		this.socket.on('unjoin', (n: number) => {
 			console.log(`I quit as player ${n}`);
+			this.player.delete(n);
 			this.game.unset_player(n);
 		});
 		
