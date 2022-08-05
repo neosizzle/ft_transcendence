@@ -44,6 +44,13 @@ class Game extends React.Component {
 								this.onKeyUp.bind(this));
 		});
 		
+		// server asks client to join a game
+		this.socket.on('join', (n: number) => {
+			this.game.set_player(n);
+			this.player.add(n);
+		});
+		
+		// server asks client to unjoin a game
 		this.socket.on('unjoin', (n: number) => {
 			console.log(`I quit as player ${n}`);
 			this.player.delete(n);
@@ -92,11 +99,7 @@ class Game extends React.Component {
 	
 	joinClick(n: number): void {
 		this.socket.emit("join", n, (n: number) => {
-			if (n == -1)
-				return ;
-			console.log(`I am player ${n}`);
-			this.game.set_player(n);
-			this.player.add(n);
+			console.log(`I am no. ${n} in the queue`);
 		});
 	}
 	

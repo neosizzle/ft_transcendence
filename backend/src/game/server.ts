@@ -2,11 +2,13 @@ import { Socket, Server } from 'socket.io';
 
 import Pong, { GameInterface } from '../common/game/Pong';
 import { KeyPressMonitorBase } from '../common/game/KeyPressMonitor';
+import { UniqueQueue } from './queue';
 
 
 export default class GameServer {
 	server: Server;
-	players: Socket[] = [null, null];	// records player sockets
+	queues: UniqueQueue<Socket>[] =
+		[new UniqueQueue<Socket>(), new UniqueQueue<Socket>()];
 	keypress: KeyPressMonitorBase;
 	game: GameInterface;
 	
@@ -25,40 +27,41 @@ export default class GameServer {
 	}
 	
 	
-	/* client 'id' attemps to join as player 'n'. Return 'n' upon
-	 * success, or -1 upon failure. */ 
-	connect(client: Socket, n: number): number {
-		// let player join if not occupied
-		if (this.players[n] == null || this.players[n].id == client.id) {
-			this.players[n] = client;
-			return n;
-		}
-		else
-			return -1;
+	// 'client' attempts to join queue 'n'. Return the position in queue.
+	handleConnect(client: Socket, n: number): number {
+		const queue: UniqueQueue<Socket> = this.queues[n];
+		queue.push(client);
+		const index: number = queue.indexOf(client);
+		console.log(`client ${client.id} joined queue ${n} at index ${index}`);
+		if (index == 0)
+			client.emit('join', n);	// ask client to join as current player
+		return index;
 	}
 	
-	// A client disconnects. Check whether client is one of the players.
-	// If yes, remove player, and release any key that the player may be
-	// pressed.
-	disconnect(id: string): void {
-		for (let n = 0; n < this.players.length; ++n)
-		{
-			if (this.players[n] == null || this.players[n].id != id)
+	// A client disconnects. Check whether client is in queue. If yes,
+	// the client is removed from queue. If the client is also the current
+	// player, release any key that he may be pressing.
+	handleDisconnect(client: Socket): void {
+		for (let n = 0; n < this.queues.length; ++n) {
+			const queue: UniqueQueue<Socket> = this.queues[n];
+			const index: number = queue.indexOf(client);
+			if (index == -1)
 				continue ;
-			console.log(`player ${n} disconnected`);
-			// Assume that the disconnected player no longer presses the key
-			for (const key of this.game.control_keys[n]) {
-				this.keypress.delete(key);
+			queue.erase(client);	// remove client from queue
+			console.log(`client ${client.id} removed as player ${n}`);
+			if (index == 0)		// if client is player, release keys
+				for (const key of this.game.control_keys[n]) {
+					this.keypress.delete(key);
 			}
-			this.players[n] = null;
 		}
 	}
 	
-	/* Client 'id' requests to start game. Server checks whether client
-	 * is a player. */
-	start(id: string) {
-		for (let n = 0; n < this.players.length; ++n) {
-			if (this.players[n] == null || this.players[n].id != id)
+	/* 'client' equests to start game. Server checks whether client is a
+	 * current player. */
+	start(client: Socket) {
+		for (let n = 0; n < this.queues.length; ++n) {
+			const queue: UniqueQueue<Socket> = this.queues[n];
+			if (client != queue.front())
 				continue ;
 			this.game.start(n);	// game records that that player is ready
 			console.log(`Player ${n} pressed start.`)
@@ -68,9 +71,10 @@ export default class GameServer {
 	}
 	
 	// server receives key down event
-	keyDown(id: string, key: KeyboardEvent["key"]) {
-		for (let n = 0; n < this.players.length; ++n) {
-			if (this.players[n].id == id
+	keyDown(client: Socket, key: KeyboardEvent["key"]) {
+		for (let n = 0; n < this.queues.length; ++n) {
+			const queue: UniqueQueue<Socket> = this.queues[n];
+			if (client == queue.front()
 					&& this.game.control_keys[n].indexOf(key) != -1) {
 				console.log(`Received keydown ${key} from player ${n}`);
 				this.keypress.add(key);
@@ -82,9 +86,10 @@ export default class GameServer {
 	}
 	
 	// server receives key up event
-	keyUp(id: string, key: KeyboardEvent["key"]) {
-		for (let n = 0; n < this.players.length; ++n) {
-			if (this.players[n].id == id
+	keyUp(client: Socket, key: KeyboardEvent["key"]) {
+		for (let n = 0; n < this.queues.length; ++n) {
+			const queue: UniqueQueue<Socket> = this.queues[n];
+			if (client == queue.front()
 					&& this.game.control_keys[n].indexOf(key) != -1) {
 				console.log(`Received keyup ${key} from player ${n}`);
 				this.keypress.delete(key);
@@ -98,11 +103,18 @@ export default class GameServer {
 	// game has ended, so remove existing players from game
 	onGameEnd(): void {
 		console.log("Game has ended!");
-		for (let i = 0; i < this.players.length; ++i)
-			if (this.players[i] != null) {
-				this.players[i].emit('unjoin', i);	// unjoin as player i
-				this.players[i] = null;
-				this.game.unset_player(i);
+		for (let n = 0; n < this.queues.length; ++n) {
+			const queue: UniqueQueue<Socket> = this.queues[n];
+			if (queue.size() > 0) {
+				const client: Socket = queue.front();
+				client.emit('unjoin', n);	// unjoin as player i
+				queue.pop();
+				this.game.unset_player(n);
 			}
+			
+			// ask the next player in the queue to join
+			if (queue.front() != null)
+				queue.front().emit("join", n)
+		}
 	}
 }

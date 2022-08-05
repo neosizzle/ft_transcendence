@@ -41,7 +41,7 @@ export class GameEventsGateway
 	handleDisconnect(client: Socket): void {
 		console.log(`spectator ${client.id} disconnected`);
 		this.clients.delete(client);
-		this.game_server.disconnect(client.id);
+		this.game_server.handleDisconnect(client);
 	}
 	
 	// ping message
@@ -50,11 +50,11 @@ export class GameEventsGateway
 		return true;
 	}
 	
-	// attempts to join a game
+	// client joins queue 'n'
 	@SubscribeMessage('join')
 	joinGame(@MessageBody() n: number, @ConnectedSocket() client: Socket)
 			: number {
-		return this.game_server.connect(client, n);
+		return this.game_server.handleConnect(client, n);
 	}
 	
 	// records a keydown event from players only
@@ -62,14 +62,14 @@ export class GameEventsGateway
 	keyDown(@MessageBody() key: string, @ConnectedSocket() client: Socket)
 			: void {
 		if (key == ' ')
-			this.game_server.start(client.id);
-		this.game_server.keyDown(client.id, key);
+			this.game_server.start(client);
+		this.game_server.keyDown(client, key);
 	}
 	
 	// records a keyup event from players only
 	@SubscribeMessage('keyUp')
 	keyUp(@MessageBody() key: string, @ConnectedSocket() client: Socket)
 			: void {
-		this.game_server.keyUp(client.id, key);
+		this.game_server.keyUp(client, key);
 	}
 }
