@@ -99,7 +99,10 @@ export default class GameServer {
 	onGameEnd(): void {
 		console.log("Game has ended!");
 		for (let i = 0; i < this.players.length; ++i)
-			if (this.players[i] != null)
+			if (this.players[i] != null) {
 				this.players[i].emit('unjoin', i);	// unjoin as player i
+				this.players[i] = null;
+				this.game.unset_player(i);
+			}
 	}
 }
