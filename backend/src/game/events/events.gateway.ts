@@ -72,4 +72,9 @@ export class GameEventsGateway
 			: void {
 		this.game_server.keyUp(client, key);
 	}
+	
+	@SubscribeMessage('getQueue')
+	getQueue(@ConnectedSocket() client: Socket): object {
+		return this.game_server.getQueue(client);
+	}
 }

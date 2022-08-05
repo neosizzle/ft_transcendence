@@ -4,6 +4,10 @@ import Pong, { GameInterface } from '../common/game/Pong';
 import { KeyPressMonitorBase } from '../common/game/KeyPressMonitor';
 import { UniqueQueue } from './queue';
 
+type QueueInfo =  {
+	position: number[],
+	size: number[]
+}
 
 export default class GameServer {
 	server: Server;
@@ -24,6 +28,7 @@ export default class GameServer {
 	// a new spectator joins. Broadcast game state to it.
 	spectate(client: Socket) {
 		client.emit('game_state', this.game.get_state());
+		client.emit("updateQueue");	// ask clients to update queue info
 	}
 	
 	
@@ -35,6 +40,7 @@ export default class GameServer {
 		console.log(`client ${client.id} joined queue ${n} at index ${index}`);
 		if (index == 0)
 			client.emit('join', n);	// ask client to join as current player
+		this.server.emit("updateQueue");	// ask clients to update queue info
 		return index;
 	}
 	
@@ -53,6 +59,8 @@ export default class GameServer {
 				for (const key of this.game.control_keys[n]) {
 					this.keypress.delete(key);
 			}
+			// ask clients to update their queue info
+			this.server.emit('updateQueue');
 		}
 	}
 	
@@ -116,5 +124,17 @@ export default class GameServer {
 			if (queue.front() != null)
 				queue.front().emit("join", n)
 		}
+		
+		// ask clients to update queue info
+		this.server.emit("updateQueue");
 	}
+	
+	// return the queue info of a client
+	getQueue(client: Socket): QueueInfo {
+		return {
+			position: this.queues.map((queue) => queue.indexOf(client)),
+			size: this.queues.map((queue) => queue.size()),
+		}
+	}
+	
 }

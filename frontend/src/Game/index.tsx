@@ -6,12 +6,21 @@ import Pong, { GameInterface, GameState } from '../common/game/Pong';
 import KeyPressMonitor from '../common/game/KeyPressMonitor';
 
 
+type QueueInfo =  {
+	position: number[],
+	size: number[]
+}
+
+interface ReactGameState {
+	queue: QueueInfo
+}
+
 /*
 This class is the GameClient.
 There are possibly two types of clients: player or spectator.
 Players can control their own game, spectators can only view the game.
 */
-class Game extends React.Component {
+class Game extends React.Component <any, ReactGameState> {
 	player: Set<number> = new Set<number>();
 	socket: Socket;
 	keypress: KeyPressMonitor | null = null;
@@ -20,6 +29,13 @@ class Game extends React.Component {
 	
 	constructor(props: any) {
 		super(props);
+		this.state = {
+			queue: {
+				position: Array(2).fill(0),
+				size: Array(2).fill(0)
+			},
+		};
+		
 		this.game = new Pong(400, 300, 2);
 		this.socket = io("http://localhost:3001/game");  // change for production
 		this.socket_handlers();	// initialise socket message handlers
@@ -38,6 +54,7 @@ class Game extends React.Component {
 		// 'connect' event is fired upon connection the the Namespace
 		this.socket.on('connect', () => {
 			console.log('Connected');
+			this.getQueue();
 			// keypress monitor is created if connection is made
 			this.keypress = KeyPressMonitor.get_instance(
 								this.onKeyDown.bind(this),
@@ -73,6 +90,10 @@ class Game extends React.Component {
 				this.keypress = null;
 			}
 		});
+		
+		this.socket.on("updateQueue", () => {
+			this.getQueue()
+		});
 	}
 	
 	// callback function to be called by KeyPressMonitor class
@@ -103,12 +124,22 @@ class Game extends React.Component {
 		});
 	}
 	
+	// get queue info from server
+	getQueue() {
+		this.socket.emit('getQueue', (queue: QueueInfo) => {
+			this.setState({
+				queue: queue
+			})
+		});
+	}
+	
 	render() {
 		return <Canvas
 			width={400}
 			height={300}
 			style={{border: "1px solid black"}}
 			game={this.game}
+			queue={this.state.queue}
 			joinClick={this.joinClick.bind(this)}
 			/>;
 	}

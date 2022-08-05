@@ -11,7 +11,10 @@ export function Button(props: any) {
 			className="join_button"
 			style={props.style}
 			onClick={props.onClick}>
-				Click to join
+				{props.position >= 0 ? props.position + 1 + " of " : ""}
+				{props.size} in Queue.
+				<br></br>
+				Click to {props.position >= 0 ? "un" : ""}join.
 		</button>
 	);
 }
@@ -22,6 +25,7 @@ interface CanvasProps {
 	height: number,
 	style: object,
 	game: GameInterface,
+	queue: {position: number[], size: number[]};
 	joinClick: (n: number) => void;
 }
 
@@ -38,6 +42,7 @@ export default class Canvas extends React.Component<CanvasProps> {
 		super(props);
 		this.game = props.game;
 		this.canvasRef = React.createRef();
+		console.log("Canvas", this.props.queue);
 	}
 	
 	// initialise canvas, context and games once it is component is mounted
@@ -87,9 +92,15 @@ export default class Canvas extends React.Component<CanvasProps> {
 				</div>
 				<div className="button_div">
 					<Button style={{float: "left"}}
-						onClick={() => this.props.joinClick(1)}/>
+						onClick={() => this.props.joinClick(1)}
+						position={this.props.queue.position[1]}
+						size={this.props.queue.size[1]}
+						/>
 					<Button style={{float: "right"}}
-						onClick={() => this.props.joinClick(0)}/>
+						onClick={() => this.props.joinClick(0)}
+						position={this.props.queue.position[0]}
+						size={this.props.queue.size[0]}
+						/>
 				</div>
 			</div>
 		);
