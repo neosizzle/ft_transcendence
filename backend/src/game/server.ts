@@ -7,10 +7,12 @@ import { KeyPressMonitorBase } from '../common/game/KeyPressMonitor';
 export default class GameServer {
 	server: Server;
 	players: Socket[] = [null, null];	// records player sockets
+	keypress: KeyPressMonitorBase;
 	game: GameInterface;
 	
 	constructor(server: Server) {
 		this.server = server;
+		this.keypress = new KeyPressMonitorBase();
 		this.game = new Pong(400, 300, 2, this.onGameEnd.bind(this));
 		
 		// run the game in an infinite loop at 60 Hz
@@ -46,7 +48,7 @@ export default class GameServer {
 			console.log(`player ${n} disconnected`);
 			// Assume that the disconnected player no longer presses the key
 			for (const key of this.game.control_keys[n]) {
-				KeyPressMonitorBase.delete(key);
+				this.keypress.delete(key);
 			}
 			this.players[n] = null;
 		}
@@ -60,7 +62,7 @@ export default class GameServer {
 				continue ;
 			this.game.start(n);	// game records that that player is ready
 			console.log(`Player ${n} pressed start.`)
-			this.game.control(KeyPressMonitorBase.keypress);
+			this.game.control(this.keypress.keypress);
 			this.server.emit('game_state', this.game.get_state());
 		}
 	}
@@ -71,8 +73,8 @@ export default class GameServer {
 			if (this.players[n].id == id
 					&& this.game.control_keys[n].indexOf(key) != -1) {
 				console.log(`Received keydown ${key} from player ${n}`);
-				KeyPressMonitorBase.add(key);
-				this.game.control(KeyPressMonitorBase.keypress);
+				this.keypress.add(key);
+				this.game.control(this.keypress.keypress);
 				this.server.emit('game_state', this.game.get_state());
 				break ;
 			}
@@ -85,8 +87,8 @@ export default class GameServer {
 			if (this.players[n].id == id
 					&& this.game.control_keys[n].indexOf(key) != -1) {
 				console.log(`Received keyup ${key} from player ${n}`);
-				KeyPressMonitorBase.delete(key);
-				this.game.control(KeyPressMonitorBase.keypress);
+				this.keypress.delete(key);
+				this.game.control(this.keypress.keypress);
 				this.server.emit('game_state', this.game.get_state());
 				break ;
 			}

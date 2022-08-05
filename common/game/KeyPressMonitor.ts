@@ -1,28 +1,28 @@
 // class to monitor keypress, designed as a singleton
 export class KeyPressMonitorBase {
-	protected static _instance: KeyPressMonitorBase;
-	static keypress: Set<KeyboardEvent["key"]> = new Set();
+	keypress: Set<KeyboardEvent["key"]> = new Set();
 	
-	public static add(value: string): void {
-		KeyPressMonitorBase.keypress.add(value);
+	add(value: string): void {
+		this.keypress.add(value);
 	}
 	
-	public static delete(value: string): void {
-		KeyPressMonitorBase.keypress.delete(value);
+	delete(value: string): void {
+		this.keypress.delete(value);
 	}
 	
 	// expose the underlying has function of the set
-	public static has(value: string) {
-		return KeyPressMonitorBase.keypress.has(value);
+	has(value: string) {
+		return this.keypress.has(value);
 	}
 }
 
 
 // KeyPressMonitor version meant to be run by client
 export default class KeyPressMonitor extends KeyPressMonitorBase {
-	private static onKeyDown: ((key: KeyboardEvent["key"]) => void) | null
+	private static _instance: KeyPressMonitor;
+	private onKeyDown: ((key: KeyboardEvent["key"]) => void) | null
 		= null;
-	private static onKeyUp: ((key: KeyboardEvent["key"]) => void) | null
+	private onKeyUp: ((key: KeyboardEvent["key"]) => void) | null
 		= null;
 	
 	// since class is defined as singleton, make constructor function
@@ -31,8 +31,8 @@ export default class KeyPressMonitor extends KeyPressMonitorBase {
 		super();
 		if (typeof window !== 'undefined') {
 			// at client register keydown and keyup events
-			window.addEventListener("keydown", KeyPressMonitor.keydown);
-			window.addEventListener("keyup", KeyPressMonitor.keyup);
+			window.addEventListener("keydown", this.keydown.bind(this));
+			window.addEventListener("keyup", this.keyup.bind(this));
 		}
 	}
 	
@@ -44,26 +44,27 @@ export default class KeyPressMonitor extends KeyPressMonitorBase {
 		if (!KeyPressMonitor._instance) {
 			KeyPressMonitor._instance = new KeyPressMonitor();
 		}
-		KeyPressMonitor.onKeyDown = onKeyDown;
-		KeyPressMonitor.onKeyUp = onKeyUp;
-		return KeyPressMonitor._instance;
+		const instance = KeyPressMonitor._instance;
+		instance.onKeyDown = onKeyDown;
+		instance.onKeyUp = onKeyUp;
+		return instance;
 	}
 	
 	// add key to the set of pressed keys
-	public static keydown(e: KeyboardEvent): void {
+	keydown(e: KeyboardEvent): void {
 		// do nothing if key is already pressed
-		if (KeyPressMonitor.has(e.key))
+		if (this.has(e.key))
 			return ;
-		KeyPressMonitor.keypress.add(e.key);
-		if (KeyPressMonitor.onKeyDown != null)
-			KeyPressMonitor.onKeyDown(e.key);
+		this.keypress.add(e.key);
+		if (this.onKeyDown != null)
+			this.onKeyDown(e.key);
 	}
 	
 	// removed key to the set of pressed keys
-	public static keyup(e: KeyboardEvent): void {
-		KeyPressMonitor.keypress.delete(e.key);
-		if (KeyPressMonitor.onKeyUp != null)
-			KeyPressMonitor.onKeyUp(e.key);
+	keyup(e: KeyboardEvent): void {
+		this.keypress.delete(e.key);
+		if (this.onKeyUp != null)
+			this.onKeyUp(e.key);
 	}
 }
 

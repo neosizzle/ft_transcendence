@@ -74,8 +74,8 @@ class Game extends React.Component {
 			return ;
 		// pass the current input to the game
 		this.socket.emit('keyDown', key);
-		if (this.game != null)
-			this.game.control(KeyPressMonitor.keypress);
+		if (this.game != null && this.keypress != null)
+			this.game.control(this.keypress.keypress);
 	}
 	
 	// callback function to be called by KeyPressMonitor class
@@ -85,7 +85,8 @@ class Game extends React.Component {
 			return ;
 		this.socket.emit('keyUp', key);
 		// pass the current input to the game
-		this.game.control(KeyPressMonitor.keypress);
+		if (this.game != null && this.keypress != null)
+			this.game.control(this.keypress.keypress);
 	}
 	
 	joinClick(n: number): void {
