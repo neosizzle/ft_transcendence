@@ -162,7 +162,17 @@ export class RoomService {
 
     // obtain initial users
     let initUsers: string[];
-    if (dto.initialUsers) initUsers = dto.initialUsers.split(",");
+    if (dto.initialUsers)
+    {
+      initUsers = dto.initialUsers.split(",");
+
+      //verify that all init users exist
+      for (let index = 0; index < initUsers.length; index++) {
+        const userId = initUsers[index];
+        const res = await this.prisma.user.findUnique({where : {id : parseInt(userId, 10)}})
+        if (!res) throw new BadRequestException("Invalid user in initialUsers");
+      }
+    }
 
     // check if existing user in DM
     if (dto.type === RoomType.DM && !initUsers)
@@ -209,7 +219,6 @@ export class RoomService {
       if (blockered || blockeeed)
         throw new BadRequestException("Unable to create room");
     }
-    //  TODO if GC, make current user admin of room
 
     try {
       // create room in db
@@ -242,13 +251,19 @@ export class RoomService {
           data: payload,
         });
       }
+
+      // if GC, make current user admin of room
+      if (dto.type === "GC")
+        await this.prisma.admin.create({
+          data: { userId: user.id, roomId: res.id },
+        });
       return res;
     } catch (error) {
       console.error(error);
       if (error.code === "P2002")
         throw new BadRequestException("Roomname already exists");
-      else if (error.code === "P2003")
-        throw new BadRequestException("Invalid user in initialUsers");
+      // else if (error.code === "P2003")
+      //   throw new BadRequestException("Invalid user in initialUsers");
       else if (error instanceof BadRequestException) throw error;
       throw new InternalServerErrorException(error.message);
     }
@@ -283,16 +298,17 @@ export class RoomService {
       throw new BadRequestException("Please provide a password");
 
     // validate ownerid change
-    if (dto.ownerId)
-    {
+    if (dto.ownerId) {
       const inMember = await this.prisma.member.findFirst({
-        where : {
-          userId : dto.ownerId,
-          roomId : parseInt(id),
-        }
-      })
+        where: {
+          userId: dto.ownerId,
+          roomId: parseInt(id),
+        },
+      });
 
       if (!inMember) throw new NotFoundException("Member not found");
+
+      // make changes in admin table if ownerid changes (?)
     }
 
     // update changes in db

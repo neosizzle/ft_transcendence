@@ -114,7 +114,7 @@ export class MemberService {
   };
 
   // list members
-  async getMembers(user: User, query: ListQuery) {
+  async getMembers(query: ListQuery) {
     const keys = Object.keys(this.sampleMember);
 
     // validate query

@@ -252,9 +252,6 @@ const runRoomTests = (pactum: any) => {
     });
 
     it("/rooms (GET) no pagination", async () => {
-      const sampleUser = await prisma.user.findFirst({
-        where: { intraName: "jng" },
-      });
 
       return pactum
         .spec()
