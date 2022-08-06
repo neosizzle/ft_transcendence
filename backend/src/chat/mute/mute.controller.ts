@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { Mute } from '@prisma/client';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ListQuery } from 'src/utils';
 import { muteDto } from './mute.dto';
 import { MuteService } from './mute.service';
 
@@ -12,8 +12,8 @@ export class MuteController {
     ) { }
 
     @Get()
-    getMute(): Promise<Mute[]> {
-        return this.prismaService.mute.findMany();
+    getMute(@Query() query: ListQuery) {
+        return this.muteService.getMute(query);
     }
     @Post()
     create(@Body() muteDto: muteDto): Promise<muteDto> {
