@@ -1,4 +1,4 @@
-import { EntityState, Entity, Wall, Paddle, Ball } from "./Entity"
+import { ControlKeys, EntityState, Entity, Wall, Paddle, Ball } from "./Entity"
 
 
 export type GameState = {
@@ -8,7 +8,7 @@ export type GameState = {
 }
 
 export interface GameInterface {
-	control_keys: KeyboardEvent["key"][][]
+	control_keys: ControlKeys[];
 	entity: Entity[];	// stores all the game entitities
 	control(keypress: Set<KeyboardEvent["key"]>): void;	// handles key presses
 	set_player(n: number): void;	// record the current player number
@@ -23,11 +23,11 @@ export interface GameInterface {
 
 // class representing the Pong game
 export default class Pong implements GameInterface {
-	control_keys: KeyboardEvent["key"][][] = [
-		["", "", "ArrowUp", "ArrowDown"],
-		["", "", "w", "s"],
-		["ArrowLeft", "ArrowRight", "", ""],
-		["a", "d", "", ""],
+	control_keys: ControlKeys[] = [
+		{up: "ArrowUp", down: "ArrowDown"},
+		{up: "w", down: "s"},
+		{left: "ArrowLeft", right: "ArrowRight"},
+		{left: "a", right: "d"},
 	]
 	private player: Set<number> = new Set<number>();
 	private width: number;
@@ -84,7 +84,9 @@ export default class Pong implements GameInterface {
 				return ;
 			let allowed_keys: string[] = [];
 			this.player.forEach((n) => {
-				allowed_keys = allowed_keys.concat(this.control_keys[n]);
+				allowed_keys = allowed_keys.concat(
+					Object.values(this.control_keys[n])
+				);
 			});
 			const filtered_keypress: Set<KeyboardEvent["key"]> = new Set(
 				allowed_keys.filter(elem => keypress.has(elem)));

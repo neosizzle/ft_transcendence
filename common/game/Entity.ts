@@ -1,3 +1,10 @@
+export type ControlKeys = {
+	up?: KeyboardEvent["key"],
+	down?: KeyboardEvent["key"],
+	left?: KeyboardEvent["key"],
+	right?: KeyboardEvent["key"],
+}
+
 export type EntityState = {
 	x: number,	// x-coordinate of centre point
 	y: number,	// y-coordinate of centre point
@@ -15,8 +22,14 @@ export abstract class Entity {
 	vy: number;	// velocity along y direction
 	colour: string;	// colour of the entity
 	
+	// control keys
+	up?: KeyboardEvent["key"]
+	down?: KeyboardEvent["key"]
+	left?: KeyboardEvent["key"]
+	right?: KeyboardEvent["key"]
+	
 	constructor(x: number, y: number, width: number, height: number,
-			vx = 0, vy = 0) {
+			vx = 0, vy = 0, keys: ControlKeys = {}) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
@@ -24,6 +37,12 @@ export abstract class Entity {
 		this.vx = vx;
 		this.vy = vy;
 		this.colour = "white";	// white by default
+		
+		// record the keys
+		this.left = keys.left;
+		this.right = keys.right;
+		this.up = keys.up;
+		this.down = keys.down;
 	}
 	
 	/* eslint-disable @typescript-eslint/no-empty-function */
@@ -127,8 +146,9 @@ abstract class RectangleEntity extends Entity {
 abstract class CircleEntity extends Entity {
 	radius: number;
 	
-	constructor(x: number, y: number, radius: number, vx:number, vy:number) {
-		super(x, y, radius * 2, radius * 2, vx, vy);
+	constructor(x: number, y: number, radius: number, vx:number, vy:number,
+			keys: ControlKeys = {}) {
+		super(x, y, radius * 2, radius * 2, vx, vy, keys);
 		this.radius = radius
 	}
 	
@@ -147,8 +167,9 @@ abstract class CircleEntity extends Entity {
 
 
 export class Wall extends RectangleEntity {
-	constructor(x: number, y: number, width: number, height: number) {
-		super(x, y, width, height, 0, 0);
+	constructor(x: number, y: number, width: number, height: number,
+			keys: ControlKeys = {}) {
+		super(x, y, width, height, 0, 0, keys);
 	}
 	
 	/* eslint-disable @typescript-eslint/no-unused-vars  */
@@ -165,36 +186,28 @@ export class Paddle extends RectangleEntity {
 	dv: number;
 	boundary_width: number;
 	boundary_height: number;
-	left: KeyboardEvent["key"];
-	right: KeyboardEvent["key"];
-	up: KeyboardEvent["key"];
-	down: KeyboardEvent["key"];
 	
 	constructor(
 			x: number, y: number, width: number, height: number, dv: number,
 			boundary_width: number, boundary_height: number,
-			keys: KeyboardEvent["key"][]) {
-		super(x, y, width, height, 0, 0);
+			keys: ControlKeys = {}) {
+		super(x, y, width, height, 0, 0, keys);
 		this.dv = 2 * dv;
-		this.boundary_width = boundary_width,
-		this.boundary_height = boundary_height,
-		this.left = keys[0];
-		this.right = keys[1];
-		this.up = keys[2];
-		this.down = keys[3];
+		this.boundary_width = boundary_width;
+		this.boundary_height = boundary_height;
 	}
 	
 	// move the paddle by changing the speed
 	control(keypress: Set<KeyboardEvent["key"]>): void {
 		this.vx = 0;
 		this.vy = 0;
-		if (keypress.has(this.left))
+		if (this.left != null && keypress.has(this.left))
 			this.vx -= this.dv;
-		if (keypress.has(this.right))
+		if (this.right != null && keypress.has(this.right))
 			this.vx += this.dv;
-		if (keypress.has(this.up))
+		if (this.up != null && keypress.has(this.up))
 			this.vy -= this.dv;
-		if (keypress.has(this.down))
+		if (this.down != null && keypress.has(this.down))
 			this.vy += this.dv;
 		
 		// prevent paddles from moving out of boundary

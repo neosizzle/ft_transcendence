@@ -56,7 +56,7 @@ export default class GameServer {
 			queue.erase(client);	// remove client from queue
 			console.log(`client ${client.id} removed as player ${n}`);
 			if (index == 0)		// if client is player, release keys
-				for (const key of this.game.control_keys[n]) {
+				for (const key of Object.values(this.game.control_keys[n])) {
 					this.keypress.delete(key);
 			}
 			// ask clients to update their queue info
@@ -83,7 +83,8 @@ export default class GameServer {
 		for (let n = 0; n < this.queues.length; ++n) {
 			const queue: UniqueQueue<Socket> = this.queues[n];
 			if (client == queue.front()
-					&& this.game.control_keys[n].indexOf(key) != -1) {
+					&& Object.values(this.game.control_keys[n]).indexOf(key)
+						!= -1) {
 				console.log(`Received keydown ${key} from player ${n}`);
 				this.keypress.add(key);
 				this.game.control(this.keypress.keypress);
@@ -98,7 +99,8 @@ export default class GameServer {
 		for (let n = 0; n < this.queues.length; ++n) {
 			const queue: UniqueQueue<Socket> = this.queues[n];
 			if (client == queue.front()
-					&& this.game.control_keys[n].indexOf(key) != -1) {
+					&& Object.values(this.game.control_keys[n]).indexOf(key)
+						!= -1) {
 				console.log(`Received keyup ${key} from player ${n}`);
 				this.keypress.delete(key);
 				this.game.control(this.keypress.keypress);
