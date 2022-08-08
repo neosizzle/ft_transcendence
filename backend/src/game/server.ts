@@ -19,7 +19,8 @@ export default class GameServer {
 	constructor(server: Server) {
 		this.server = server;
 		this.keypress = new KeyPressMonitorBase();
-		this.game = new Pong(400, 300, 2, this.onGameEnd.bind(this));
+		this.game = new Pong(400, 300, 2,
+			this.updateClient.bind(this), this.onGameEnd.bind(this));
 		
 		// run the game in an infinite loop at 60 Hz
 		setInterval(this.game.update.bind(this.game), 1000/60);
@@ -74,7 +75,6 @@ export default class GameServer {
 			this.game.start(n);	// game records that that player is ready
 			console.log(`Player ${n} pressed start.`)
 			this.game.control(this.keypress.keypress);
-			this.server.emit('game_state', this.game.get_state());
 		}
 	}
 	
@@ -88,7 +88,6 @@ export default class GameServer {
 				console.log(`Received keydown ${key} from player ${n}`);
 				this.keypress.add(key);
 				this.game.control(this.keypress.keypress);
-				this.server.emit('game_state', this.game.get_state());
 				break ;
 			}
 		}
@@ -104,10 +103,14 @@ export default class GameServer {
 				console.log(`Received keyup ${key} from player ${n}`);
 				this.keypress.delete(key);
 				this.game.control(this.keypress.keypress);
-				this.server.emit('game_state', this.game.get_state());
 				break ;
 			}
 		}
+	}
+	
+	// callback function to update clients of the latest game state
+	updateClient(): void {
+		this.server.emit('game_state', this.game.get_state());
 	}
 	
 	// game has ended, so remove existing players from game

@@ -233,12 +233,15 @@ export class Paddle extends RectangleEntity {
 export class Ball extends CircleEntity {
 	boundary_width: number;
 	boundary_height: number;
+	updateClient?: () => void;
 	
 	constructor(x: number, y: number, radius: number, vx:number, vy:number,
-			boundary_width: number, boundary_height: number) {
+			boundary_width: number, boundary_height: number,
+			updateClient?: () => void) {
 		super(x, y, radius, vx, vy);
 		this.boundary_width = boundary_width;
 		this.boundary_height = boundary_height;
+		this.updateClient = updateClient;
 	}
 	
 	// ball always reflects upon collision
@@ -267,6 +270,9 @@ export class Ball extends CircleEntity {
 			this.vx = (left ? 1 : -1) * Math.abs(this.vx);
 		if (top || bottom)
 			this.vy = (top ? 1 : -1) * Math.abs(this.vy);
+		
+		if (this.updateClient != null)
+			this.updateClient();
 	}
 	
 	// return true if ball is in canvas, false otherwise

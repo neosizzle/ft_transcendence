@@ -18,6 +18,7 @@ export interface GameInterface {
 	draw(ctx: CanvasRenderingContext2D | null): void;	// draw game onto canvas
 	set_state(latency: number, state: GameState): void;	// set the state of the game
 	get_state(): GameState;	// get the state of the game
+	updateClient?: () => void;	// callback function to update game state to clients
 	onGameEnd?: () => void;	// callback function to be run on game end
 }
 
@@ -39,10 +40,11 @@ export default class Pong implements GameInterface {
 	
 	entity: Entity[] = [];
 	isRunning: boolean[];
+	updateClient?: () => void;
 	onGameEnd?: () => void;
 	
 	constructor(width: number, height: number, player_no: number,
-			onGameEnd?: () => void) {
+			updateClient?: () => void, onGameEnd?: () => void) {
 		this.width = width;
 		this.height = height;
 		
@@ -50,6 +52,9 @@ export default class Pong implements GameInterface {
 		if (player_no < 0 || player_no > 4)
 			throw new RangeError("Number of player must between 0 to 4.");
 		this.player_no = player_no;
+		
+		this.updateClient = updateClient;
+		this.onGameEnd = onGameEnd;
 		
 		// create a scoreboard
 		this.scoreboard = new ScoreBoard(player_no, onGameEnd);
@@ -59,7 +64,7 @@ export default class Pong implements GameInterface {
 			this.isRunning.push(false);
 		
 		// initialise entities of the game
-		this.entities_init();
+		this.entities_init(updateClient);
 	}
 	
 	// set which player is controlling the game
@@ -79,6 +84,8 @@ export default class Pong implements GameInterface {
 		if (typeof window === 'undefined') {
 			for (const ent of this.entity)
 				ent.control(keypress);
+			if (this.updateClient != null)
+				this.updateClient();
 		} else {
 			if (this.player.size == 0)
 				return ;
@@ -122,7 +129,7 @@ export default class Pong implements GameInterface {
 	}
 	
 	// initialise all entities in the game
-	entities_init(): void {
+	entities_init(updateClient?: () => void): void {
 		const w = this.width;
 		const h = this.height;
 		const b = this.width * 0.025;	// border thickness
@@ -143,7 +150,7 @@ export default class Pong implements GameInterface {
 				vy = -Math.abs(vy);
 		}
 		
-		this.ball = new Ball(w/2, h/2, b/2, vx, vy, w, h);
+		this.ball = new Ball(w/2, h/2, b/2, vx, vy, w, h, updateClient);
 		this.entity.push(this.ball);
 		
 		// create walls
@@ -283,7 +290,7 @@ export default class Pong implements GameInterface {
 		
 		// reset game to initial condition
 		this.entities_clear();
-		this.entities_init();
+		this.entities_init(this.updateClient);
 		this.then = undefined;
 	}
 }
