@@ -27,6 +27,7 @@ interface CanvasProps {
 	game: GameInterface,
 	queue: {position: number[], size: number[]};
 	joinClick: (n: number) => void;
+	deleteSocket: () => void;
 }
 
 
@@ -42,7 +43,6 @@ export default class Canvas extends React.Component<CanvasProps> {
 		super(props);
 		this.game = props.game;
 		this.canvasRef = React.createRef();
-		console.log("Canvas", this.props.queue);
 	}
 	
 	// initialise canvas, context and games once it is component is mounted
@@ -74,9 +74,12 @@ export default class Canvas extends React.Component<CanvasProps> {
 		this.animationID = window.requestAnimationFrame(this.update.bind(this));
 	}
 	
-	// cancel animation frame once the canvas is unmounted, to prevent leak
+	// actions to be taken when canvas is unmounted
 	componentWillUnmount() {
+		// cancel animation frame to prevent leak
 		window.cancelAnimationFrame(this.animationID);
+		// remove old socket
+		this.props.deleteSocket();
 	}
 	
 	render() {

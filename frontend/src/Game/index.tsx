@@ -22,7 +22,7 @@ Players can control their own game, spectators can only view the game.
 */
 class Game extends React.Component <any, ReactGameState> {
 	player: Set<number> = new Set<number>();
-	socket: Socket;
+	socket?: Socket;
 	keypress: KeyPressMonitor | null = null;
 	game: GameInterface;
 	latency = 0;
@@ -43,7 +43,7 @@ class Game extends React.Component <any, ReactGameState> {
 		// calculate connection latency every 1 second
 		setInterval(() => {
 			const start = Date.now();
-			this.socket.emit("ping", () => {
+			this.socket?.emit("ping", () => {
 				this.latency = (Date.now() - start) / 2;
 			});
 		}, 1000);
@@ -52,7 +52,7 @@ class Game extends React.Component <any, ReactGameState> {
 	// define handler for socket messages
 	socket_handlers() {
 		// 'connect' event is fired upon connection the the Namespace
-		this.socket.on('connect', () => {
+		this.socket?.on('connect', () => {
 			console.log('Connected');
 			this.getQueue();
 			// keypress monitor is created if connection is made
@@ -62,27 +62,27 @@ class Game extends React.Component <any, ReactGameState> {
 		});
 		
 		// server asks client to join a game
-		this.socket.on('join', (n: number) => {
+		this.socket?.on('join', (n: number) => {
 			this.game.set_player(n);
 			this.player.add(n);
 		});
 		
 		// server asks client to unjoin a game
-		this.socket.on('unjoin', (n: number) => {
+		this.socket?.on('unjoin', (n: number) => {
 			console.log(`I quit as player ${n}`);
 			this.player.delete(n);
 			this.game.unset_player(n);
 		});
 		
-		this.socket.on('game_state', (game_state: GameState) => {
+		this.socket?.on('game_state', (game_state: GameState) => {
 			this.game.set_state(this.latency, game_state);
 		});
 		
-		this.socket.on('exception', function(data) {
+		this.socket?.on('exception', function(data) {
 			console.log('event', data);
 		});
 		
-		this.socket.on('disconnect', () => {
+		this.socket?.on('disconnect', () => {
 			console.log('Disconnected');
 			
 			// keypress monitor is deleted if connection dropped
@@ -91,7 +91,7 @@ class Game extends React.Component <any, ReactGameState> {
 			}
 		});
 		
-		this.socket.on("updateQueue", () => {
+		this.socket?.on("updateQueue", () => {
 			this.getQueue()
 		});
 	}
@@ -102,7 +102,7 @@ class Game extends React.Component <any, ReactGameState> {
 		if (this.player.size == 0)
 			return ;
 		// pass the current input to the game
-		this.socket.emit('keyDown', key);
+		this.socket?.emit('keyDown', key);
 		if (this.game != null && this.keypress != null)
 			this.game.control(this.keypress.keypress);
 	}
@@ -112,25 +112,29 @@ class Game extends React.Component <any, ReactGameState> {
 		// do nothing if not a player
 		if (this.player.size == 0)
 			return ;
-		this.socket.emit('keyUp', key);
+		this.socket?.emit('keyUp', key);
 		// pass the current input to the game
 		if (this.game != null && this.keypress != null)
 			this.game.control(this.keypress.keypress);
 	}
 	
 	joinClick(n: number): void {
-		this.socket.emit("join", n, (n: number) => {
+		this.socket?.emit("join", n, (n: number) => {
 			console.log(`I am no. ${n} in the queue`);
 		});
 	}
 	
 	// get queue info from server
 	getQueue() {
-		this.socket.emit('getQueue', (queue: QueueInfo) => {
+		this.socket?.emit('getQueue', (queue: QueueInfo) => {
 			this.setState({
 				queue: queue
 			})
 		});
+	}
+	
+	deleteSocket(): void {
+		delete this.socket;
 	}
 	
 	render() {
@@ -141,6 +145,7 @@ class Game extends React.Component <any, ReactGameState> {
 			game={this.game}
 			queue={this.state.queue}
 			joinClick={this.joinClick.bind(this)}
+			deleteSocket={this.deleteSocket.bind(this)}
 			/>;
 	}
 }
