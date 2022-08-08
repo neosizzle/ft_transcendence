@@ -39,8 +39,6 @@ export default class GameServer {
 		queue.push(client);
 		const index: number = queue.indexOf(client);
 		console.log(`client ${client.id} joined queue ${n} at index ${index}`);
-		if (index == 0)
-			client.emit('join', n);	// ask client to join as current player
 		this.server.emit("updateQueue");	// ask clients to update queue info
 		return index;
 	}
@@ -140,10 +138,17 @@ export default class GameServer {
 	
 	// return the queue info of a client
 	getQueue(client: Socket): QueueInfo {
-		return {
+		const retval = {
 			position: this.queues.map((queue) => queue.indexOf(client)),
 			size: this.queues.map((queue) => queue.size()),
 		}
+		
+		// if client is the current player, ask it to join game
+		for (let i = 0; i < retval.position.length; ++i)
+			if (retval.position[i] == 0)
+				client.emit('join', i)	// ask client to join as player i
+		
+		return retval;
 	}
 	
 }
