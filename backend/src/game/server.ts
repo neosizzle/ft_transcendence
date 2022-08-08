@@ -48,8 +48,12 @@ export default class GameServer {
 	// A client disconnects. Check whether client is in queue. If yes,
 	// the client is removed from queue. If the client is also the current
 	// player, release any key that he may be pressing.
-	handleDisconnect(client: Socket): void {
+	handleDisconnect(client: Socket, queue_no?: number): void {
 		for (let n = 0; n < this.queues.length; ++n) {
+			// if queue_no is given, only exit the particular queue
+			if (queue_no != null && n != queue_no)
+				continue ;
+			
 			const queue: UniqueQueue<Socket> = this.queues[n];
 			const index: number = queue.indexOf(client);
 			if (index == -1)

@@ -31,7 +31,7 @@ class Game extends React.Component <any, ReactGameState> {
 		super(props);
 		this.state = {
 			queue: {
-				position: Array(2).fill(0),
+				position: Array(2).fill(-1),
 				size: Array(2).fill(0)
 			},
 		};
@@ -118,10 +118,17 @@ class Game extends React.Component <any, ReactGameState> {
 			this.game.control(this.keypress.keypress);
 	}
 	
-	joinClick(n: number): void {
-		this.socket?.emit("join", n, (n: number) => {
-			console.log(`I am no. ${n} in the queue`);
-		});
+	joinQuitClick(n: number): void {
+		if (this.state.queue.position[n] == -1) {
+			// if not in queue, let client join queue
+			this.socket?.emit("join", n, (n: number) => {
+				console.log(`I am no. ${n + 1} in the queue`);
+			});
+		} else {
+			// if not the current player, let client quit queue
+			this.socket?.emit("unjoin", n);
+			console.log(`I've quit queue ${n}`);
+		}
 	}
 	
 	// get queue info from server
@@ -144,7 +151,7 @@ class Game extends React.Component <any, ReactGameState> {
 			style={{border: "1px solid black"}}
 			game={this.game}
 			queue={this.state.queue}
-			joinClick={this.joinClick.bind(this)}
+			joinQuitClick={this.joinQuitClick.bind(this)}
 			deleteSocket={this.deleteSocket.bind(this)}
 			/>;
 	}

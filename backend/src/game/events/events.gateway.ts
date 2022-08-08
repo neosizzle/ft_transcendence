@@ -57,6 +57,13 @@ export class GameEventsGateway
 		return this.game_server.handleConnect(client, n);
 	}
 	
+	// client unjoins queue 'n'
+	@SubscribeMessage('unjoin')
+	unjoinGame(@MessageBody() n: number, @ConnectedSocket() client: Socket)
+			: void {
+		this.game_server.handleDisconnect(client, n);
+	}
+	
 	// records a keydown event from players only
 	@SubscribeMessage('keyDown')
 	keyDown(@MessageBody() key: string, @ConnectedSocket() client: Socket)

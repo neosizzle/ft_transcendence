@@ -34,3 +34,9 @@
   box-shadow: none;
   color: #2c5777;
 }
+
+.join_button:disabled {
+	background-color: #cecece;
+	box-shadow: none;
+	color: #2c5777;
+}
