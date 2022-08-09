@@ -70,6 +70,7 @@ class Game extends React.Component <any, ReactGameState> {
 		// server asks client to unjoin a game
 		this.socket?.on('unjoin', (n: number) => {
 			console.log(`I quit as player ${n}`);
+			this.socket?.emit('unjoin', n);
 			this.player.delete(n);
 			this.game.unset_player(n);
 		});

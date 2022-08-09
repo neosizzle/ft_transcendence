@@ -14,6 +14,7 @@ export interface GameInterface {
 	set_player(n: number): void;	// record the current player number
 	unset_player(n: number): void;	// remove player number from record
 	start(n?: number): void;	// start a new round of game
+	reset(reset_score: boolean): void	// reset game as a totally new game
 	update(): void;	// update the state of all entities in the game
 	draw(ctx: CanvasRenderingContext2D | null): void;	// draw game onto canvas
 	set_state(latency: number, state: GameState): void;	// set the state of the game
@@ -195,6 +196,20 @@ export default class Pong implements GameInterface {
 		}
 	}
 	
+	// reset game into a new round. Score is reset if reset_score is true.
+	reset(reset_score=false): void {
+		if (reset_score)
+			this.scoreboard.reset()
+		
+		for (let n = 0; n < this.isRunning.length; ++n)
+			this.isRunning[n] = false;
+		
+		// initialise entities of the game
+		this.entities_clear()
+		this.entities_init(this.updateClient);
+		this.then = undefined;
+	}
+	
 	// draw all the elements on screen using context 'ctx'
 	draw(ctx: CanvasRenderingContext2D | null): void {
 		// do nothing if there's no valid context
@@ -283,15 +298,9 @@ export default class Pong implements GameInterface {
 			return ;
 		
 		this.scoreboard.add(loser);	// update the score
-		console.log(`Player ${loser} lost!`);
+		console.log(`Player ${loser + 1} lost!`);
 		// stop the current round
-		for (let n = 0; n < this.isRunning.length; ++n)
-			this.isRunning[n] = false;
-		
-		// reset game to initial condition
-		this.entities_clear();
-		this.entities_init(this.updateClient);
-		this.then = undefined;
+		this.reset(false);
 	}
 }
 

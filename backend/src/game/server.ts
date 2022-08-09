@@ -58,13 +58,28 @@ export default class GameServer {
 				continue ;
 			queue.erase(client);	// remove client from queue
 			console.log(`client ${client.id} removed as player ${n}`);
-			if (index == 0)		// if client is player, release keys
-				for (const key of Object.values(this.game.control_keys[n])) {
+			
+			// if client is player
+			if (index == 0) {
+				// remove player from current game
+				this.game.unset_player(n);
+				
+				// release keys
+				for (const key of Object.values(this.game.control_keys[n]))
 					this.keypress.delete(key);
+				
+				// reset game into a new game
+				this.game.reset(true);
 			}
-			// ask clients to update their queue info
-			this.server.emit('updateQueue');
+			
+			// ask the next player in the queue to join
+			if (queue.front() != null)
+				queue.front().emit("join", n)
 		}
+		
+		// ask clients to update their queue info and game state
+		this.server.emit('updateQueue');
+		this.updateClient()
 	}
 	
 	/* 'client' equests to start game. Server checks whether client is a
@@ -122,18 +137,9 @@ export default class GameServer {
 			const queue: UniqueQueue<Socket> = this.queues[n];
 			if (queue.size() > 0) {
 				const client: Socket = queue.front();
-				client.emit('unjoin', n);	// unjoin as player i
-				queue.pop();
-				this.game.unset_player(n);
+				client.emit('unjoin', n);	// unjoin as player n
 			}
-			
-			// ask the next player in the queue to join
-			if (queue.front() != null)
-				queue.front().emit("join", n)
 		}
-		
-		// ask clients to update queue info
-		this.server.emit("updateQueue");
 	}
 	
 	// return the queue info of a client
