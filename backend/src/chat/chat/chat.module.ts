@@ -13,6 +13,7 @@ import { MemberModule } from "../member/member.module";
 import { RoomModule } from "../room/room.module";
 import { RoomService } from "../room/room.service";
 import { MemberService } from "../member/member.service";
+import { AdminService } from "../admin/admin.service";
 @Module({
   imports: [
     PrismaModule,
@@ -31,6 +32,8 @@ import { MemberService } from "../member/member.service";
     ChatService,
     RoomService,
     MemberService,
+    AdminService,
+    
   ],
 })
 export class ChatModule {}
