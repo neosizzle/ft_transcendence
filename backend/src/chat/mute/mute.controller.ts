@@ -1,13 +1,13 @@
-import { Body, Controller, Get, Post, Query } from "@nestjs/common";
-import { PrismaService } from "src/prisma/prisma.service";
+import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
+import { AuthGuard } from "src/users/auth/guard";
 import { ListQuery } from "src/utils";
 import { muteDto } from "./mute.dto";
 import { MuteService } from "./mute.service";
 
-@Controller("mute")
+@Controller("api/v1/mute")
+@UseGuards(AuthGuard)
 export class MuteController {
   constructor(
-    private readonly prismaService: PrismaService,
     private readonly muteService: MuteService
   ) {}
 

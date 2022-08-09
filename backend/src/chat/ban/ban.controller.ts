@@ -1,19 +1,19 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
-import { Ban } from "@prisma/client";
-import { PrismaService } from "src/prisma/prisma.service";
+import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
+import { AuthGuard } from "src/users/auth/guard";
+import { ListQuery } from "src/utils";
 import { banDto } from "./ban.dto";
 import { BanService } from "./ban.service";
 
-@Controller("ban")
+@Controller("api/v1/ban")
+@UseGuards(AuthGuard)
 export class BanController {
   constructor(
-    private readonly prismaService: PrismaService,
     private readonly banService: BanService
   ) {}
 
   @Get()
-  getBan(): Promise<Ban[]> {
-    return this.prismaService.ban.findMany();
+  getBan(@Query() query: ListQuery) {
+    return this.banService.getBan(query);
   }
   @Post()
   create(@Body() banDto: banDto): Promise<banDto> {
