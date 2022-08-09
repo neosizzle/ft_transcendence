@@ -6,8 +6,8 @@ import { BanController } from "./ban.controller";
 import { BanService } from "./ban.service";
 
 @Module({
-    imports: [PrismaModule],
-    controllers: [BanController],
-    providers: [PrismaService, ConfigService, BanService]
+  imports: [PrismaModule],
+  controllers: [BanController],
+  providers: [PrismaService, ConfigService, BanService],
 })
 export class BanModule {}

@@ -359,12 +359,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() adminId: string
   ) {
     // delete admin in db
-    let deleteRes : Admin;
+    let deleteRes: Admin;
     try {
-      deleteRes = await this.admin.removeAdmin(client.handshake.auth.user, parseInt(adminId, 10))
+      deleteRes = await this.admin.removeAdmin(
+        client.handshake.auth.user,
+        parseInt(adminId, 10)
+      );
     } catch (error) {
       client.emit("exception", error);
-      return
+      return;
     }
     // emmit broadcast message and notification that admin had been demoted
     this.wsServer.to(deleteRes.roomId.toString()).emit("demotion", {
@@ -372,7 +375,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       roomId: deleteRes.roomId,
       message: `${deleteRes.userId} has became admin`,
     });
-
   }
 
   /**

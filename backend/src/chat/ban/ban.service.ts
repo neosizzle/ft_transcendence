@@ -3,13 +3,12 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { banDto } from "./ban.dto";
 
 @Injectable()
-
 export class BanService {
-    constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
-    giveBan(dto: banDto) : Promise<banDto> {
-        return this.prismaService.ban.create({
-            data: dto,
-        })
-    }
+  giveBan(dto: banDto): Promise<banDto> {
+    return this.prismaService.ban.create({
+      data: dto,
+    });
+  }
 }

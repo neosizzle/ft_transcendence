@@ -60,7 +60,7 @@ const runAdminTests = (pactum: any) => {
         where: {
           type: "DM",
           owner: {
-			username : "new"
+            username: "new",
           },
         },
       });
@@ -87,7 +87,7 @@ const runAdminTests = (pactum: any) => {
         },
       });
       const user = await prisma.user.findFirst({
-        where: { username : "new" },
+        where: { username: "new" },
       });
       const dto = {
         roomId: room.id,
@@ -107,7 +107,7 @@ const runAdminTests = (pactum: any) => {
 
     it("/admins (POST) room not found", async () => {
       const user = await prisma.user.findFirst({
-        where: { username : "new" },
+        where: { username: "new" },
       });
       const dto = {
         roomId: -123,
@@ -127,7 +127,7 @@ const runAdminTests = (pactum: any) => {
 
     it("/admins (POST) transfer ownership and promote", async () => {
       const user = await prisma.user.findFirst({
-        where: { username : "new" },
+        where: { username: "new" },
       });
       const room = await prisma.room.findFirst({ where: { type: "GC" } });
       await prisma.room.update({
@@ -250,7 +250,7 @@ const runAdminTests = (pactum: any) => {
     it(`/admins (GET) filtering 2`, async () => {
       const user = await prisma.user.findFirst({
         where: {
-			username : "new"
+          username: "new",
         },
       });
       return pactum
@@ -265,7 +265,7 @@ const runAdminTests = (pactum: any) => {
 
     it("/admins (DELETE) demote self", async () => {
       const user = await prisma.user.findFirst({
-        where: { username : "new" },
+        where: { username: "new" },
       });
       const adminToDemote = await prisma.admin.findFirst({
         where: {
@@ -308,7 +308,7 @@ const runAdminTests = (pactum: any) => {
         .withHeaders({
           Authorization: "Bearer $S{token}",
         })
-        .expectStatus(200)
+        .expectStatus(200);
     });
   });
 };

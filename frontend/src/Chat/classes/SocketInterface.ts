@@ -14,8 +14,8 @@ export class SocketInterface {
     onOwnerChange: (data: BaseWSResponse) => void,
     onUserKicked: (data: BaseWSResponse) => void,
     onUserBanned: (data: BaseWSResponse) => void,
-    onPromotion : (data : BaseWSResponse) => void,
-    onDemotion : (data : BaseWSResponse) => void,
+    onPromotion: (data: BaseWSResponse) => void,
+    onDemotion: (data: BaseWSResponse) => void
   ) {
     //connect to ws server
     this.socket = io(chatWsEndpoint, {

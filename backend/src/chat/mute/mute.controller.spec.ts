@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { MuteController } from './mute.controller';
+import { Test, TestingModule } from "@nestjs/testing";
+import { MuteController } from "./mute.controller";
 
-describe('MuteController', () => {
+describe("MuteController", () => {
   let controller: MuteController;
 
   beforeEach(async () => {
@@ -12,7 +12,7 @@ describe('MuteController', () => {
     controller = module.get<MuteController>(MuteController);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(controller).toBeDefined();
   });
 });

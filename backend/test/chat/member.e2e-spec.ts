@@ -184,7 +184,7 @@ const runMemberTests = (pactum: any) => {
     it(`/members (GET) filtering 2`, async () => {
       const user = await prisma.user.findFirst({
         where: {
-          username : "new"
+          username: "new",
         },
       });
       return pactum
@@ -205,7 +205,7 @@ const runMemberTests = (pactum: any) => {
       });
       const user = await prisma.user.findFirst({
         where: {
-          username : "new"
+          username: "new",
         },
       });
       await prisma.member.deleteMany({
@@ -248,7 +248,7 @@ const runMemberTests = (pactum: any) => {
       });
       const user = await prisma.user.findFirst({
         where: {
-          username : "new"
+          username: "new",
         },
       });
       await prisma.room.update({

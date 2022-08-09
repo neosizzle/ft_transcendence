@@ -13,7 +13,7 @@ export interface memberDto {
 
 // incoming data received from server
 export interface BaseWSResponse {
-  userId : number | null;
-  roomId : number;
-  message : string
+  userId: number | null;
+  roomId: number;
+  message: string;
 }

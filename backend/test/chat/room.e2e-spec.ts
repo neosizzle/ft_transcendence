@@ -252,7 +252,6 @@ const runRoomTests = (pactum: any) => {
     });
 
     it("/rooms (GET) no pagination", async () => {
-
       return pactum
         .spec()
         .get(`/rooms`)
@@ -412,7 +411,7 @@ const runRoomTests = (pactum: any) => {
         .withHeaders({
           Authorization: "Bearer $S{token}",
         })
-        .expectStatus(200)
+        .expectStatus(200);
     });
 
     it("/rooms (PATCH) no permission", async () => {

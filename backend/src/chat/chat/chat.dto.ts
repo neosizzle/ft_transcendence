@@ -16,7 +16,7 @@ export class chatDto {
 
 // ws data sent to client
 export class BaseWSResponse {
-  userId : number | null;
-  roomId : number;
-  message : string
+  userId: number | null;
+  roomId: number;
+  message: string;
 }

@@ -6,8 +6,8 @@ import { MuteController } from "./mute.controller";
 import { MuteService } from "./mute.service";
 
 @Module({
-    imports: [PrismaModule],
-    controllers: [MuteController],
-    providers: [PrismaService, ConfigService, MuteService]
+  imports: [PrismaModule],
+  controllers: [MuteController],
+  providers: [PrismaService, ConfigService, MuteService],
 })
 export class MuteModule {}

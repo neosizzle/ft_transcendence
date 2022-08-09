@@ -162,14 +162,15 @@ export class RoomService {
 
     // obtain initial users
     let initUsers: string[];
-    if (dto.initialUsers)
-    {
+    if (dto.initialUsers) {
       initUsers = dto.initialUsers.split(",");
 
       //verify that all init users exist
       for (let index = 0; index < initUsers.length; index++) {
         const userId = initUsers[index];
-        const res = await this.prisma.user.findUnique({where : {id : parseInt(userId, 10)}})
+        const res = await this.prisma.user.findUnique({
+          where: { id: parseInt(userId, 10) },
+        });
         if (!res) throw new BadRequestException("Invalid user in initialUsers");
       }
     }

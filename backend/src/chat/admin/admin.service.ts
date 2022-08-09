@@ -184,9 +184,9 @@ export class AdminService {
     if (room.ownerId !== user.id)
       throw new UnauthorizedException("Permission denied");
 
-
-    // cannot demote self 
-    if (admin.userId === user.id) throw new BadRequestException("Cannt demote self");
+    // cannot demote self
+    if (admin.userId === user.id)
+      throw new BadRequestException("Cannt demote self");
 
     // delete admin
     try {
