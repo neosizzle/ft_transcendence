@@ -3,6 +3,7 @@ import {
   Logger,
   NotFoundException,
   NotImplementedException,
+  Param,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -14,10 +15,18 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
+import { Admin, Member, Room } from "@prisma/client";
 import { IsString } from "class-validator";
 import { Socket, Server, Namespace } from "socket.io";
+import { PrismaService } from "src/prisma/prisma.service";
 import { AuthGuard } from "src/users/auth/guard";
 import { BlocksService } from "src/users/blocks/blocks.service";
+import { AdminService } from "../admin/admin.service";
+import { AdminDto } from "../admin/dto";
+import { MemberDto } from "../member/dto";
+import { MemberService } from "../member/member.service";
+import { roomDto, roomPatchDto } from "../room/dto";
+import { RoomService } from "../room/room.service";
 // import { roomDto } from 'src/room/room.dto';
 
 function getAllFuncs(toCheck) {
@@ -32,45 +41,9 @@ function getAllFuncs(toCheck) {
   });
 }
 
-const GROUP_CHAT = "gc";
-const DIRECT_MESSAGE = "dm";
-
-const PROMOTE_ADMIN = "promote";
-const DEMOTE_ADMIN = "demote";
-
 class Clients {
   userId: string;
   socketId: string;
-}
-
-class CreateEventDto {
-  type: string;
-  userId: string;
-  initialUsers: string[];
-}
-
-class LeaveEventDto {
-  @IsString()
-  roomId: string;
-}
-
-class JoinEventDto {
-  @IsString()
-  roomId: string;
-
-  @IsString()
-  password?: string;
-}
-
-class OwnerTransferDto {
-  userId: string;
-  roomId: string;
-}
-
-class ModifyAdminDto {
-  userId: string;
-  roomId: string;
-  action: string;
 }
 
 class MessageEventDto {
@@ -115,7 +88,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   logger: Logger = new Logger(ChatGateway.name);
 
   // TODO need chatservice and roomservice banservice , muteservice
-  constructor(private block: BlocksService) {}
+  constructor(
+    private room: RoomService,
+    private prisma: PrismaService,
+    private member: MemberService,
+    private admin: AdminService
+  ) {}
 
   /**
    * New client connection
@@ -123,7 +101,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param client Client socket
    * @param args
    */
-  handleConnection(client: Socket, ...args: any[]) {
+  handleConnection(client: Socket) {
     // return ack
     console.log("new incoming connection");
     client.emit("connection accepted", client.handshake);
@@ -136,10 +114,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleDisconnect(client: Socket) {
     // remove from client list
     this.clients = this.clients.filter((e) => client.id !== e.socketId);
+
+    this.logger.log("DC CLIENT - current clients :");
     this.clients.forEach((_client) =>
-      this.logger.log(
-        `dc socketId ${_client.socketId}, userId ${_client.userId}`
-      )
+      this.logger.log(`socketId ${_client.socketId}, userId ${_client.userId}`)
     );
   }
 
@@ -149,10 +127,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param payload
    */
   @SubscribeMessage("authHandshake")
-  handleAuthHandshake(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: string
-  ) {
+  async handleAuthHandshake(@ConnectedSocket() client: Socket) {
     // add to client list
     this.clients.push({
       userId: client.handshake.auth.user.id,
@@ -160,11 +135,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     // add new socket to user rooms
+    const members = await this.prisma.member.findMany({
+      where: { userId: client.handshake.auth.user.id },
+    });
+    members.forEach((member) => {
+      client.join(member.roomId.toString());
+    });
 
+    this.logger.log("NEW CLIENT CONNETED - current clients :");
     this.clients.forEach((_client) =>
-      this.logger.log(
-        `new client socketId ${_client.socketId}, userId ${_client.userId}`
-      )
+      this.logger.log(`socketId ${_client.socketId}, userId ${_client.userId}`)
     );
   }
 
@@ -174,27 +154,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param payload Request payload
    */
   @SubscribeMessage("create")
-  handleCreate(
+  async handleCreate(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: string
   ) {
     // parse payload and assign it to dto
-    const dto: CreateEventDto = JSON.parse(payload);
+    const dto: roomDto = JSON.parse(payload);
 
-    // if its a dm, create room in db with initial user and no admin
-    if (dto.type === DIRECT_MESSAGE) console.log("create dm room in db");
-
-    // if its a gc, create room in db with admin as current user and no initial users (if got initial users, send system message to inform users)
-    if (dto.type === GROUP_CHAT) console.log("Create gc room in db");
+    // add room in db
+    let roomCreateRes: Room;
+    try {
+      roomCreateRes = await this.room.addRoom(client.handshake.auth.user, dto);
+    } catch (error) {
+      client.emit("exception", error);
+      return;
+    }
 
     // add curr user to room
-    const roomId = `${dto.userId}-${dto.type}`;
+    const roomId = roomCreateRes.id.toString();
     client.join(roomId);
 
     // add initial users to room as well if they are online (connected to ws server)
     // console.log(getAllFuncs(this.wsServer))
     const namespace = this.wsServer;
-    for (const userId of dto.initialUsers) {
+    for (const userId of dto.initialUsers.split(",")) {
       const client = this.clients.find(
         (client) => userId.toString() === client.userId.toString()
       );
@@ -204,15 +187,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       // inform initial users that group is created
       // emmit message from system 'you have been added herer by ${userId}'
-      if (dto.type === GROUP_CHAT)
-        clientSocket.emit("newMessage", {
-          userId: null,
-          roomId,
-          message: `You have been added to room ${roomId}`,
-        });
+      if (roomCreateRes.type === "GC") {
+        clientSocket.emit("alert", `You have been added to room ${roomId}`);
+        // clientSocket.emit("newMessage", {
+        //   userId: null,
+        //   roomId,
+        //   message: `You have been added to room ${roomId}`,
+        // });
+      }
     }
-
-    client.emit("messageReceived", new NotImplementedException());
   }
 
   /**
@@ -221,25 +204,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param payload Request payload
    */
   @SubscribeMessage("leave")
-  handleLeave(
+  async handleLeave(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: string
+    @MessageBody() memberId: string
   ) {
-    // parse payload and assign it to dto
-    const dto: LeaveEventDto = JSON.parse(payload);
-
-    // do nothing if room is a DM
-
-    // leave room in db
+    // remove member in db
+    let res: Member;
+    try {
+      res = await this.member.removeMember(
+        client.handshake.auth.user,
+        parseInt(memberId, 10)
+      );
+    } catch (error) {
+      client.emit("exception", error);
+      return;
+    }
 
     // emmit brodcast and notification to roomid that this user left
-    client.leave(dto.roomId);
-    this.wsServer.to(dto.roomId).emit("newMessage", {
-      userId: null,
-      roomId: dto.roomId,
-      message: `${client.handshake.auth.user.username} has left`,
-    });
-    client.emit("messageReceived", new NotImplementedException());
+    client.leave(res.roomId.toString());
+    this.wsServer
+      .to(res.roomId.toString())
+      .emit("alert", `${client.handshake.auth.user.username} has left`);
+    // this.wsServer.to(id).emit("newMessage", {
+    //   userId: null,
+    //   roomId: id,
+    //   message: `${client.handshake.auth.user.username} has left`,
+    // });
   }
 
   /**
@@ -248,24 +238,38 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param payload Request payload
    */
   @SubscribeMessage("join")
-  handleJoin(
+  async handleJoin(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: string
   ) {
     // parse payload and assign it to dto
-    const dto: JoinEventDto = JSON.parse(payload);
+    const dto: MemberDto = JSON.parse(payload);
 
     // check if room exists, user has permission to join, password is correct
     // join room in db
+    let member: Member;
+    try {
+      member = await this.member.addMember(client.handshake.auth.user, dto);
+    } catch (error) {
+      client.emit("exception", error);
+      return;
+    }
 
     // join room in ws
-    client.join(dto.roomId);
+    client.join(member.id.toString());
 
     // if its a gc, emmit brodcast and notification to roomid that this user joined
-    // if (room.type == 'GC')
-    //   this.wsServer.to(dto.roomId).emit('newMessage', {userId : null, roomId : dto.roomId, message : `${client.handshake.auth.user.username} has joined`})
+    const room = await this.prisma.room.findUnique({
+      where: { id: member.roomId },
+    });
 
-    client.emit("messageReceived", new NotImplementedException());
+    if (room.type == "GC")
+      this.wsServer
+        .to(room.id.toString())
+        .emit("alert", `${client.handshake.auth.user.username} has joined`);
+
+    // if (room.type == "GC")
+    //   this.wsServer.to(room.id.toString()).emit('newMessage', {userId : null, roomId : room.id, message : `${client.handshake.auth.user.username} has joined`})
   }
 
   /**
@@ -274,63 +278,101 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param payload Request payload
    */
   @SubscribeMessage("ownertransfer")
-  handleOwnerTransfer(
+  async handleOwnerTransfer(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: string
   ) {
     // parse payload and assign it to dto
-    const dto: OwnerTransferDto = JSON.parse(payload);
+    const payloadParsed = JSON.parse(payload);
+    const dto: roomPatchDto = payloadParsed.dto;
+    const roomId: number = payloadParsed.roomId;
 
-    // check if room exists
-
-    // if room is not Gc, return
+    if (dto.roomName || dto.isProtected || dto.password || !dto.ownerId) {
+      client.emit(
+        "exception",
+        new BadRequestException(
+          "Only owner transfer allowed through this endpoint"
+        )
+      );
+      return;
+    }
 
     // modify room in db
+    let patchRes: Room;
+    try {
+      patchRes = await this.room.modifyRoom(
+        client.handshake.auth.user,
+        roomId.toString(),
+        dto
+      );
+    } catch (error) {
+      client.emit("exception", error);
+      return;
+    }
 
     // emmit broadcast message and notification that admin had been tranferred
-    this.wsServer.to(dto.roomId).emit("newMessage", {
-      userId: null,
-      roomId: dto.roomId,
-      message: `${dto.userId} has become owner`,
+    this.wsServer.to(patchRes.id.toString()).emit("ownerChange", {
+      userId: patchRes.ownerId,
+      roomId: patchRes.id,
+      message: `${patchRes.ownerId} has become owner`,
     });
-
-    client.emit("messageReceived", new NotImplementedException());
   }
 
   /**
-   * Handles gc modifyadmin
+   * Handles gc promoteadmin
    * @param client Client socket
    * @param payload Request payload
    */
-  @SubscribeMessage("modifyadmin")
-  handleModifyAdmin(
+  @SubscribeMessage("promoteAdmin")
+  async handlePromoteAdmin(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: string
   ) {
     // parse payload and assign it to dto
-    const dto: ModifyAdminDto = JSON.parse(payload);
+    const dto: AdminDto = JSON.parse(payload);
 
-    // check if room exists
+    // add admin in db
+    let adminRes: Admin;
+    try {
+      adminRes = await this.admin.addAdmin(client.handshake.auth.user, dto);
+    } catch (error) {
+      client.emit("exception", error);
+      return;
+    }
 
-    // if room is not gc, return
+    // emmit broadcast message and notification that admin had been promoted
+    this.wsServer.to(dto.roomId.toString()).emit("promotion", {
+      userId: adminRes.userId,
+      roomId: adminRes.roomId,
+      message: `${adminRes.userId} has became admin`,
+    });
+  }
 
-    // modify room in db
+  /**
+   * Handles gc promoteadmin
+   * @param client Client socket
+   * @param payload Request payload
+   */
+  @SubscribeMessage("demoteAdmin")
+  async handleDemoteAdmin(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() adminId: string
+  ) {
+    // delete admin in db
+    let deleteRes : Admin;
+    try {
+      deleteRes = await this.admin.removeAdmin(client.handshake.auth.user, parseInt(adminId, 10))
+    } catch (error) {
+      client.emit("exception", error);
+      return
+    }
+    // emmit broadcast message and notification that admin had been demoted
+    this.wsServer.to(deleteRes.roomId.toString()).emit("demotion", {
+      userId: deleteRes.userId,
+      roomId: deleteRes.roomId,
+      message: `${deleteRes.userId} has became admin`,
+    });
 
-    // emmit broadcast message and notification that admin had been tranferred
-    if (dto.action === PROMOTE_ADMIN)
-      this.wsServer.to(dto.roomId).emit("newMessage", {
-        userId: null,
-        roomId: dto.roomId,
-        message: `${dto.userId} has became admin`,
-      });
-    else
-      this.wsServer.to(dto.roomId).emit("newMessage", {
-        userId: null,
-        roomId: dto.roomId,
-        message: `${dto.userId} has been demoted`,
-      });
-
-    client.emit("messageReceived", new NotImplementedException());
   }
 
   /**

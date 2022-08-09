@@ -13,3 +13,10 @@ export class chatDto {
   @IsString()
   message: string;
 }
+
+// ws data sent to client
+export class BaseWSResponse {
+  userId : number | null;
+  roomId : number;
+  message : string
+}

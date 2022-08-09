@@ -22,7 +22,8 @@ export class MuteService {
         if (listObj.error) throw new BadRequestException(listObj.error);
 
         // generate and send prisma query
-        const payload = generateRoomPayload(listObj.data);
+        // const payload = generateRoomPayload(listObj.data);
+        const payload = null;
         const res = await this.prismaService.room.findMany(payload);
         delete payload.skip;
         delete payload.take;

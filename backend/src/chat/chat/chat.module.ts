@@ -11,6 +11,8 @@ import { BanModule } from "../ban/ban.module";
 import { MuteModule } from "../mute/mute.module";
 import { MemberModule } from "../member/member.module";
 import { RoomModule } from "../room/room.module";
+import { RoomService } from "../room/room.service";
+import { MemberService } from "../member/member.service";
 @Module({
   imports: [
     PrismaModule,
@@ -27,6 +29,8 @@ import { RoomModule } from "../room/room.module";
     ChatGateway,
     BlocksService,
     ChatService,
+    RoomService,
+    MemberService,
   ],
 })
 export class ChatModule {}
