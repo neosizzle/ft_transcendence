@@ -12,6 +12,7 @@ import Login from './Login';
 import Protected from './commonComponents/Protected';
 import Logout from './Logout';
 import Navbar from './commonComponents/navbar';
+import Home from './Home';
 
 function App() {
   const [initLoad, setInitLoad] = useState<number>(0);
@@ -47,8 +48,8 @@ function App() {
   );
 }
 
-function Home() {
-  return <h2>Home</h2>;
-}
+// function Home() {
+//   return <h2>Home</h2>;
+// }
 
 export default App;
