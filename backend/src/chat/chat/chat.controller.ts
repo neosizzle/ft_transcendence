@@ -1,7 +1,6 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
-import { Chat } from "@prisma/client";
-import { PrismaService } from "src/prisma/prisma.service";
+import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/users/auth/guard";
+import { ListQuery } from "src/utils";
 import { chatDto } from "./chat.dto";
 import { ChatService } from "./chat.service";
 
@@ -9,13 +8,12 @@ import { ChatService } from "./chat.service";
 @UseGuards(AuthGuard)
 export class ChatController {
   constructor(
-    private readonly prismaService: PrismaService,
     private readonly chatService: ChatService
   ) {}
 
   @Get()
-  getChat(): Promise<Chat[]> {
-    return this.prismaService.chat.findMany();
+  getChat(@Query() query: ListQuery) {
+    return this.chatService.getChat(query);
   }
   @Post()
   create(@Body() chatDto: chatDto): Promise<chatDto> {
