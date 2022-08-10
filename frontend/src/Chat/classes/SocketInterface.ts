@@ -4,7 +4,6 @@ import { BaseWSResponse } from "./dto";
 
 const chatWsEndpoint = `${WS_ROOT}/ws/chat`;
 
-// TODO: Type the ws responses
 export class SocketInterface {
   socket: Socket | null = null;
 

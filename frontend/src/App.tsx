@@ -13,6 +13,7 @@ import Protected from './commonComponents/Protected';
 import Logout from './Logout';
 import Navbar from './commonComponents/navbar';
 import Home from './Home';
+import ChatWidget from './ChatWidget';
 
 function App() {
   const [initLoad, setInitLoad] = useState<number>(0);
@@ -42,6 +43,7 @@ function App() {
             <Route path="/login" element = {<Login/>}/>
             <Route path="/" element = {<Home/>}/>
           </Routes>
+          <ChatWidget />
         </div>
     </Router>
   </AuthProvider>

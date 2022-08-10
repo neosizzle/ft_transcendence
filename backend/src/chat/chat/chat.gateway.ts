@@ -23,10 +23,12 @@ import { AuthGuard } from "src/users/auth/guard";
 import { BlocksService } from "src/users/blocks/blocks.service";
 import { AdminService } from "../admin/admin.service";
 import { AdminDto } from "../admin/dto";
+import { banDto } from "../ban/ban.dto";
 import { MemberDto } from "../member/dto";
 import { MemberService } from "../member/member.service";
 import { roomDto, roomPatchDto } from "../room/dto";
 import { RoomService } from "../room/room.service";
+import { chatDto } from "./chat.dto";
 // import { roomDto } from 'src/room/room.dto';
 
 function getAllFuncs(toCheck) {
@@ -44,36 +46,6 @@ function getAllFuncs(toCheck) {
 class Clients {
   userId: string;
   socketId: string;
-}
-
-class MessageEventDto {
-  @IsString()
-  roomId: string;
-
-  @IsString()
-  message: string;
-}
-
-class BanEventDto {
-  @IsString()
-  roomId: string;
-
-  @IsString()
-  baneeId: string;
-
-  @IsString()
-  duration: number;
-}
-
-class MuteEventDto {
-  @IsString()
-  roomId: string;
-
-  @IsString()
-  muteeId: string;
-
-  @IsString()
-  duration: number;
 }
 
 @UseGuards(AuthGuard)
@@ -388,7 +360,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() payload: string
   ) {
     // parse payload and assign it to dto
-    const dto: MessageEventDto = JSON.parse(payload);
+    const dto: chatDto = JSON.parse(payload);
 
     // check if room id exists
 
@@ -401,7 +373,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // create new message in database
 
     // broadcast message into roomId
-    this.wsServer.to(dto.roomId).emit("newMessage", {
+    this.wsServer.to(dto.roomId.toString()).emit("newMessage", {
       userId: client.handshake.auth.user.id,
       roomId: dto.roomId,
       message: dto.message,
@@ -420,7 +392,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage("ban")
   handleBan(@ConnectedSocket() client: Socket, @MessageBody() payload: string) {
     // parse payload and assign it to dto
-    const dto: BanEventDto = JSON.parse(payload);
+    const dto: banDto = JSON.parse(payload);
 
     // check if room id exists
 
@@ -430,21 +402,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // create new ban record in database
 
-    // remove user from room in db
+    // ban user in db
 
     // remove user from room in ws
     const baneeClient = this.clients.find(
-      (client) => dto.baneeId.toString() === client.userId.toString()
+      (client) => dto.userId.toString() === client.userId.toString()
     );
-    if (!baneeClient) throw new NotFoundException("Banee not found");
-    const baneeClientSocket = this.wsServer.sockets.get(baneeClient.socketId);
-    baneeClientSocket.leave(dto.roomId);
-
-    // broadcast system message into roomId
-    this.wsServer.to(dto.roomId).emit("newMessage", {
-      userId: null,
+    if (baneeClient)
+    {
+      const baneeClientSocket = this.wsServer.sockets.get(baneeClient.socketId);
+      baneeClientSocket.leave(dto.roomId.toString());
+    }
+    
+    // broadcast ban event into roomId
+    this.wsServer.to(dto.roomId.toString()).emit("userBanned", {
+      userId: dto.userId,
       roomId: dto.roomId,
-      message: `${dto.baneeId} got banned`,
+      message: `${dto.userId} got banned`,
     });
 
     // broadcast notification event into roomid to notify all other users
@@ -452,36 +426,4 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.emit("messageReceived", new NotImplementedException());
   }
 
-  /**
-   * Handles mute
-   * @param client Client socket
-   * @param payload Request payload
-   */
-  @SubscribeMessage("mute")
-  handleMute(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: string
-  ) {
-    // parse payload and assign it to dto
-    const dto: MuteEventDto = JSON.parse(payload);
-
-    // check if room id exists
-
-    // check if its a gc
-
-    // check if user has privelleges
-
-    // create new mute record in database
-
-    // broadcast system message into roomId
-    this.wsServer.to(dto.roomId).emit("newMessage", {
-      userId: null,
-      roomId: dto.roomId,
-      message: `${dto.muteeId} got muted`,
-    });
-
-    // broadcast notification event into roomid to notify all other users
-
-    client.emit("messageReceived", new NotImplementedException());
-  }
 }

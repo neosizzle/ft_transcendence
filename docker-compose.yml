@@ -23,6 +23,10 @@ services:
       - ft_trans
     volumes:
       - ./backend:/ft_transcendence-web #maps current host dir to docker working dir
+    cpu_count: 2
+    cpu_percent: 50
+    mem_limit: 1000000000
+    memswap_limit: 2000000000
 
   db:
     image: postgres:13.4-buster
@@ -52,6 +56,10 @@ services:
 
     volumes:
       - ./frontend:/ft_transcendence-front #maps current host dir to docker working dir
+    cpu_count: 2
+    cpu_percent: 50
+    mem_limit: 1000000000
+    memswap_limit: 2000000000
 
 volumes:
   db:

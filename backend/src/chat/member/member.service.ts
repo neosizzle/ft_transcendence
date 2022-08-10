@@ -93,7 +93,7 @@ const generateMemberPayload = (
 
   res.take = listObj.pageSize;
   res.skip = (listObj.page - 1) * listObj.pageSize;
-  res.include = { user: true, room: true };
+  res.include = { user: true, room: { select : {id : true, roomName : true, ownerId : true, type : true, isProtected : true, createdAt : true, updatedAt : true, owner : true, password : false} } };
   if (listObj.filterBys) res.where = generateMemberWhere(listObj);
   if (listObj.sortBy) {
     res.orderBy = [{}];

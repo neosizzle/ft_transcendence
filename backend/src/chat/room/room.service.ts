@@ -146,6 +146,8 @@ export class RoomService {
       <Prisma.RoomCountArgs>payload
     );
 
+    // delete passwords
+    res.forEach((e) => delete e.password)
     return { data: res, total_elements };
   }
 
