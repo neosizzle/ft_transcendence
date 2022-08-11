@@ -1,22 +1,26 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_ROOT } from "../../constants";
-import { useAuth } from "../../context/authContext";
+import { useAuth, User } from "../../context/authContext";
 import { auth_net_get } from "../../utils";
 import { Room } from "../types";
 import CardLoader from "./CardLoader";
+import GameInvBtn from "./GameInvBtn";
 
 interface ListCardProps {
   room: Room;
+  setActiveRoom : React.Dispatch<React.SetStateAction<Room | null>>;
 }
 
 const DEF_PIC = "/assets/default-pp.webp";
 const memberEndpoint = `${API_ROOT}/members`;
-const ListCard: FunctionComponent<ListCardProps> = ({ room }) => {
+
+const ListCard: FunctionComponent<ListCardProps> = ({ room , setActiveRoom}) => {
   const [loading, setLoading] = useState<boolean>(true); //loading state
-  const [picture, setPicture] = useState<string>(DEF_PIC); // chat picture
-  const [title, setTitle] = useState<string>(""); // title for information section
-  const [lastMsg, setLastMsg] = useState<string>(""); // lastest message for information section
+  const [user, setUser] = useState<User | null>(null); // Opposing user if chat is a DM
+  const [lastMsg, setLastMsg] = useState<string>(
+    "User :  Some body once told me the world is gonna roll me"
+  ); // lastest message for information section
   const navigate = useNavigate();
   const auth = useAuth();
 
@@ -28,38 +32,47 @@ const ListCard: FunctionComponent<ListCardProps> = ({ room }) => {
       ).then((data) => {
         if (data.error && data.error == "Forbidden") return navigate("/logout");
         if (data.data[0].userId === auth?.user?.id) {
-          setPicture(data.data[1].user.avatar);
-          setTitle(data.data[1].user.username);
+          setUser(data.data[1].user);
         } else {
-          setPicture(data.data[0].user.avatar);
-          setTitle(data.data[0].user.username);
+          setUser(data.data[0].user);
         }
+        setLoading(false);
       });
-    } else {
-      setPicture(DEF_PIC);
-      setTitle(room.roomName || "undefined");
     }
-    setLoading(false);
+    else
+    {
+      setUser(null);
+      setLoading(false);
+    }
   }, [room]);
 
   return loading ? (
     <CardLoader />
   ) : (
-    <div className="border-b-2 grid grid-cols-6">
-      {/* Pic */}
+    <div
+    onClick={(e)=>{
+      setActiveRoom(room)
+      e.stopPropagation()
+    }}
+    className="border-b-2 grid grid-cols-6 cursor-pointer">
+      {/*Pic */}
       <div className="col-span-1">
-        <img src={picture || DEF_PIC} className="h-full w-full rounded-full" />
+        <img
+          src={user ? (user.avatar as string | undefined) : DEF_PIC}
+          className="h-full w-full rounded-full"
+        />
       </div>
 
       {/* Info */}
       <div className="col-span-4 px-2">
         <div className="text-md lg:text-lg">
-          {title} {room.id}
+          {user ? user.username : room.roomName}
         </div>
+        <div className="text-sm truncate">{lastMsg}</div>
       </div>
 
       {/* Action */}
-      <div className="col-span-1">Action</div>
+      {user ? <GameInvBtn user={user} /> : null}
     </div>
   );
 };

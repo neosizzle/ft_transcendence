@@ -149,7 +149,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // add initial users to room as well if they are online (connected to ws server)
     // console.log(getAllFuncs(this.wsServer))
     const namespace = this.wsServer;
-    for (const userId of dto.initialUsers.split(",")) {
+    let initUsers : string[] = [];
+    initUsers = dto.initialUsers.split(",");
+    if (!initUsers.includes(client.handshake.auth.user.id.toString()))
+      initUsers.push(client.handshake.auth.user.id.toString())
+    for (const userId of initUsers) {
       const client = this.clients.find(
         (client) => userId.toString() === client.userId.toString()
       );

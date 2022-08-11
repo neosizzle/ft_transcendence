@@ -31,7 +31,7 @@ const ChatWidget: FunctionComponent = () => {
     const id: string = (e.target as Element).id;
     const parentChatWin = (e.target as Element).closest("#chat-win");
     if (id !== "toggle-chat-win-btn" && !(id === "chat-win" || parentChatWin)) {
-      // console.log("window click")
+      // console.log("closing window ", parentChatWin)
       setOpenWindow(false);
     }
   };

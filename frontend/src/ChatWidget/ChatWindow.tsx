@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { API_ROOT } from "../constants";
 import { useAuth } from "../context/authContext";
 import { auth_net_get } from "../utils";
+import ActiveRoom from "./components/ActiveRoom";
 import RoomList from "./components/RoomList";
 import { Member, Room } from "./types";
 
@@ -14,7 +15,7 @@ interface ChatWindowProps {
 }
 
 const ChatWindow: FunctionComponent<ChatWindowProps> = ({ open }) => {
-  const [activeRoom, setActiveRoom] = useState<number>(-1); // current active viewing room
+  const [activeRoom, setActiveRoom] = useState<Room | null>(null); // current active viewing room
   const [rooms, setRooms] = useState<Room[] | null>(null); // rooms joined
   const [currPage, setCurrPage] = useState<number>(1); // current page of rooms
   const [totalElements, setTotalElements] = useState<number>(-1); // total joined rooms
@@ -25,19 +26,17 @@ const ChatWindow: FunctionComponent<ChatWindowProps> = ({ open }) => {
   useEffect(() => {
     // get rooms
     auth_net_get(
-      `${membersEndpoint}?page=${currPage}&pageSize=${PAGE_SIZE}&filterOn=userId&filterBy=${
-        auth?.user?.id
-      }`
+      `${membersEndpoint}?page=${currPage}&pageSize=${PAGE_SIZE}&filterOn=userId&filterBy=${auth?.user?.id}`
     )
       .then((data) => {
         if (data.error && data.error == "Forbidden") return navigate("/logout");
-        const rooms : Room[] = [];
+        const rooms: Room[] = [];
 
-        data.data.forEach((e : Member)=>{
-          rooms.push(e.room)
-        })
+        data.data.forEach((e: Member) => {
+          rooms.push(e.room);
+        });
         setRooms(rooms);
-        setTotalElements(data.total_elements)
+        setTotalElements(data.total_elements);
       })
       .catch((e) => console.error(e));
   }, [currPage]);
@@ -49,10 +48,20 @@ const ChatWindow: FunctionComponent<ChatWindowProps> = ({ open }) => {
         open ? "" : "hidden"
       } absolute bottom-full right-0 bg-white w-60 h-60 drop-shadow-xl rounded lg:rounded-none lg:h-96 lg:w-full mb-3 lg:mb-0`}
     >
-      {/* Active room */}
-
-      {/* Room list */}
-      <RoomList rooms={rooms} currPage={currPage} setCurrPage={setCurrPage} pageSize={PAGE_SIZE} totalElements={totalElements}/>
+      {activeRoom ? (
+        // ActiveRoom
+       <ActiveRoom room={activeRoom} setActiveRoom={setActiveRoom}/>
+      ) : (
+        // Roomlist
+        <RoomList
+          rooms={rooms}
+          currPage={currPage}
+          setCurrPage={setCurrPage}
+          pageSize={PAGE_SIZE}
+          totalElements={totalElements}
+          setActiveRoom={setActiveRoom}
+        />
+      )}
     </div>
   );
 };

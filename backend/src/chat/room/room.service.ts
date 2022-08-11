@@ -163,9 +163,10 @@ export class RoomService {
       throw new BadRequestException("Roomname needed for gcs");
 
     // obtain initial users
-    let initUsers: string[];
+    let initUsers: string[] = [];
     if (dto.initialUsers) {
       initUsers = dto.initialUsers.split(",");
+
 
       //verify that all init users exist
       for (let index = 0; index < initUsers.length; index++) {
@@ -236,24 +237,26 @@ export class RoomService {
       });
 
       //add initial users
-      if (dto.initialUsers) {
-        // check if attempt to have multiple intial users in DM
-        if (initUsers.length > 1 && dto.type == RoomType.DM)
-          throw new BadRequestException("Cannot add initial users in DM");
+      // check if attempt to have multiple intial users in DM
+      if (initUsers.length > 1 && dto.type == RoomType.DM)
+        throw new BadRequestException("Cannot add initial users in DM");
 
-        const payload: Prisma.MemberCreateManyInput[] = [];
+      const payload: Prisma.MemberCreateManyInput[] = [];
+
+      // add self to user if self userid is not in init users
+      if (!initUsers.includes(user.id.toString()))
         payload.push({ userId: user.id, roomId: res.id });
-        initUsers.forEach((e) =>
-          payload.push({
-            userId: parseInt(e),
-            roomId: res.id,
-          } as Prisma.MemberCreateManyInput)
-        );
+        
+      initUsers.forEach((e) =>
+        payload.push({
+          userId: parseInt(e),
+          roomId: res.id,
+        } as Prisma.MemberCreateManyInput)
+      );
 
-        await this.prisma.member.createMany({
-          data: payload,
-        });
-      }
+      await this.prisma.member.createMany({
+        data: payload,
+      });
 
       // if GC, make current user admin of room
       if (dto.type === "GC")

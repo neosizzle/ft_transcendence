@@ -81,7 +81,7 @@ const handleDemotion = (data: BaseWSResponse) => {
   alert(data.message);
 };
 
-const ROOM_TO_JOIN = 13;
+const ROOM_TO_JOIN = 146;
 const member_endpoint = `${API_ROOT}/members`;
 
 const WsRoot: FunctionComponent = () => {
@@ -106,7 +106,7 @@ const WsRoot: FunctionComponent = () => {
     const dto: roomDto = {
       type: "GC",
       roomName: "fromfront",
-      initialUsers: "145",
+      initialUsers: "",
     };
     socket?.socket?.emit("create", JSON.stringify(dto));
   };
