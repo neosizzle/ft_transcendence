@@ -62,23 +62,16 @@ const ActiveRoom: FunctionComponent<ActiveRoomProps> = ({
     if (scrollDirection === SCROLL_UP) {
       // scroll to bottom
       bottomRef.current?.scrollIntoView({ block: "end" });
-      console.log("scrolling into down view..");
       return;
     } else {
       // scroll to top
-        topRef.current?.scrollIntoView({ block: "start" });
-    //   chatListRef.current?.scrollTo({ top: 20});
-      console.log("scrolling into up view..");
+      topRef.current?.scrollIntoView({ block: "start" });
       return;
     }
   }, [currChatPage]);
 
   // scroll handler
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    // console.log("e.currentTarget.scrollHeight ", e.currentTarget.scrollHeight )
-    // console.log("e.currentTarget.scrollTop ", e.currentTarget.scrollTop )
-    // console.log("e.currentTarget.scrollHeight - e.currentTarget.scrollTop ", e.currentTarget.scrollHeight - e.currentTarget.scrollTop )
-    // console.log("e.currentTarget.clientHeight", e.currentTarget.clientHeight)
 
     if (e.currentTarget.scrollTop === 0) {
       setCurrChatPage(currChatPage + 1);
@@ -137,7 +130,6 @@ const ActiveRoom: FunctionComponent<ActiveRoomProps> = ({
       {/* Chat content */}
       <div
         className="row-span-4 border-b-2 overflow-auto"
-        // onWheel={handleScroll}
         onScroll={handleScroll}
         ref={chatListRef}
       >
