@@ -14,11 +14,13 @@ import { RoomService } from "../room/room.service";
 import { MemberService } from "../member/member.service";
 import { AdminService } from "../admin/admin.service";
 import { MuteService } from "../mute/mute.service";
+import { MuteModule } from "../mute/mute.module";
 @Module({
   imports: [
     PrismaModule,
     AdminModule,
     BanModule,
+    MuteModule,
     MemberModule,
     RoomModule,
   ],
