@@ -12,9 +12,15 @@ const PAGE_SIZE = 4;
 
 interface ChatWindowProps {
   open?: boolean;
+  notify: number[] | null;
+  setNotify: React.Dispatch<React.SetStateAction<number[] | null>>;
 }
 
-const ChatWindow: FunctionComponent<ChatWindowProps> = ({ open }) => {
+const ChatWindow: FunctionComponent<ChatWindowProps> = ({
+  open,
+  notify,
+  setNotify,
+}) => {
   const [activeRoom, setActiveRoom] = useState<Room | null>(null); // current active viewing room
   const [rooms, setRooms] = useState<Room[] | null>(null); // rooms joined
   const [currPage, setCurrPage] = useState<number>(1); // current page of rooms
@@ -50,7 +56,7 @@ const ChatWindow: FunctionComponent<ChatWindowProps> = ({ open }) => {
     >
       {activeRoom ? (
         // ActiveRoom
-       <ActiveRoom room={activeRoom} setActiveRoom={setActiveRoom}/>
+        <ActiveRoom room={activeRoom} setActiveRoom={setActiveRoom} />
       ) : (
         // Roomlist
         <RoomList
@@ -60,6 +66,8 @@ const ChatWindow: FunctionComponent<ChatWindowProps> = ({ open }) => {
           pageSize={PAGE_SIZE}
           totalElements={totalElements}
           setActiveRoom={setActiveRoom}
+          notify={notify}
+          setNotify={setNotify}
         />
       )}
     </div>
