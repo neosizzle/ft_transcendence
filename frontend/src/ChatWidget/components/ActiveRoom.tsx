@@ -23,6 +23,7 @@ const ActiveRoom: FunctionComponent<ActiveRoomProps> = ({
   const [loading, setLoading] = useState<boolean>(false); // loading dm user info
   const [currChatPage, setCurrChatPage] = useState<number>(1); // current chat page
   const [scrollDirection, setScrollDirection] = useState(0); // current scroll direction
+  const [currChatMsg, setCurrChatMsg] = useState<string>(""); // current chat message
   const bottomRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const chatListRef = useRef<HTMLDivElement>(null);
@@ -38,7 +39,7 @@ const ActiveRoom: FunctionComponent<ActiveRoomProps> = ({
     }
 
     // scroll to bottom
-    bottomRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ block: "end" });
 
     // if room is a dm, get opposing user
     if (room.type === "DM") {
@@ -59,20 +60,19 @@ const ActiveRoom: FunctionComponent<ActiveRoomProps> = ({
 
   //infinite scroll
   useEffect(() => {
-    if (scrollDirection === SCROLL_UP) {
-      // scroll to bottom
-      bottomRef.current?.scrollIntoView({ block: "end" });
-      return;
-    } else {
+    if (scrollDirection === SCROLL_DOWN) {
       // scroll to top
       topRef.current?.scrollIntoView({ block: "start" });
+      return;
+    } else {
+      // scroll to bottom
+      bottomRef.current?.scrollIntoView({ block: "end" });
       return;
     }
   }, [currChatPage]);
 
   // scroll handler
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-
     if (e.currentTarget.scrollTop === 0) {
       setCurrChatPage(currChatPage + 1);
       setScrollDirection(SCROLL_UP);
@@ -84,6 +84,13 @@ const ActiveRoom: FunctionComponent<ActiveRoomProps> = ({
       setCurrChatPage(currChatPage - 1);
       setScrollDirection(SCROLL_DOWN);
     }
+  };
+
+  // chat message submit handler
+  const handleSubmit = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    console.log("sending ", currChatMsg);
+    setCurrChatMsg("");
   };
 
   return (
@@ -150,7 +157,20 @@ const ActiveRoom: FunctionComponent<ActiveRoomProps> = ({
       </div>
 
       {/* Chat input field */}
-      <div className="row-span-1">Input</div>
+      <div className="row-span-1 h-full">
+        <form className="grid grid-cols-6 h-full" onSubmit={handleSubmit}>
+          <div className="h-full w-full col-span-5 flex items-center justify-center p-1">
+            <input
+              className="shadow w-full h-full px-3"
+              value={currChatMsg}
+              onChange={(e) => setCurrChatMsg(e.target.value)}
+              type="text"
+              placeholder="Message"
+            />
+          </div>
+          <button className="w-full"> send </button>
+        </form>
+      </div>
     </div>
   );
 };

@@ -383,8 +383,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       message: dto.message,
     });
 
-    // broadcast notification event into roomid to notify all other users
-
     client.emit("messageReceived", new NotImplementedException());
   }
 

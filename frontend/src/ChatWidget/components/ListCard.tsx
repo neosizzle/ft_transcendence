@@ -9,13 +9,20 @@ import GameInvBtn from "./GameInvBtn";
 
 interface ListCardProps {
   room: Room;
-  setActiveRoom : React.Dispatch<React.SetStateAction<Room | null>>;
+  setActiveRoom: React.Dispatch<React.SetStateAction<Room | null>>;
+  notify: number[] | null;
+  setNotify: React.Dispatch<React.SetStateAction<number[] | null>>;
 }
 
 const DEF_PIC = "/assets/default-pp.webp";
 const memberEndpoint = `${API_ROOT}/members`;
 
-const ListCard: FunctionComponent<ListCardProps> = ({ room , setActiveRoom}) => {
+const ListCard: FunctionComponent<ListCardProps> = ({
+  room,
+  setActiveRoom,
+  notify,
+  setNotify,
+}) => {
   const [loading, setLoading] = useState<boolean>(true); //loading state
   const [user, setUser] = useState<User | null>(null); // Opposing user if chat is a DM
   const [lastMsg, setLastMsg] = useState<string>(
@@ -38,9 +45,7 @@ const ListCard: FunctionComponent<ListCardProps> = ({ room , setActiveRoom}) => 
         }
         setLoading(false);
       });
-    }
-    else
-    {
+    } else {
       setUser(null);
       setLoading(false);
     }
@@ -50,17 +55,28 @@ const ListCard: FunctionComponent<ListCardProps> = ({ room , setActiveRoom}) => 
     <CardLoader />
   ) : (
     <div
-    onClick={(e)=>{
-      setActiveRoom(room)
-      e.stopPropagation()
-    }}
-    className="border-b-2 grid grid-cols-6 cursor-pointer">
+      onClick={(e) => {
+        // set notification
+        const notifyCpy = notify?.filter((e) => e !== room.id);
+        if (notifyCpy?.length === 0) setNotify(null);
+        else setNotify(notifyCpy as number[]);
+
+        setActiveRoom(room);
+        e.stopPropagation();
+      }}
+      className="border-b-2 grid grid-cols-6 cursor-pointer"
+    >
       {/*Pic */}
-      <div className="col-span-1">
+      <div className="col-span-1 relative">
         <img
           src={user ? (user.avatar as string | undefined) : DEF_PIC}
-          className="h-full w-full rounded-full"
+          className="h-full w-full"
         />
+
+        {/* Notification indicator */}
+        {notify?.includes(room.id) ? (
+          <span className="top-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 dark:border-gray-800 rounded-full lg:left-1.5 lg:top-2.5"></span>
+        ) : null}
       </div>
 
       {/* Info */}

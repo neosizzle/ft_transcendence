@@ -23,7 +23,7 @@ const ChatIcon: FunctionComponent = () => {
 };
 
 const ChatWidget: FunctionComponent = () => {
-  const [notify, setNotify] = useState<boolean>(false); // notofication indicator
+  const [notify, setNotify] = useState<number[] | null>([146, 137, 136]); // notofication indicator
   const [openWindow, setOpenWindow] = useState<boolean>(false); // open chat window
   const auth = useAuth();
 
@@ -73,7 +73,7 @@ const ChatWidget: FunctionComponent = () => {
       ) : null}
 
       {/* Window */}
-      <ChatWindow open={openWindow}/>
+      <ChatWindow open={openWindow} notify={notify} setNotify={setNotify} />
     </div>
   );
 };

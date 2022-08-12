@@ -5,6 +5,17 @@ import { auth_net_get } from "../utils";
 import { BaseWSResponse, memberDto, roomDto, SocketInterface } from "./classes";
 
 /**
+ * States required
+ * 
+ * currActiveRoom
+ * rooms
+ * notify
+ * socketInterface
+ * activeroommessages
+ * activeroomlastmsg
+ */
+
+/**
  * Incoming new message
  *
  * 1. Check if message is current active room. If yes, append message to list of messages
