@@ -47,12 +47,18 @@ export class ChatService {
       pageSize: "1",
       operator: "AND",
     }
-    let data = await this.memberService.getMembers(query);
+    const data = await this.memberService.getMembers(query);
     if (data.total_elements == 0)
       throw new BadRequestException("User is not in the room.");
-    data = await this.muteService.getMute(query);
-    if (data.total_elements != 0)
-      throw new BadRequestException("User is muted.");
+    const data2 = await this.prismaService.mute.findFirst({
+      where : {
+        roomId : {equals : dto.roomId},
+        userId : {equals : dto.userId},
+        expiresAt : {gt : new Date()},
+      }
+    })
+    if (data2 != null)
+      throw new BadRequestException("User is muted until " + data2.expiresAt.toISOString() + ".");
     return this.prismaService.chat.create({
       data: dto,
     });
