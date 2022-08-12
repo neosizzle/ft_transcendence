@@ -8,18 +8,17 @@ import { ChatGateway } from "./chat.gateway";
 import { ChatService } from "./chat.service";
 import { AdminModule } from "../admin/admin.module";
 import { BanModule } from "../ban/ban.module";
-import { MuteModule } from "../mute/mute.module";
 import { MemberModule } from "../member/member.module";
 import { RoomModule } from "../room/room.module";
 import { RoomService } from "../room/room.service";
 import { MemberService } from "../member/member.service";
 import { AdminService } from "../admin/admin.service";
+import { MuteService } from "../mute/mute.service";
 @Module({
   imports: [
     PrismaModule,
     AdminModule,
     BanModule,
-    MuteModule,
     MemberModule,
     RoomModule,
   ],
@@ -33,7 +32,7 @@ import { AdminService } from "../admin/admin.service";
     RoomService,
     MemberService,
     AdminService,
-    
+    MuteService,
   ],
 })
 export class ChatModule {}

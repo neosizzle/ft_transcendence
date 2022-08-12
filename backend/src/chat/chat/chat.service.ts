@@ -3,13 +3,15 @@ import { Chat, Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { ListQuery, validateListquery } from "src/utils";
 import { MemberService } from "../member/member.service";
+import { MuteService } from "../mute/mute.service";
 import { chatDto } from "./chat.dto";
 import generateChatPayload from "./chat.payload";
 
 @Injectable()
 export class ChatService {
   constructor(private readonly prismaService: PrismaService,
-    private readonly memberService: MemberService) {}
+    private readonly memberService: MemberService,
+    private readonly muteService: MuteService) {}
 
   private sampleChat: Chat = {
     id: 0,
@@ -45,9 +47,12 @@ export class ChatService {
       pageSize: "1",
       operator: "AND",
     }
-    const test = await this.memberService.getMembers(query);
-    if (test.total_elements == 0)
+    let data = await this.memberService.getMembers(query);
+    if (data.total_elements == 0)
       throw new BadRequestException("User is not in the room.");
+    data = await this.muteService.getMute(query);
+    if (data.total_elements != 0)
+      throw new BadRequestException("User is muted.");
     return this.prismaService.chat.create({
       data: dto,
     });
