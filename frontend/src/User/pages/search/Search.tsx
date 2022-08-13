@@ -1,10 +1,10 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { NavigateFunction, useNavigate } from "react-router-dom";
+import Alert, { AlertType } from "../../../commonComponents/Alert";
 import { API_ROOT } from "../../../constants";
 import { User } from "../../../context/authContext";
 import useWindowDimensions from "../../../hooks/useWindowDimensions";
 import { auth_net_get } from "../../../utils";
-import Alert, { AlertType } from "../../common/Alert";
 import CardLoader from "../../common/CardLoader";
 import Pagination from "../../common/Pagination";
 import ActionModal from "./components/ActionModal";

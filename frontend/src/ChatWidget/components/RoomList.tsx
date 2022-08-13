@@ -1,7 +1,7 @@
 import React, { FunctionComponent } from "react";
 import Pagination from "./Pagination";
-import { Room } from "../types";
 import ListCard from "./ListCard";
+import { Room } from "../../Chat/classes";
 
 interface RoomListProps {
   rooms: Room[] | null | undefined;

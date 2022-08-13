@@ -1,9 +1,9 @@
 import React, { FunctionComponent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AlertType } from "../../../../commonComponents/Alert";
 import { API_ROOT } from "../../../../constants";
 import { useAuth, User } from "../../../../context/authContext";
 import { auth_net_delete, auth_net_post } from "../../../../utils";
-import { AlertType } from "../../../common/Alert";
 
 const friendsEndpoint = `${API_ROOT}/friends`;
 const blocksEndpoint = `${API_ROOT}/blocks`;

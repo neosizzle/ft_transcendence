@@ -6,7 +6,6 @@ import {
   Room,
   SocketInterface,
 } from "../Chat/classes";
-import { AlertType } from "../commonComponents/Alert";
 import { useAuth } from "../context/authContext";
 import { useChatWidget } from "../context/chatWidgetContext";
 import ChatWindow from "./ChatWindow";

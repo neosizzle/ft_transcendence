@@ -1,8 +1,8 @@
 import React, { FunctionComponent } from "react";
 import { Link } from "react-router-dom";
+import { AlertType } from "../../../../commonComponents/Alert";
 import { User } from "../../../../context/authContext";
 import useWindowDimensions from "../../../../hooks/useWindowDimensions";
-import { AlertType } from "../../../common/Alert";
 import { IngameBadge, OfflineBadge, OnlineBadge } from "../../../common/Badges";
 import ActionMenu from "./ActionMenu";
 

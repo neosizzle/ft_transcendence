@@ -1,10 +1,10 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Room } from "../../Chat/classes";
 import { API_ROOT } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChatWidget } from "../../context/chatWidgetContext";
 import { auth_net_get } from "../../utils";
-import { Room } from "../types";
 import CardLoader from "./CardLoader";
 import GameInvBtn from "./GameInvBtn";
 
