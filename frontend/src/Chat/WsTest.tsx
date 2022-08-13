@@ -8,6 +8,7 @@ import { BaseWSResponse, memberDto, roomDto, SocketInterface } from "./classes";
  * States required
  * 
  * currActiveRoom
+ * currActiveRoomMessages
  * rooms
  * notify
  * socketInterface

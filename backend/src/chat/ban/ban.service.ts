@@ -97,8 +97,10 @@ export class BanService {
     );
     return { data: res, total_elements };
   }
-  giveBan(dto: banDto): Promise<banDto> {
-    return this.prismaService.ban.create({
+
+  async giveBan(dto: banDto){
+    // TODO check for permissions and valid room.
+    return await this.prismaService.ban.create({
       data: dto,
     });
   }

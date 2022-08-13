@@ -1,5 +1,7 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
+import { BaseWSResponse, SocketInterface } from "../Chat/classes";
 import { useAuth } from "../context/authContext";
+import { useChatWidget } from "../context/chatWidgetContext";
 import ChatWindow from "./ChatWindow";
 
 const ChatIcon: FunctionComponent = () => {
@@ -23,21 +25,112 @@ const ChatIcon: FunctionComponent = () => {
 };
 
 const ChatWidget: FunctionComponent = () => {
-  const [notify, setNotify] = useState<number[] | null>([146, 137, 136]); // notofication indicator
   const [openWindow, setOpenWindow] = useState<boolean>(false); // open chat window
   const auth = useAuth();
+  const widget = useChatWidget();
 
+  // handle chat window close
   const handleClose = (e: MouseEvent) => {
     const id: string = (e.target as Element).id;
     const parentChatWin = (e.target as Element).closest("#chat-win");
     if (id !== "toggle-chat-win-btn" && !(id === "chat-win" || parentChatWin)) {
-      // console.log("closing window ", parentChatWin)
       setOpenWindow(false);
     }
   };
 
+  // WS ACTIONS
+  /**
+ * Incoming new message
+ *
+ * 1. Check if message is current active room. If yes, append message to list of messages
+ * 2. If no, check of roomid is in list. If yes, enable notification at roomId
+ * 3. If no, append room to roomlist and append message
+ * @param data data from ws server
+ */
+const handleNewMsg = (data: BaseWSResponse) => {
+  console.log(data);
+  alert("MESSAGE "+ data.message);
+};
+
+/**
+ * Incoming error event
+ *
+ * 1. Display error popup / dialog
+ * @param data data from ws server
+ */
+const handleError = (data: BaseWSResponse) => {
+  console.log(data);
+  alert("ERROR " + data.message);
+};
+
+/**
+ * Handle owner change
+ *
+ * 1. If owner is not curr user, remove user owner status
+ * 2. Add owner indication on new owner
+ */
+const handleOwnerChange = (data: BaseWSResponse) => {
+  console.log(data);
+  alert("OWNER CNG " + data.message);
+};
+
+/**
+ * Handle Kick
+ *
+ * 1. If kicked user is self, leave room
+ * 2. If not self, update member list
+ */
+const handleKick = (data: BaseWSResponse) => {
+  console.log(data);
+  alert("KICKED " + data.message);
+};
+
+/**
+ * Handle Ban
+ *
+ * 1. If banned user is self, leave room
+ * 2. If not self, update member list
+ */
+const handleBan = (data: BaseWSResponse) => {
+  console.log(data);
+  alert("BANNED " + data.message);
+};
+
+/**
+ * Handle Promotion
+ *
+ * 1. If self is promoted, enable admin privelleges
+ */
+const handlePromotion = (data: BaseWSResponse) => {
+  console.log(data);
+  alert("PROMOTED " + data.message);
+};
+
+/**
+ * Handle Demotion
+ *
+ * 1. If self is demoted, enable admin privelleges
+ */
+const handleDemotion = (data: BaseWSResponse) => {
+  console.log(data);
+  alert("DEMOTED " + data.message);
+};
+
   // initial actions
   useEffect(() => {
+    // initialize socket
+    const socket = new SocketInterface(
+      handleNewMsg,
+      handleError,
+      handleOwnerChange,
+      handleKick,
+      handleBan,
+      handlePromotion,
+      handleDemotion,
+    )
+
+    widget?.setSocket(socket);
+    
     // add document listener
     document.addEventListener("click", handleClose);
 
@@ -68,12 +161,12 @@ const ChatWidget: FunctionComponent = () => {
       </button>
 
       {/* Notification indicator */}
-      {notify ? (
+      {widget?.notify ? (
         <span className="top-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 dark:border-gray-800 rounded-full lg:left-1.5 lg:top-2.5"></span>
       ) : null}
 
       {/* Window */}
-      <ChatWindow open={openWindow} notify={notify} setNotify={setNotify} />
+      <ChatWindow open={openWindow} />
     </div>
   );
 };

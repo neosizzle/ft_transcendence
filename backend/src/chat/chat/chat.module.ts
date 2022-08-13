@@ -15,6 +15,7 @@ import { MemberService } from "../member/member.service";
 import { AdminService } from "../admin/admin.service";
 import { MuteService } from "../mute/mute.service";
 import { MuteModule } from "../mute/mute.module";
+import { BanService } from "../ban/ban.service";
 @Module({
   imports: [
     PrismaModule,
@@ -35,6 +36,7 @@ import { MuteModule } from "../mute/mute.module";
     MemberService,
     AdminService,
     MuteService,
+    BanService,
   ],
 })
 export class ChatModule {}
