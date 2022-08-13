@@ -1,5 +1,12 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { BaseWSResponse, SocketInterface } from "../Chat/classes";
+import { useNavigate } from "react-router-dom";
+import {
+  BaseWSResponse,
+  Message,
+  Room,
+  SocketInterface,
+} from "../Chat/classes";
+import { AlertType } from "../commonComponents/Alert";
 import { useAuth } from "../context/authContext";
 import { useChatWidget } from "../context/chatWidgetContext";
 import ChatWindow from "./ChatWindow";
@@ -28,6 +35,7 @@ const ChatWidget: FunctionComponent = () => {
   const [openWindow, setOpenWindow] = useState<boolean>(false); // open chat window
   const auth = useAuth();
   const widget = useChatWidget();
+  const navigate = useNavigate();
 
   // handle chat window close
   const handleClose = (e: MouseEvent) => {
@@ -40,81 +48,102 @@ const ChatWidget: FunctionComponent = () => {
 
   // WS ACTIONS
   /**
- * Incoming new message
- *
- * 1. Check if message is current active room. If yes, append message to list of messages
- * 2. If no, check of roomid is in list. If yes, enable notification at roomId
- * 3. If no, append room to roomlist and append message
- * @param data data from ws server
- */
-const handleNewMsg = (data: BaseWSResponse) => {
-  console.log(data);
-  alert("MESSAGE "+ data.message);
-};
+   * Incoming new message
+   *
+   * 1. Check if message is current active room. If yes, append message to list of messages
+   * 2. If no, check of roomid is in list. If yes, enable notification at roomId
+   * 3. If no, append room to roomlist and append message
+   * @param data data from ws server
+   */
+  const handleNewMsg = (data: Message) => {
+    if (data.roomId === widget?.currActiveRoom?.id) {
+      const newMessages = [...(widget?.activeRoomMessages as Message[])];
+      newMessages.shift();
+      newMessages.push();
+      widget?.setActiveRoomMessages(newMessages);
+    } else if (
+      widget?.rooms?.filter((e) => e.id === data.roomId) &&
+      widget?.rooms?.filter((e) => e.id === data.roomId).length > 0
+    ) {
+      const newNotify = [...(widget.notify as number[])];
+      newNotify.push(data.roomId);
+      widget.setNotify(newNotify);
+    } else {
+      const rooms = [...(widget?.rooms as Room[])];
+      const lastMsgs = [...(widget?.lastMessages as Message[])];
 
-/**
- * Incoming error event
- *
- * 1. Display error popup / dialog
- * @param data data from ws server
- */
-const handleError = (data: BaseWSResponse) => {
-  console.log(data);
-  alert("ERROR " + data.message);
-};
+      rooms.push(data.room);
+      lastMsgs.push(data);
+    }
+  };
 
-/**
- * Handle owner change
- *
- * 1. If owner is not curr user, remove user owner status
- * 2. Add owner indication on new owner
- */
-const handleOwnerChange = (data: BaseWSResponse) => {
-  console.log(data);
-  alert("OWNER CNG " + data.message);
-};
+  /**
+   * Incoming error event
+   *
+   * 1/ Redirect to logout if error is forbidden
+   * 2. Display error popup / dialog
+   * @param data data from ws server
+   */
+  const handleError = (data: BaseWSResponse) => {
+    if (data.message === "Forbidden") navigate("/logout");
+    else {
+      widget?.setAlertMessage(data.message);
+      widget?.setOpenAlert({ type: "error", isOpen: true });
+    }
+  };
 
-/**
- * Handle Kick
- *
- * 1. If kicked user is self, leave room
- * 2. If not self, update member list
- */
-const handleKick = (data: BaseWSResponse) => {
-  console.log(data);
-  alert("KICKED " + data.message);
-};
+  /**
+   * Handle owner change
+   *
+   * 1. If owner is not curr user, remove user owner status
+   * 2. Add owner indication on new owner
+   */
+  const handleOwnerChange = (data: BaseWSResponse) => {
+    void data;
+    console.info("widget does not respond to owner change");
+  };
 
-/**
- * Handle Ban
- *
- * 1. If banned user is self, leave room
- * 2. If not self, update member list
- */
-const handleBan = (data: BaseWSResponse) => {
-  console.log(data);
-  alert("BANNED " + data.message);
-};
+  /**
+   * Handle Kick
+   *
+   * 1. If kicked user is self, leave room
+   * 2. If not self, update member list
+   */
+  const handleKick = (data: BaseWSResponse) => {
+    console.log(data);
+    alert("KICKED " + data.message);
+  };
 
-/**
- * Handle Promotion
- *
- * 1. If self is promoted, enable admin privelleges
- */
-const handlePromotion = (data: BaseWSResponse) => {
-  console.log(data);
-  alert("PROMOTED " + data.message);
-};
+  /**
+   * Handle Ban
+   *
+   * 1. If banned user is self, leave room
+   * 2. If not self, update member list
+   */
+  const handleBan = (data: BaseWSResponse) => {
+    console.log(data);
+    alert("BANNED " + data.message);
+  };
 
-/**
- * Handle Demotion
- *
- * 1. If self is demoted, enable admin privelleges
- */
-const handleDemotion = (data: BaseWSResponse) => {
-  console.log(data);
-  alert("DEMOTED " + data.message);
-};
+  /**
+   * Handle Promotion
+   *
+   * 1. If self is promoted, enable admin privelleges
+   */
+  const handlePromotion = (data: BaseWSResponse) => {
+    console.log(data);
+    alert("PROMOTED " + data.message);
+  };
+
+  /**
+   * Handle Demotion
+   *
+   * 1. If self is demoted, enable admin privelleges
+   */
+  const handleDemotion = (data: BaseWSResponse) => {
+    console.log(data);
+    alert("DEMOTED " + data.message);
+  };
 
   // initial actions
   useEffect(() => {
@@ -126,11 +155,11 @@ const handleDemotion = (data: BaseWSResponse) => {
       handleKick,
       handleBan,
       handlePromotion,
-      handleDemotion,
-    )
+      handleDemotion
+    );
 
     widget?.setSocket(socket);
-    
+
     // add document listener
     document.addEventListener("click", handleClose);
 

@@ -14,6 +14,8 @@ import { BaseWSResponse, memberDto, roomDto, SocketInterface } from "./classes";
  * socketInterface
  * activeroommessages
  * activeroomlastmsg
+ * openalert
+ * alertmessage
  */
 
 /**

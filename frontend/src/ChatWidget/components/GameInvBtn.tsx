@@ -19,10 +19,10 @@ const GameInvBtn: FunctionComponent<GameInvBtnProps> = ({ user }) => {
         className="w-full h-full flex justify-center items-center hover:bg-slate-200 active:bg-slate-400"
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
-		onClick={(e)=>{
-			alert(`inv ${user.id} to queue`)
-			e.stopPropagation();
-		}}
+        onClick={(e) => {
+          alert(`inv ${user.id} to queue`);
+          e.stopPropagation();
+        }}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

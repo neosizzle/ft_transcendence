@@ -1,11 +1,11 @@
 import React, { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Alert, { AlertType } from "../../commonComponents/Alert";
 import { API_ROOT } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChatWidget } from "../../context/chatWidgetContext";
 import { auth_net_get } from "../../utils";
 import GameInvBtn from "./GameInvBtn";
-
 
 const memberEndpoint = `${API_ROOT}/members`;
 const chatEndpoint = `${API_ROOT}/chat`;
@@ -20,6 +20,10 @@ const ActiveRoom: FunctionComponent = () => {
   const [scrollDirection, setScrollDirection] = useState(0); // current scroll direction
   const [currChatMsg, setCurrChatMsg] = useState<string>(""); // current chat message
   const [totalChats, setTotalChats] = useState<number>(-1); // total chat elemnts
+  const [openAlert, setOpenAlert] = useState<AlertType>({
+    type: "",
+    isOpen: false,
+  });
   const bottomRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const chatListRef = useRef<HTMLDivElement>(null);
@@ -58,14 +62,14 @@ const ActiveRoom: FunctionComponent = () => {
 
   //infinite scroll
   useEffect(() => {
-
     // get chat messages
-    auth_net_get(`${chatEndpoint}?page=${currChatPage}&pageSize=${PAGE_SIZE}&filterOn=roomId&filterBy=${widget?.currActiveRoom?.id}&sortBy=Descending&sortOn=createdAt`)
-    .then(data => {
+    auth_net_get(
+      `${chatEndpoint}?page=${currChatPage}&pageSize=${PAGE_SIZE}&filterOn=roomId&filterBy=${widget?.currActiveRoom?.id}&sortBy=Descending&sortOn=createdAt`
+    ).then((data) => {
       setTotalChats(data.total_elements);
       widget?.setActiveRoomMessages(data.data);
-      console.log(data)
-    })
+      console.log(data);
+    });
 
     if (scrollDirection === SCROLL_DOWN) {
       // scroll to top
@@ -81,7 +85,8 @@ const ActiveRoom: FunctionComponent = () => {
   // scroll handler
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (e.currentTarget.scrollTop === 0) {
-      if ((totalChats / PAGE_SIZE) < 1 || currChatPage === totalChats / PAGE_SIZE) return;
+      if (totalChats / PAGE_SIZE < 1 || currChatPage === totalChats / PAGE_SIZE)
+        return;
       setCurrChatPage(currChatPage + 1);
       setScrollDirection(SCROLL_UP);
     } else if (
@@ -99,12 +104,12 @@ const ActiveRoom: FunctionComponent = () => {
     e.preventDefault();
     // console.log("sending ", currChatMsg);
     const dto = {
-      userId : auth?.user?.id,
-      roomId : widget?.currActiveRoom?.id,
-      message : currChatMsg,
-    }
+      userId: auth?.user?.id,
+      roomId: widget?.currActiveRoom?.id,
+      message: currChatMsg,
+    };
 
-    widget?.socket?.socket?.emit('message', JSON.stringify(dto))
+    widget?.socket?.socket?.emit("message", JSON.stringify(dto));
     setCurrChatMsg("");
   };
 
@@ -115,7 +120,7 @@ const ActiveRoom: FunctionComponent = () => {
         <button
           className="col-span-1 flex justify-center items-center"
           onClick={(e) => {
-            widget?.setCurrActiveRoom(null)
+            widget?.setCurrActiveRoom(null);
             e.stopPropagation();
           }}
         >
@@ -138,7 +143,11 @@ const ActiveRoom: FunctionComponent = () => {
         {/* Roomname / username */}
         <div className="col-span-4 flex items-center lg:text-xl">
           {" "}
-          {loading ? "loading..." : user ? user.username : widget?.currActiveRoom?.roomName}
+          {loading
+            ? "loading..."
+            : user
+            ? user.username
+            : widget?.currActiveRoom?.roomName}
         </div>
 
         {/* Invite to queue btn */}
@@ -162,13 +171,12 @@ const ActiveRoom: FunctionComponent = () => {
 
         {/* Map backwards */}
         <div className="flex flex-col-reverse">
-
-        {widget?.activeRoomMessages?.map((e, i) => (
-          <div key={i} className="py-5">
-            {" "}
-            {e.userId} : {e.message}
-          </div>
-        ))}
+          {widget?.activeRoomMessages?.map((e, i) => (
+            <div key={i} className="py-5">
+              {" "}
+              {e.userId} : {e.message}
+            </div>
+          ))}
         </div>
 
         <div className="my-5" ref={bottomRef}>
@@ -179,6 +187,14 @@ const ActiveRoom: FunctionComponent = () => {
 
       {/* Chat input field */}
       <div className="row-span-1 h-full">
+        {/* Alert feedback */}
+        {openAlert.isOpen ? (
+          <Alert
+            alert={openAlert}
+            setOpenAlert={setOpenAlert}
+            message={"test"}
+          />
+        ) : null}
         <form className="grid grid-cols-6 h-full" onSubmit={handleSubmit}>
           <div className="h-full w-full col-span-5 flex items-center justify-center p-1">
             <input

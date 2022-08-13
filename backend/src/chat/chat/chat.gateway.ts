@@ -352,7 +352,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       message: `${deleteRes.userId} has became admin`,
     });
   }
-
   /**
    * Handles new message
    * @param client Client socket
@@ -377,13 +376,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // broadcast message into roomId
-    this.wsServer.to(dto.roomId.toString()).emit("newMessage", {
-      userId: client.handshake.auth.user.id,
-      roomId: chatRes.roomId,
-      message: chatRes.message,
-      createdAt : chatRes.createdAt,
-      updatedAt : chatRes.updatedAt
-    });
+    this.wsServer.to(dto.roomId.toString()).emit("newMessage", chatRes);
 
   }
 

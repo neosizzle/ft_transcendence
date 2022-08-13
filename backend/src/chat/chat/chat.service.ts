@@ -76,6 +76,10 @@ export class ChatService {
         throw new BadRequestException("User is muted until " + data3.expiresAt.toISOString() + ".");
     }
     return this.prismaService.chat.create({
+      include : {
+        room : true,
+        user : true
+      },
       data: dto,
     });
   }

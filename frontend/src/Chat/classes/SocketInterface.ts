@@ -1,6 +1,6 @@
 import { io, Socket } from "socket.io-client";
 import { TOKEN_KEY, WS_ROOT } from "../../constants";
-import { BaseWSResponse } from "./dto";
+import { BaseWSResponse, Message } from "./dto";
 
 const chatWsEndpoint = `${WS_ROOT}/ws/chat`;
 
@@ -8,7 +8,7 @@ export class SocketInterface {
   socket: Socket | null = null;
 
   constructor(
-    onNewMessage: (data: BaseWSResponse) => void,
+    onNewMessage: (data : Message) => void,
     onException: (data: BaseWSResponse) => void,
     onOwnerChange: (data: BaseWSResponse) => void,
     onUserKicked: (data: BaseWSResponse) => void,

@@ -1,12 +1,13 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { NavigateFunction, useNavigate } from "react-router-dom";
+import { Member, Message, Room } from "../Chat/classes";
+import Alert from "../commonComponents/Alert";
 import { API_ROOT } from "../constants";
 import { useAuth } from "../context/authContext";
-import { Message, useChatWidget } from "../context/chatWidgetContext";
+import { useChatWidget } from "../context/chatWidgetContext";
 import { auth_net_get } from "../utils";
 import ActiveRoom from "./components/ActiveRoom";
 import RoomList from "./components/RoomList";
-import { Member, Room } from "./types";
 
 const membersEndpoint = `${API_ROOT}/members`;
 const chatEndpoint = `${API_ROOT}/chat`;
@@ -65,8 +66,9 @@ const ChatWindow: FunctionComponent<ChatWindowProps> = ({ open }) => {
 
   // refreshes last messages everytime room changes
   useEffect(() => {
-    generateLastMessages(widget?.rooms, navigate)
-    .then(data => widget?.setLastMessages(data as Message[]))
+    generateLastMessages(widget?.rooms, navigate).then((data) =>
+      widget?.setLastMessages(data as Message[])
+    );
   }, [widget?.rooms]);
 
   return (
@@ -89,6 +91,15 @@ const ChatWindow: FunctionComponent<ChatWindowProps> = ({ open }) => {
           totalElements={totalElements}
         />
       )}
+
+      {/* Alert Notification */}
+      {widget?.openAlert.isOpen ? (
+        <Alert
+          alert={widget.openAlert}
+          setOpenAlert={widget.setOpenAlert}
+          message={widget.alertMessage}
+        />
+      ) : null}
     </div>
   );
 };

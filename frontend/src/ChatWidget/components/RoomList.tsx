@@ -27,11 +27,7 @@ const RoomList: FunctionComponent<RoomListProps> = ({
       {/* ListView */}
       <div className="row-span-5 grid grid-rows-4">
         {rooms?.map((room, i) => (
-          <ListCard
-            room={room}
-            key={i}
-            idx = {i}
-          />
+          <ListCard room={room} key={i} idx={i} />
         ))}
       </div>
 

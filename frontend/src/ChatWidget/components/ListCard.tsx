@@ -10,16 +10,13 @@ import GameInvBtn from "./GameInvBtn";
 
 interface ListCardProps {
   room: Room;
-  idx : number;
+  idx: number;
 }
 
 const DEF_PIC = "/assets/default-pp.webp";
 const memberEndpoint = `${API_ROOT}/members`;
 
-const ListCard: FunctionComponent<ListCardProps> = ({
-  room,
-  idx
-}) => {
+const ListCard: FunctionComponent<ListCardProps> = ({ room, idx }) => {
   const [loading, setLoading] = useState<boolean>(true); //loading state
   const [user, setUser] = useState<User | null>(null); // Opposing user if chat is a DM
   const navigate = useNavigate();
@@ -79,11 +76,11 @@ const ListCard: FunctionComponent<ListCardProps> = ({
         <div className="text-md lg:text-lg">
           {user ? user.username : room.roomName}
         </div>
-        <div className="text-sm truncate">{
-         widget?.lastMessages && widget.lastMessages[idx] ? 
-         `${widget.lastMessages[idx].userId} : ${widget?.lastMessages[idx]?.message }` :
-         null
-        }</div>
+        <div className="text-sm truncate">
+          {widget?.lastMessages && widget.lastMessages[idx]
+            ? `${widget.lastMessages[idx].userId} : ${widget?.lastMessages[idx]?.message}`
+            : null}
+        </div>
       </div>
 
       {/* Action */}
