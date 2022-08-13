@@ -1,9 +1,6 @@
 import {
   BadRequestException,
   Logger,
-  NotFoundException,
-  NotImplementedException,
-  Param,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -15,21 +12,20 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
-import { Admin, Member, Room } from "@prisma/client";
-import { IsString } from "class-validator";
-import { Socket, Server, Namespace } from "socket.io";
+import { Admin, Ban, Chat, Member, Room } from "@prisma/client";
+import { Socket, Namespace } from "socket.io";
 import { PrismaService } from "src/prisma/prisma.service";
 import { AuthGuard } from "src/users/auth/guard";
-import { BlocksService } from "src/users/blocks/blocks.service";
 import { AdminService } from "../admin/admin.service";
 import { AdminDto } from "../admin/dto";
 import { banDto } from "../ban/ban.dto";
+import { BanService } from "../ban/ban.service";
 import { MemberDto } from "../member/dto";
 import { MemberService } from "../member/member.service";
 import { roomDto, roomPatchDto } from "../room/dto";
 import { RoomService } from "../room/room.service";
 import { chatDto } from "./chat.dto";
-// import { roomDto } from 'src/room/room.dto';
+import { ChatService } from "./chat.service";
 
 function getAllFuncs(toCheck) {
   const props = [];
@@ -64,7 +60,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private room: RoomService,
     private prisma: PrismaService,
     private member: MemberService,
-    private admin: AdminService
+    private admin: AdminService,
+    private ban : BanService,
+    private chat : ChatService,
   ) {}
 
   /**
@@ -291,6 +289,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       userId: patchRes.ownerId,
       roomId: patchRes.id,
       message: `${patchRes.ownerId} has become owner`,
+      createdAt : patchRes.createdAt,
+      updatedAt : patchRes.updatedAt
     });
   }
 
@@ -359,31 +359,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param payload Request payload
    */
   @SubscribeMessage("message")
-  handleMessage(
+  async handleMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: string
   ) {
     // parse payload and assign it to dto
     const dto: chatDto = JSON.parse(payload);
 
-    // check if room id exists
+    // add chat in db
+    let chatRes : Chat;
+    try {
+      chatRes = await this.chat.insertChat(dto);
 
-    // determine if room is DM or GC.
-
-    // if its a DM, check if user is blocked and send a BadReq if it is
-
-    // if its a GC, check if user is muted and send a BadReq if it is
-
-    // create new message in database
+    } catch (error) {
+      client.emit("exception", error);
+      return;
+    }
 
     // broadcast message into roomId
     this.wsServer.to(dto.roomId.toString()).emit("newMessage", {
       userId: client.handshake.auth.user.id,
-      roomId: dto.roomId,
-      message: dto.message,
+      roomId: chatRes.roomId,
+      message: chatRes.message,
+      createdAt : chatRes.createdAt,
+      updatedAt : chatRes.updatedAt
     });
 
-    client.emit("messageReceived", new NotImplementedException());
   }
 
   /**
@@ -392,20 +393,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param payload Request payload
    */
   @SubscribeMessage("ban")
-  handleBan(@ConnectedSocket() client: Socket, @MessageBody() payload: string) {
+  async handleBan(@ConnectedSocket() client: Socket, @MessageBody() payload: string) {
     // parse payload and assign it to dto
     const dto: banDto = JSON.parse(payload);
 
-    // check if room id exists
-
-    // check if its a gc
-
-    // check if user has privelleges
-
-    // create new ban record in database
-
     // ban user in db
-
+    let banRes : Ban;
+    try {
+      banRes = await this.ban.giveBan(dto)
+    } catch (error) {
+      client.emit("exception", error);
+      return;
+    }
     // remove user from room in ws
     const baneeClient = this.clients.find(
       (client) => dto.userId.toString() === client.userId.toString()
@@ -418,14 +417,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     
     // broadcast ban event into roomId
     this.wsServer.to(dto.roomId.toString()).emit("userBanned", {
-      userId: dto.userId,
-      roomId: dto.roomId,
+      userId: banRes.roomId,
+      roomId: banRes.roomId,
       message: `${dto.userId} got banned`,
     });
-
-    // broadcast notification event into roomid to notify all other users
-
-    client.emit("messageReceived", new NotImplementedException());
   }
-
 }

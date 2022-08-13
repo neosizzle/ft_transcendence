@@ -2,6 +2,7 @@ import React, { FunctionComponent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_ROOT } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
+import { useChatWidget } from "../../context/chatWidgetContext";
 import { auth_net_get } from "../../utils";
 import { Room } from "../types";
 import CardLoader from "./CardLoader";
@@ -9,9 +10,7 @@ import GameInvBtn from "./GameInvBtn";
 
 interface ListCardProps {
   room: Room;
-  setActiveRoom: React.Dispatch<React.SetStateAction<Room | null>>;
-  notify: number[] | null;
-  setNotify: React.Dispatch<React.SetStateAction<number[] | null>>;
+  idx : number;
 }
 
 const DEF_PIC = "/assets/default-pp.webp";
@@ -19,17 +18,13 @@ const memberEndpoint = `${API_ROOT}/members`;
 
 const ListCard: FunctionComponent<ListCardProps> = ({
   room,
-  setActiveRoom,
-  notify,
-  setNotify,
+  idx
 }) => {
   const [loading, setLoading] = useState<boolean>(true); //loading state
   const [user, setUser] = useState<User | null>(null); // Opposing user if chat is a DM
-  const [lastMsg, setLastMsg] = useState<string>(
-    "User :  Some body once told me the world is gonna roll me"
-  ); // lastest message for information section
   const navigate = useNavigate();
   const auth = useAuth();
+  const widget = useChatWidget();
 
   useEffect(() => {
     setLoading(true);
@@ -57,11 +52,11 @@ const ListCard: FunctionComponent<ListCardProps> = ({
     <div
       onClick={(e) => {
         // set notification
-        const notifyCpy = notify?.filter((e) => e !== room.id);
-        if (notifyCpy?.length === 0) setNotify(null);
-        else setNotify(notifyCpy as number[]);
+        const notifyCpy = widget?.notify?.filter((e) => e !== room.id);
+        if (notifyCpy?.length === 0) widget?.setNotify(null);
+        else widget?.setNotify(notifyCpy as number[]);
 
-        setActiveRoom(room);
+        widget?.setCurrActiveRoom(room);
         e.stopPropagation();
       }}
       className="border-b-2 grid grid-cols-6 cursor-pointer"
@@ -74,7 +69,7 @@ const ListCard: FunctionComponent<ListCardProps> = ({
         />
 
         {/* Notification indicator */}
-        {notify?.includes(room.id) ? (
+        {widget?.notify?.includes(room.id) ? (
           <span className="top-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 dark:border-gray-800 rounded-full lg:left-1.5 lg:top-2.5"></span>
         ) : null}
       </div>
@@ -84,7 +79,11 @@ const ListCard: FunctionComponent<ListCardProps> = ({
         <div className="text-md lg:text-lg">
           {user ? user.username : room.roomName}
         </div>
-        <div className="text-sm truncate">{lastMsg}</div>
+        <div className="text-sm truncate">{
+         widget?.lastMessages && widget.lastMessages[idx] ? 
+         `${widget.lastMessages[idx].userId} : ${widget?.lastMessages[idx]?.message }` :
+         null
+        }</div>
       </div>
 
       {/* Action */}

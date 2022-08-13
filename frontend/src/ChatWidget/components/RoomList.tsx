@@ -4,14 +4,11 @@ import { Room } from "../types";
 import ListCard from "./ListCard";
 
 interface RoomListProps {
-  rooms: Room[] | null;
+  rooms: Room[] | null | undefined;
   currPage: number;
   setCurrPage: React.Dispatch<React.SetStateAction<number>>;
   totalElements: number;
   pageSize: number;
-  setActiveRoom: React.Dispatch<React.SetStateAction<Room | null>>;
-  notify: number[] | null;
-  setNotify: React.Dispatch<React.SetStateAction<number[] | null>>;
 }
 
 const RoomList: FunctionComponent<RoomListProps> = ({
@@ -20,9 +17,6 @@ const RoomList: FunctionComponent<RoomListProps> = ({
   setCurrPage,
   totalElements,
   pageSize,
-  setActiveRoom,
-  notify,
-  setNotify,
 }) => {
   return !rooms ? (
     <div>loading</div>
@@ -36,9 +30,7 @@ const RoomList: FunctionComponent<RoomListProps> = ({
           <ListCard
             room={room}
             key={i}
-            setActiveRoom={setActiveRoom}
-            notify={notify}
-            setNotify={setNotify}
+            idx = {i}
           />
         ))}
       </div>

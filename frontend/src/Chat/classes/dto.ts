@@ -16,4 +16,6 @@ export interface BaseWSResponse {
   userId: number | null;
   roomId: number;
   message: string;
+  createdAt? : Date;
+  updatedAt? : Date;
 }

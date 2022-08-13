@@ -1,32 +1,48 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { NavigateFunction, useNavigate } from "react-router-dom";
 import { API_ROOT } from "../constants";
 import { useAuth } from "../context/authContext";
+import { Message, useChatWidget } from "../context/chatWidgetContext";
 import { auth_net_get } from "../utils";
 import ActiveRoom from "./components/ActiveRoom";
 import RoomList from "./components/RoomList";
 import { Member, Room } from "./types";
 
 const membersEndpoint = `${API_ROOT}/members`;
+const chatEndpoint = `${API_ROOT}/chat`;
 const PAGE_SIZE = 4;
 
 interface ChatWindowProps {
   open?: boolean;
-  notify: number[] | null;
-  setNotify: React.Dispatch<React.SetStateAction<number[] | null>>;
 }
 
-const ChatWindow: FunctionComponent<ChatWindowProps> = ({
-  open,
-  notify,
-  setNotify,
-}) => {
-  const [activeRoom, setActiveRoom] = useState<Room | null>(null); // current active viewing room
-  const [rooms, setRooms] = useState<Room[] | null>(null); // rooms joined
+const generateLastMessages = async (
+  rooms: Room[] | null | undefined,
+  navigate: NavigateFunction
+) => {
+  const lastMessages: Message[] = [];
+
+  if (!rooms) return lastMessages;
+  for (let index = 0; index < rooms.length; index++) {
+    const room = rooms[index];
+    const message = await auth_net_get(
+      `${chatEndpoint}?page=1&pageSize=1&sortBy=Descending&sortOn=createdAt&filterOn=roomId&filterBy=${room.id}`
+    );
+    // check user unauth
+    if (message.error && message.error == "Forbidden")
+      return navigate("/logout");
+
+    lastMessages.push(message.data[0] || null);
+  }
+  return lastMessages;
+};
+
+const ChatWindow: FunctionComponent<ChatWindowProps> = ({ open }) => {
   const [currPage, setCurrPage] = useState<number>(1); // current page of rooms
   const [totalElements, setTotalElements] = useState<number>(-1); // total joined rooms
   const auth = useAuth();
   const navigate = useNavigate();
+  const widget = useChatWidget();
 
   // refreshes rooms evertime page changes
   useEffect(() => {
@@ -41,11 +57,17 @@ const ChatWindow: FunctionComponent<ChatWindowProps> = ({
         data.data.forEach((e: Member) => {
           rooms.push(e.room);
         });
-        setRooms(rooms);
+        widget?.setRooms(rooms);
         setTotalElements(data.total_elements);
       })
       .catch((e) => console.error(e));
   }, [currPage]);
+
+  // refreshes last messages everytime room changes
+  useEffect(() => {
+    generateLastMessages(widget?.rooms, navigate)
+    .then(data => widget?.setLastMessages(data as Message[]))
+  }, [widget?.rooms]);
 
   return (
     <div
@@ -54,20 +76,17 @@ const ChatWindow: FunctionComponent<ChatWindowProps> = ({
         open ? "" : "hidden"
       } absolute bottom-full right-0 bg-white w-60 h-60 drop-shadow-xl rounded lg:rounded-none lg:h-96 lg:w-full mb-3 lg:mb-0`}
     >
-      {activeRoom ? (
+      {widget?.currActiveRoom ? (
         // ActiveRoom
-        <ActiveRoom room={activeRoom} setActiveRoom={setActiveRoom} />
+        <ActiveRoom />
       ) : (
         // Roomlist
         <RoomList
-          rooms={rooms}
+          rooms={widget?.rooms}
           currPage={currPage}
           setCurrPage={setCurrPage}
           pageSize={PAGE_SIZE}
           totalElements={totalElements}
-          setActiveRoom={setActiveRoom}
-          notify={notify}
-          setNotify={setNotify}
         />
       )}
     </div>
