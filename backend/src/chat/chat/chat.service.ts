@@ -62,7 +62,13 @@ export class ChatService {
       // userId has blocked current userId sending the message
       // theRoom.data[0].members (doesn't work) idk how, think later. It's 2am bro
       // Can use members and find the member other than the one that is being parsed in from chat
-      console.log("Hi BROOOOOO");
+      const data2 = await this.prismaService.member.findFirst({
+        where: {
+          userId: { not: dto.userId},
+          roomId: { equals: dto.roomId},
+        }
+      })
+      console.log(data2.userId);
     }
     else if (theRoom.type == RoomType.GC) {
       const data3 = await this.prismaService.mute.findFirst({
