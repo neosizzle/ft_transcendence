@@ -68,7 +68,6 @@ const ActiveRoom: FunctionComponent = () => {
     ).then((data) => {
       setTotalChats(data.total_elements);
       widget?.setActiveRoomMessages(data.data);
-      console.log(data);
     });
 
     if (scrollDirection === SCROLL_DOWN) {
@@ -85,7 +84,7 @@ const ActiveRoom: FunctionComponent = () => {
   // scroll handler
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (e.currentTarget.scrollTop === 0) {
-      if (totalChats / PAGE_SIZE < 1 || currChatPage === totalChats / PAGE_SIZE)
+      if (totalChats / PAGE_SIZE < 1 || currChatPage >= totalChats / PAGE_SIZE)
         return;
       setCurrChatPage(currChatPage + 1);
       setScrollDirection(SCROLL_UP);
@@ -102,14 +101,14 @@ const ActiveRoom: FunctionComponent = () => {
   // chat message submit handler
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    // console.log("sending ", currChatMsg);
     const dto = {
       userId: auth?.user?.id,
       roomId: widget?.currActiveRoom?.id,
       message: currChatMsg,
     };
 
-    widget?.socket?.socket?.emit("message", JSON.stringify(dto));
+    // widget?.socket?.socket?.emit("message", JSON.stringify(dto));
+    auth?.chatSocket?.emit("message", JSON.stringify(dto))
     setCurrChatMsg("");
   };
 
@@ -177,6 +176,12 @@ const ActiveRoom: FunctionComponent = () => {
               {e.userId} : {e.message}
             </div>
           ))}
+
+          {
+            widget?.activeRoomMessages && widget.activeRoomMessages.length < PAGE_SIZE ? 
+            [...Array(PAGE_SIZE - widget.activeRoomMessages.length)].map((e) => <div key = {e}  className="py-5"> </div>) : 
+            null
+          }
         </div>
 
         <div className="my-5" ref={bottomRef}>

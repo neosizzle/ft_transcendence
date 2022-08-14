@@ -73,7 +73,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   handleConnection(client: Socket) {
     // return ack
-    console.log("new incoming connection");
+    this.logger.log("new incoming conn")
     client.emit("connection accepted", client.handshake);
   }
 
@@ -362,7 +362,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: string
   ) {
-    console.log("message subs hit")
+    
+
     // parse payload and assign it to dto
     const dto: chatDto = JSON.parse(payload);
 
@@ -375,7 +376,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit("exception", error);
       return;
     }
-
+    console.log("message subs hit, aboutto boradcast")
     // broadcast message into roomId
     this.wsServer.to(dto.roomId.toString()).emit("newMessage", chatRes);
 

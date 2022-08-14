@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect, useState } from "react";
+import React, { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BaseWSResponse,
@@ -55,25 +55,28 @@ const ChatWidget: FunctionComponent = () => {
    * @param data data from ws server
    */
   const handleNewMsg = (data: Message) => {
-    if (data.roomId === widget?.currActiveRoom?.id) {
-      const newMessages = [...(widget?.activeRoomMessages as Message[])];
-      newMessages.shift();
-      newMessages.push();
-      widget?.setActiveRoomMessages(newMessages);
-    } else if (
-      widget?.rooms?.filter((e) => e.id === data.roomId) &&
-      widget?.rooms?.filter((e) => e.id === data.roomId).length > 0
-    ) {
-      const newNotify = [...(widget.notify as number[])];
-      newNotify.push(data.roomId);
-      widget.setNotify(newNotify);
-    } else {
-      const rooms = [...(widget?.rooms as Room[])];
-      const lastMsgs = [...(widget?.lastMessages as Message[])];
+    console.log("data ", data.room, " widget ", widget?.currActiveRoomRef.current)
+    // if (data.roomId === widget?.currActiveRoom?.id) {
+    //   const newMessages = [...(widget?.activeRoomMessages as Message[])];
+    //   newMessages.shift();
+    //   newMessages.push();
+    //   widget?.setActiveRoomMessages(newMessages);
+    //   //update last msg
+    // } else if (
+    //   widget?.rooms?.filter((e) => e.id === data.roomId) &&
+    //   widget?.rooms?.filter((e) => e.id === data.roomId).length > 0
+    // ) {
+    //   const newNotify = [...(widget.notify as number[])];
+    //   newNotify.push(data.roomId);
+    //   widget.setNotify(newNotify);
+    //   //update last msg
+    // } else {
+    //   const rooms = [...(widget?.rooms as Room[])];
+    //   const lastMsgs = [...(widget?.lastMessages as Message[])];
 
-      rooms.push(data.room);
-      lastMsgs.push(data);
-    }
+    //   rooms.push(data.room);
+    //   lastMsgs.push(data);
+    // }
   };
 
   /**
@@ -86,7 +89,7 @@ const ChatWidget: FunctionComponent = () => {
   const handleError = (data: BaseWSResponse) => {
     if (data.message === "Forbidden") navigate("/logout");
     else {
-      widget?.setAlertMessage(data.message);
+      if (data.message)  widget?.setAlertMessage(data.message);
       widget?.setOpenAlert({ type: "error", isOpen: true });
     }
   };
@@ -147,17 +150,21 @@ const ChatWidget: FunctionComponent = () => {
   // initial actions
   useEffect(() => {
     // initialize socket
-    const socket = new SocketInterface(
-      handleNewMsg,
-      handleError,
-      handleOwnerChange,
-      handleKick,
-      handleBan,
-      handlePromotion,
-      handleDemotion
-    );
+    // const socket = new SocketInterface(
+    //   handleNewMsg,
+    //   handleError,
+    //   handleOwnerChange,
+    //   handleKick,
+    //   handleBan,
+    //   handlePromotion,
+    //   handleDemotion
+    // );
 
-    widget?.setSocket(socket);
+    // widget?.setSocket(socket);
+
+    console.log(auth?.chatSocket);
+    if (!auth?.chatSocket) return;
+    auth?.chatSocket?.on('newMessage', handleNewMsg)
 
     // add document listener
     document.addEventListener("click", handleClose);
@@ -165,7 +172,7 @@ const ChatWidget: FunctionComponent = () => {
     return () => {
       document.removeEventListener("click", handleClose);
     };
-  }, []);
+  }, [auth]);
 
   return !auth?.user ? null : (
     <div
