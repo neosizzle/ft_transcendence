@@ -362,6 +362,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: string
   ) {
+    console.log("message subs hit")
     // parse payload and assign it to dto
     const dto: chatDto = JSON.parse(payload);
 
@@ -378,6 +379,39 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // broadcast message into roomId
     this.wsServer.to(dto.roomId.toString()).emit("newMessage", chatRes);
 
+  }
+
+ /**
+   * Handles kick
+   * @param client Client socket
+   * @param payload Request payload
+   */
+  @SubscribeMessage("kick")
+  async handleKick(@ConnectedSocket() client: Socket, @MessageBody() payload: string) {
+    // parse payload and assign it to dto
+    const payloadParsed = JSON.parse(payload);
+    const memberId = payloadParsed.memberId;
+
+    // remove member in db
+    let kickRes : Member;
+    try {
+      kickRes = await this.member.removeMember(client.handshake.auth.user, memberId);
+    } catch (error) {
+      client.emit("exception", error);
+      return;
+    }
+    // remove user from room in ws
+    const userClient = this.clients.find(
+      (client) => kickRes.userId.toString() === client.userId.toString()
+    );
+    if (userClient)
+    {
+      const userClientSocket = this.wsServer.sockets.get(userClient.socketId);
+      userClientSocket.leave(kickRes.roomId.toString());
+    }
+    
+    // broadcast ban event into roomId
+    this.wsServer.to(kickRes.roomId.toString()).emit("userKicked", kickRes);
   }
 
   /**
@@ -409,10 +443,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     
     // broadcast ban event into roomId
-    this.wsServer.to(dto.roomId.toString()).emit("userBanned", {
-      userId: banRes.roomId,
-      roomId: banRes.roomId,
-      message: `${dto.userId} got banned`,
-    });
+    this.wsServer.to(dto.roomId.toString()).emit("userBanned", banRes);
   }
 }

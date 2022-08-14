@@ -10,6 +10,7 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { ListObject, ListQuery, validateListquery } from "src/utils";
 import { MemberDto } from "./dto";
 import * as CryptoJS from "crypto-js";
+import { AdminService } from "../admin/admin.service";
 
 /**
  * Transforms string values into values of their specific type
@@ -105,7 +106,7 @@ const generateMemberPayload = (
 
 @Injectable()
 export class MemberService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private admin : AdminService) {}
 
   private sampleMember: Member = {
     id: -1,
@@ -202,7 +203,18 @@ export class MemberService {
 
     // user is getting kicked
     if (memberToDelete.userId !== user.id) {
-      // check for admin TODO
+      // find that user.id is an admin on current room
+      const isUserAdmin = await this.admin.getAdmins({
+        page : "1",
+        pageSize : "1",
+        filterOn : "userId,roomId",
+        filterBy : `${user.id},${memberToDelete.roomId}`
+      });
+
+      if (!isUserAdmin.total_elements) throw new UnauthorizedException("Not eligible to perform action");
+
+      // find that memberToDelete is not room owner
+      if (memberToDelete.room.ownerId === memberToDelete.userId) throw new BadRequestException("Cannot remove owner");
     }
 
     // user self leaving
