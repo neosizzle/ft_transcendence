@@ -20,14 +20,14 @@ This class is the GameClient.
 There are possibly two types of clients: player or spectator.
 Players can control their own game, spectators can only view the game.
 */
-class Game extends React.Component <any, ReactGameState> {
+class Game extends React.Component <unknown, ReactGameState> {
 	player: Set<number> = new Set<number>();
 	socket?: Socket;
 	keypress: KeyPressMonitor | null = null;
 	game: GameInterface;
 	latency = 0;
 	
-	constructor(props: any) {
+	constructor(props: unknown) {
 		super(props);
 		this.state = {
 			queue: {
@@ -43,6 +43,7 @@ class Game extends React.Component <any, ReactGameState> {
 		// calculate connection latency every 1 second
 		setInterval(() => {
 			const start = Date.now();
+			// latency is assumed to be half of the time of the round trip
 			this.socket?.emit("ping", () => {
 				this.latency = (Date.now() - start) / 2;
 			});
@@ -122,12 +123,12 @@ class Game extends React.Component <any, ReactGameState> {
 	joinQuitClick(n: number): void {
 		if (this.state.queue.position[n] == -1) {
 			// if not in queue, let client join queue
-			this.socket?.emit("join", n, (n: number) => {
+			this.socket?.emit("join_queue", n, (n: number) => {
 				console.log(`I am no. ${n + 1} in the queue`);
 			});
 		} else {
 			// if not the current player, let client quit queue
-			this.socket?.emit("unjoin", n);
+			this.socket?.emit("unjoin_queue", n);
 			console.log(`I've quit queue ${n}`);
 		}
 	}

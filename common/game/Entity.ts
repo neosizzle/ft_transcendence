@@ -46,7 +46,9 @@ export abstract class Entity {
 	}
 	
 	/* eslint-disable @typescript-eslint/no-empty-function */
+	/* eslint-disable @typescript-eslint/no-unused-vars */
 	control(keypress: Set<KeyboardEvent["key"]>): void {}
+	/* eslint-enable @typescript-eslint/no-unused-vars */
 	/* eslint-enable @typescript-eslint/no-empty-function */
 	
 	// set the x, y, vx, vy of the entity

@@ -4,7 +4,7 @@ import Pong, { GameInterface } from '../common/game/Pong';
 import { KeyPressMonitorBase } from '../common/game/KeyPressMonitor';
 import { UniqueQueue } from './queue';
 
-type QueueInfo =  {
+export type QueueInfo =  {
 	position: number[],
 	size: number[]
 }

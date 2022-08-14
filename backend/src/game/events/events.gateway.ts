@@ -10,7 +10,7 @@ import {
 	} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-import GameServer from '../server'
+import GameServer, { QueueInfo } from '../server'
 
 
 @WebSocketGateway({
@@ -30,35 +30,38 @@ export class GameEventsGateway
 		this.game_server = new GameServer(this.server)
 	}
 	
-	// records a connected client
+	// records a connected client. This happens whenever a socket connection
+	// is established between client and server.
 	handleConnection(client: Socket): void {
 		console.log(`spectator ${client.id} connected`);
 		this.game_server.spectate(client);
 		this.clients.add(client);
 	}
 	
-	// records an unconnected client / player
+	// records an unconnected client / player. This happens whenever a socket
+	// connection is disconnected.
 	handleDisconnect(client: Socket): void {
 		console.log(`spectator ${client.id} disconnected`);
 		this.clients.delete(client);
 		this.game_server.handleDisconnect(client);
 	}
 	
-	// ping message
+	// ping message. Clients pings server at regular interval to calculate
+	// the latency between server and client.
 	@SubscribeMessage('ping')
 	pingResponse(): boolean {
 		return true;
 	}
 	
-	// client joins queue 'n'
-	@SubscribeMessage('join')
+	// client requests to join queue 'n'
+	@SubscribeMessage("join_queue")
 	joinGame(@MessageBody() n: number, @ConnectedSocket() client: Socket)
 			: number {
 		return this.game_server.handleConnect(client, n);
 	}
 	
-	// client unjoins queue 'n'
-	@SubscribeMessage('unjoin')
+	// client requests to unjoins queue 'n'
+	@SubscribeMessage("unjoin_queue")
 	unjoinGame(@MessageBody() n: number, @ConnectedSocket() client: Socket)
 			: void {
 		this.game_server.handleDisconnect(client, n);
@@ -80,8 +83,9 @@ export class GameEventsGateway
 		this.game_server.keyUp(client, key);
 	}
 	
+	// client requests for the queue data from the server
 	@SubscribeMessage('getQueue')
-	getQueue(@ConnectedSocket() client: Socket): object {
+	getQueue(@ConnectedSocket() client: Socket): QueueInfo {
 		return this.game_server.getQueue(client);
 	}
 }

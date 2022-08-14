@@ -4,7 +4,15 @@ import { GameInterface } from '../common/game/Pong';
 import './Canvas.css';
 
 
-export function Button(props: any) {
+type ButtonProps = {
+	style: object,
+	onClick: React.MouseEventHandler<HTMLButtonElement>,
+	size: number,
+	position: number,
+}
+
+
+export function Button(props: ButtonProps) {
 	return (
 		<button
 			type="button"
