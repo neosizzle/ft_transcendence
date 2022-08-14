@@ -26,10 +26,10 @@ export interface GameInterface {
 // class representing the Pong game
 export default class Pong implements GameInterface {
 	control_keys: ControlKeys[] = [
-		{up: "ArrowUp", down: "ArrowDown"},
-		{up: "w", down: "s"},
-		{left: "ArrowLeft", right: "ArrowRight"},
-		{left: "a", right: "d"},
+		{up: "w", down: "s"},						// player 0
+		{up: "ArrowUp", down: "ArrowDown"},			// player 1
+		{left: "a", right: "d"},					// player 2
+		{left: "ArrowLeft", right: "ArrowRight"},	// player 3
 	]
 	private player: Set<number> = new Set<number>();
 	private width: number;
@@ -142,12 +142,12 @@ export default class Pong implements GameInterface {
 		
 		// aim ball towards last loser, or player 0 initially
 		if (this.player_no <= 2) {
-			if (this.scoreboard.last_loser == 1)
+			if (this.scoreboard.last_loser == 0)
 				vx *= -1;
 		}
 		else {
 			[vx, vy] = [vy, vx];
-			if (this.scoreboard.last_loser == 3)
+			if (this.scoreboard.last_loser == 2)
 				vy = -Math.abs(vy);
 		}
 		
@@ -155,27 +155,27 @@ export default class Pong implements GameInterface {
 		this.entity.push(this.ball);
 		
 		// create walls
-		if (this.player_no < 4)  // top wall
-			this.entity.push(new Wall(w/2, b/2, w, b));
-		if (this.player_no < 3)  // bottom wall
+		if (this.player_no < 4)  // bottom wall
 			this.entity.push(new Wall(w/2, h - b/2, w, b));
-		if (this.player_no < 2)  // left wall
-			this.entity.push(new Wall(b/2, h/2, b, h));
-		if (this.player_no < 1)  // right wall
+		if (this.player_no < 3)  // top wall
+			this.entity.push(new Wall(w/2, b/2, w, b));
+		if (this.player_no < 2)  // right wall
 			this.entity.push(new Wall(w - b/2, h/2, b, h));
+		if (this.player_no < 1)  // left wall
+			this.entity.push(new Wall(b/2, h/2, b, h));
 		
 		// create paddles
-		if (this.player_no >= 4)  // top paddle
-			this.entity.push(new Paddle(w/2, b*3/2, h*0.2, b, s, w, h,
-				this.control_keys[3]));
-		if (this.player_no >= 3)  // bottom paddle
+		if (this.player_no >= 4)  // bottom paddle
 			this.entity.push(new Paddle(w/2, h - b*3/2, h*0.2, b, s, w, h,
+				this.control_keys[3]));
+		if (this.player_no >= 3)  // top paddle
+			this.entity.push(new Paddle(w/2, b*3/2, h*0.2, b, s, w, h,
 				this.control_keys[2]));
-		if (this.player_no >= 2)  // left paddle
-			this.entity.push(new Paddle(b*3/2, h/2, b, h*0.2, s, w, h,
-				this.control_keys[1]));
-		if (this.player_no >= 1)  // right paddle
+		if (this.player_no >= 2)  // right paddle
 			this.entity.push(new Paddle(w - b*3/2, h/2, b, h*0.2, s, w, h,
+				this.control_keys[1]));
+		if (this.player_no >= 1)  // left paddle
+			this.entity.push(new Paddle(b*3/2, h/2, b, h*0.2, s, w, h,
 				this.control_keys[0]));
 	}
 	
@@ -221,10 +221,10 @@ export default class Pong implements GameInterface {
 		ctx.fillRect(0, 0, this.width, this.height);
 		
 		// if game is not running, show the "Press SPACE" text
-		ctx.fillStyle = "white";
+		ctx.fillStyle = "lightgrey";
 		for (let i = 0; i < this.isRunning.length; ++i)
 		{
-			const x = this.width * (0.75 - 0.5*i);
+			const x = this.width * (0.25 + 0.5*i);
 			const y = this.height * 0.5
 			if (this.isRunning[i] == false) {
 				ctx.fillText("Press", x, y);
@@ -286,13 +286,13 @@ export default class Pong implements GameInterface {
 		
 		// game over if ball is outside the canvas
 		let loser: number;
-		if (this.ball.x > this.width)
+		if (this.ball.x < 0)
 			loser = 0;
-		else if (this.ball.x < 0)
+		else if (this.ball.x > this.width)
 			loser = 1;
-		else if (this.ball.y > this.height)
-			loser = 2;
 		else if (this.ball.y < 0)
+			loser = 2;
+		else if (this.ball.y > this.height)
 			loser = 3;
 		else
 			return ;
@@ -353,20 +353,20 @@ class ScoreBoard{
 		ctx.setLineDash([10, 10]);
 		ctx.fillStyle = 'lightgrey';
 		ctx.strokeStyle = 'lightgrey';
-		ctx.lineWidth = 5;
+		ctx.lineWidth = 3;
 		if (this.player_no <= 2) {
 			// draw line
 			ctx.beginPath();
-			ctx.moveTo(width / 2, 0);
-			ctx.lineTo(width / 2, height);
+			ctx.moveTo(width / 2, 15);
+			ctx.lineTo(width / 2, height - 10);
 			ctx.stroke();
 			
 			// draw scores
 			if (this.player_no == 2) {
 				ctx.fillText(this.score[0].toString(),
-					width * 0.9, height * 0.2);
-				ctx.fillText(this.score[1].toString(),
 					width * 0.1, height * 0.2);
+				ctx.fillText(this.score[1].toString(),
+					width * 0.9, height * 0.2);
 			}
 		}
 		else if (this.player_no <= 4) {
@@ -382,14 +382,14 @@ class ScoreBoard{
 			
 			// draw scores
 			ctx.fillText(this.score[0].toString(),
-				width * 0.9, height * 0.2);
-			ctx.fillText(this.score[1].toString(),
 				width * 0.1, height * 0.8);
+			ctx.fillText(this.score[1].toString(),
+				width * 0.9, height * 0.2);
 			ctx.fillText(this.score[2].toString(),
-				width * 0.8, height * 0.9);
+				width * 0.2, height * 0.1);
 			if (this.player_no == 4)
 				ctx.fillText(this.score[3].toString(),
-					width * 0.2, height * 0.1);
+					width * 0.8, height * 0.9);
 		}
 		ctx.restore();
 	}

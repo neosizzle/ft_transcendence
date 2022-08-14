@@ -36,7 +36,7 @@ export abstract class Entity {
 		this.height = height;
 		this.vx = vx;
 		this.vy = vy;
-		this.colour = "white";	// white by default
+		this.colour = "lightgrey";	// lightgrey by default
 		
 		// record the keys
 		this.left = keys.left;

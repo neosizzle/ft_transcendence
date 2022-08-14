@@ -108,14 +108,14 @@ export default class Canvas extends React.Component<CanvasProps> {
 				</div>
 				<div className="button_div">
 					<Button style={{float: "left"}}
-						onClick={() => this.props.joinQuitClick(1)}
-						position={this.props.queue.position[1]}
-						size={this.props.queue.size[1]}
-						/>
-					<Button style={{float: "right"}}
 						onClick={() => this.props.joinQuitClick(0)}
 						position={this.props.queue.position[0]}
 						size={this.props.queue.size[0]}
+						/>
+					<Button style={{float: "right"}}
+						onClick={() => this.props.joinQuitClick(1)}
+						position={this.props.queue.position[1]}
+						size={this.props.queue.size[1]}
 						/>
 				</div>
 			</div>
