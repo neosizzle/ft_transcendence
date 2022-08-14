@@ -1,15 +1,10 @@
 import React from 'react';
 import io, { Socket } from 'socket.io-client';
 
-import Canvas from './Canvas';
+import Canvas, { QueueInfo } from './Canvas';
 import Pong, { GameInterface, GameState } from '../common/game/Pong';
 import KeyPressMonitor from '../common/game/KeyPressMonitor';
 
-
-type QueueInfo =  {
-	position: number[],
-	size: number[]
-}
 
 interface ReactGameState {
 	queue: QueueInfo

@@ -4,28 +4,42 @@ import { GameInterface } from '../common/game/Pong';
 import './Canvas.css';
 
 
+export type QueueInfo =  {
+	position: number[],
+	size: number[]
+}
+
 type ButtonProps = {
 	style: object,
 	onClick: React.MouseEventHandler<HTMLButtonElement>,
-	size: number,
-	position: number,
+	queue: QueueInfo,
+	queue_no: number
 }
 
 
 export function Button(props: ButtonProps) {
+	const pos_this = props.queue.position[props.queue_no];
+	const size = props.queue.size[props.queue_no];
+	const pos_other = props.queue.position[(props.queue_no + 1) % 2];
+	const disabled = pos_this == 0 || pos_other >= 0;
+	
 	return (
 		<button
 			type="button"
 			className="join_button"
 			style={props.style}
-			disabled={props.position == 0}
+			disabled={disabled}
 			onClick={props.onClick}>
-				{props.position >= 0 ? props.position + 1 + " of " : ""}
-				{props.size} in Queue.
-				{props.position == 0 ? "" :
+				{pos_this >= 0 ? pos_this + 1 + " of " : ""}
+				{size} in Queue.
+				{pos_this == 0 ? "" :
 					<>
 					<br></br>
-					Click to {props.position >= 0 ? "un" : ""}join.
+					{disabled ? "" :
+						<>
+						Click to {pos_this >= 0 ? "un" : ""}join.
+						</>
+					}
 					</>
 				}
 		</button>
@@ -109,13 +123,13 @@ export default class Canvas extends React.Component<CanvasProps> {
 				<div className="button_div">
 					<Button style={{float: "left"}}
 						onClick={() => this.props.joinQuitClick(0)}
-						position={this.props.queue.position[0]}
-						size={this.props.queue.size[0]}
+						queue={this.props.queue}
+						queue_no={0}
 						/>
 					<Button style={{float: "right"}}
 						onClick={() => this.props.joinQuitClick(1)}
-						position={this.props.queue.position[1]}
-						size={this.props.queue.size[1]}
+						queue={this.props.queue}
+						queue_no={1}
 						/>
 				</div>
 			</div>
