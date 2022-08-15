@@ -85,7 +85,7 @@ const UserCard: FunctionComponent<UserCardProps> = ({
           </div>
 
           {/* Menu button for pc */}
-          <div className="hidden sm:block col-span-3 h-full flex justify-end items-end">
+          <div className="hidden sm:flex col-span-3 h-full justify-end items-end">
             <div
               className={`flex justify-end ${
                 user.id == currSelectedUser?.id ? "relative" : ""
