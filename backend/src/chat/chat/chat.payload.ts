@@ -60,7 +60,7 @@ const transformFilterChat = (
   
     res.skip = (listObj.page - 1) * listObj.pageSize;
     res.take = listObj.pageSize;
-    // res.include = { user: true };
+    res.include = { user: true };
     if (listObj.filterBys) res.where = generateChatWhere(listObj);
     if (listObj.sortBy) {
       res.orderBy = [{}];

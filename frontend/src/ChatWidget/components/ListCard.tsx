@@ -78,7 +78,7 @@ const ListCard: FunctionComponent<ListCardProps> = ({ room, idx }) => {
         </div>
         <div className="text-sm truncate">
           {widget?.lastMessages && widget.lastMessages[idx]
-            ? `${widget.lastMessages[idx].userId} : ${widget?.lastMessages[idx]?.message}`
+            ? `${widget.lastMessages[idx].user?.username} : ${widget?.lastMessages[idx]?.message}`
             : null}
         </div>
       </div>

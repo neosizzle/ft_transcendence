@@ -6,7 +6,7 @@ interface Props {
   children: React.ReactNode;
 }
 
-interface ChatWidgetCtx {
+export interface ChatWidgetCtx {
   currActiveRoom: Room | null;
   currActiveRoomRef : MutableRefObject<Room | null>;
   setCurrActiveRoom: (data : Room | null) => void;
@@ -46,7 +46,7 @@ export const ChatWidgetProvider = (props: Props) => {
 
   const [activeRoomMessages, _setActiveRoomMessages] = useState<
     Message[] | null
-  >(null); // active room messages list
+  >([]); // active room messages list
   const activeRoomMessagesRef = useRef(activeRoomMessages);
   const setActiveRoomMessages = (data : Message[] | null) =>
   {

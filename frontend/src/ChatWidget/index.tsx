@@ -1,15 +1,19 @@
-import React, { FunctionComponent, useEffect, useRef, useState } from "react";
+import { cloneDeep } from "lodash";
+import React, { FunctionComponent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  Ban,
   BaseWSResponse,
+  Member,
   Message,
   Room,
-  SocketInterface,
 } from "../Chat/classes";
+import { ERR, INCOMING_BAN, INCOMING_KICK, INCOMING_MSG } from "../constants";
 import { useAuth } from "../context/authContext";
 import { useChatWidget } from "../context/chatWidgetContext";
 import ChatWindow from "./ChatWindow";
 
+const PAGE_SIZE = 4;
 const ChatIcon: FunctionComponent = () => {
   return (
     <svg
@@ -45,7 +49,7 @@ const ChatWidget: FunctionComponent = () => {
     }
   };
 
-  // WS ACTIONS
+  // WS ACTIONS -- Chat widget does not deal with admin promotion / demotion and owner transfer events
   /**
    * Incoming new message
    *
@@ -55,28 +59,70 @@ const ChatWidget: FunctionComponent = () => {
    * @param data data from ws server
    */
   const handleNewMsg = (data: Message) => {
-    console.log("data ", data.room, " widget ", widget?.currActiveRoomRef.current)
-    // if (data.roomId === widget?.currActiveRoom?.id) {
-    //   const newMessages = [...(widget?.activeRoomMessages as Message[])];
-    //   newMessages.shift();
-    //   newMessages.push();
-    //   widget?.setActiveRoomMessages(newMessages);
-    //   //update last msg
-    // } else if (
-    //   widget?.rooms?.filter((e) => e.id === data.roomId) &&
-    //   widget?.rooms?.filter((e) => e.id === data.roomId).length > 0
-    // ) {
-    //   const newNotify = [...(widget.notify as number[])];
-    //   newNotify.push(data.roomId);
-    //   widget.setNotify(newNotify);
-    //   //update last msg
-    // } else {
-    //   const rooms = [...(widget?.rooms as Room[])];
-    //   const lastMsgs = [...(widget?.lastMessages as Message[])];
+    // active room is where msg is sent
+    if (data.roomId === widget?.currActiveRoomRef.current?.id) {
+      const newMessages = cloneDeep(
+        widget?.activeRoomMessagesRef.current as Message[]
+      );
+      newMessages.pop();
+      newMessages.unshift(data);
+      widget?.setActiveRoomMessages(newMessages);
 
-    //   rooms.push(data.room);
-    //   lastMsgs.push(data);
-    // }
+      //update last msg
+      const lastMessages = cloneDeep(
+        widget.lastMessagesRef.current as Message[]
+      );
+      const lastMsgIdx = lastMessages.findIndex(
+        (e) => e?.roomId === data.roomId
+      );
+      lastMessages[lastMsgIdx] = data;
+      widget.setLastMessages(lastMessages);
+    } else if (
+      // user in room but its not active
+      widget?.roomsRef.current?.filter((e) => e.id === data.roomId) &&
+      widget?.roomsRef.current?.filter((e) => e.id === data.roomId).length > 0
+    ) {
+      //set notification
+      const newNotify = cloneDeep(widget?.notifyRef.current as number[]) || [];
+      newNotify.push(data.roomId);
+      widget.setNotify(newNotify);
+
+      // FEATURE can move notified room to top
+
+      //update last msg
+      const lastMessages = cloneDeep(
+        widget.lastMessagesRef.current as Message[]
+      );
+      const lastMsgIdx = lastMessages.findIndex(
+        (e) => e.roomId === data.roomId
+      );
+      lastMessages[lastMsgIdx] = data;
+      widget.setLastMessages(lastMessages);
+    } else {
+      // user not in room
+      // set notification
+      const newNotify = cloneDeep(widget?.notifyRef.current as number[]) || [];
+
+      newNotify.push(data.roomId);
+
+      widget?.setNotify(newNotify);
+
+      // add into roomlsit of roomlist has space
+      if (
+        widget?.roomsRef.current &&
+        widget?.roomsRef.current?.length < PAGE_SIZE
+      ) {
+        const rooms = cloneDeep(widget?.roomsRef.current as Room[]);
+        const lastMsgs = cloneDeep(
+          widget?.lastMessagesRef.current as Message[]
+        );
+
+        rooms.push(data.room);
+        lastMsgs.push(data);
+        widget?.setRooms(rooms);
+        widget?.setLastMessages(lastMsgs);
+      }
+    }
   };
 
   /**
@@ -89,20 +135,9 @@ const ChatWidget: FunctionComponent = () => {
   const handleError = (data: BaseWSResponse) => {
     if (data.message === "Forbidden") navigate("/logout");
     else {
-      if (data.message)  widget?.setAlertMessage(data.message);
+      if (data.message) widget?.setAlertMessage(data.message);
       widget?.setOpenAlert({ type: "error", isOpen: true });
     }
-  };
-
-  /**
-   * Handle owner change
-   *
-   * 1. If owner is not curr user, remove user owner status
-   * 2. Add owner indication on new owner
-   */
-  const handleOwnerChange = (data: BaseWSResponse) => {
-    void data;
-    console.info("widget does not respond to owner change");
   };
 
   /**
@@ -111,9 +146,18 @@ const ChatWidget: FunctionComponent = () => {
    * 1. If kicked user is self, leave room
    * 2. If not self, update member list
    */
-  const handleKick = (data: BaseWSResponse) => {
-    console.log(data);
-    alert("KICKED " + data.message);
+  const handleKick = (data: Member) => {
+    // console.log(data);
+    // alert("KICKED " + data.message);
+    if (data.userId == auth?.user?.id) {
+      const newRooms = widget?.roomsRef.current?.filter(
+        (e) => e.id !== data.roomId
+      );
+
+      if (widget?.currActiveRoomRef.current?.id === data.roomId)
+        widget?.setCurrActiveRoom(null);
+      widget?.setRooms(newRooms as Room[] | null);
+    }
   };
 
   /**
@@ -122,54 +166,41 @@ const ChatWidget: FunctionComponent = () => {
    * 1. If banned user is self, leave room
    * 2. If not self, update member list
    */
-  const handleBan = (data: BaseWSResponse) => {
-    console.log(data);
-    alert("BANNED " + data.message);
-  };
+  const handleBan = (data: Ban) => {
+    if (data.userId == auth?.user?.id) {
+      const newRooms = widget?.roomsRef.current?.filter(
+        (e) => e.id !== data.roomId
+      );
 
-  /**
-   * Handle Promotion
-   *
-   * 1. If self is promoted, enable admin privelleges
-   */
-  const handlePromotion = (data: BaseWSResponse) => {
+      if (widget?.currActiveRoomRef.current?.id === data.roomId)
+        widget?.setCurrActiveRoom(null);
+      widget?.setRooms(newRooms as Room[] | null);
+    }
     console.log(data);
-    alert("PROMOTED " + data.message);
-  };
-
-  /**
-   * Handle Demotion
-   *
-   * 1. If self is demoted, enable admin privelleges
-   */
-  const handleDemotion = (data: BaseWSResponse) => {
-    console.log(data);
-    alert("DEMOTED " + data.message);
+    alert("BANNED ");
   };
 
   // initial actions
   useEffect(() => {
-    // initialize socket
-    // const socket = new SocketInterface(
-    //   handleNewMsg,
-    //   handleError,
-    //   handleOwnerChange,
-    //   handleKick,
-    //   handleBan,
-    //   handlePromotion,
-    //   handleDemotion
-    // );
 
-    // widget?.setSocket(socket);
-
-    console.log(auth?.chatSocket);
+    // add socket listeners
     if (!auth?.chatSocket) return;
-    auth?.chatSocket?.on('newMessage', handleNewMsg)
+    auth.chatSocket.on(INCOMING_MSG, handleNewMsg);
+    auth.chatSocket.on(ERR, handleError);
+    auth.chatSocket.on(INCOMING_KICK, handleKick);
+    auth.chatSocket.on(INCOMING_BAN, handleBan);
 
     // add document listener
     document.addEventListener("click", handleClose);
 
     return () => {
+      // remove socket listeners
+      auth?.chatSocket?.off(INCOMING_MSG, handleNewMsg);
+      auth?.chatSocket?.off(ERR, handleError);
+      auth?.chatSocket?.off(INCOMING_KICK, handleKick);
+      auth?.chatSocket?.off(INCOMING_BAN, handleBan)
+
+      // remove document listener
       document.removeEventListener("click", handleClose);
     };
   }, [auth]);

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { auth_net_post } from '../utils';
-import WsTest from './WsTest';
 
 function Chat() {
 	const [currentMessage, setCurrentMessage] = useState('');
@@ -58,14 +57,13 @@ function Chat() {
 
 	return (
 		<>
-		<WsTest/>
-			{/* <div>
+			<div>
 				<h1 className='text-5xl' id="MyHeader">Chat</h1>
 			</div>
 			<p id="chat" className='h-96'></p>
 			<form onSubmit={(sendMessage)} className="Chat">
 				<input type="text" className="w-fit mt-10 border-2" placeholder="Say something..." id="message" onChange={handleChange} value={currentMessage}/>
-			</form> */}
+			</form>
 		</>
 	);
 }

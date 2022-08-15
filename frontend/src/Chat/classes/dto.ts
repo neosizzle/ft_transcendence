@@ -18,35 +18,42 @@ export interface BaseWSResponse {
   userId: number | null;
   roomId: number;
   message: string;
-  createdAt? : Date;
-  updatedAt? : Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Room {
-	id : number;
-	roomName? : string;
-	ownerId : number;
-	type : string;
-	isProtected : boolean;
-	createdAt : Date;
-	updatedAt : Date;	
+  id: number;
+  roomName?: string;
+  ownerId: number;
+  type: string;
+  isProtected: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Member {
-	id : number;
-	userId : number;
-	roomId : number;
-	user : User;
-	room : Room;
+  id: number;
+  userId: number;
+  roomId: number;
+  user: User;
+  room: Room;
 }
 
 export interface Message {
-  id : number;
-  userId : number
+  id: number;
+  userId?: number;
   roomId: number;
   message: string;
-  createdAt : Date;
-  updatedAt : Date;
-  room : Room;
-  user : User;
+  createdAt: Date;
+  updatedAt: Date;
+  room: Room;
+  user?: User;
+}
+
+export interface Ban {
+  id: number;
+  userId: number;
+  roomId: number;
+  expiresAt: Date;
 }

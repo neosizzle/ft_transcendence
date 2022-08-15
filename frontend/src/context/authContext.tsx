@@ -28,7 +28,7 @@ interface Props {
   children: React.ReactNode;
 }
 
-interface AuthCtx {
+export interface AuthCtx {
   // user : User | string | null,
   user: User | null;
   chatSocket: Socket | null;
@@ -48,6 +48,15 @@ export const AuthProvider = (props: Props) => {
     // alert(code) // uncomment this to obtain the code for backend testing. Usable only once.
     if (!code) {
       const user = await auth_net_get(userEndpoint);
+      const socketio = io(chatWsEndpoint, {
+        extraHeaders: {
+          Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
+      });
+      socketio.on("connection accepted", () => {
+        socketio.emit("authHandshake");
+      });
+      setChatSocket(socketio);
       setUser(user);
       return;
     }

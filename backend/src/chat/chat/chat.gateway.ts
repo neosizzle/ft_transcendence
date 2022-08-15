@@ -376,7 +376,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit("exception", error);
       return;
     }
-    console.log("message subs hit, aboutto boradcast")
+
+    // get room members
+    const members = await this.prisma.member.findMany({
+      where : {
+        roomId : chatRes.roomId
+      }
+    })
+    
+    // get members who isnt in ws room
+    const clientsInRoom = this.wsServer.adapter.rooms.get(chatRes.roomId.toString())
+    members.forEach(e => {
+      const connectedClient = this.clients.find((client) => client.userId === e.userId.toString())
+      // if user is connected to ws server and not join ws room
+      if (connectedClient && !clientsInRoom.has(e.userId.toString()))
+      {
+        this.logger.log("client should be in room but isnt.... joining...");
+        this.wsServer.sockets.get(connectedClient.socketId).join(chatRes.roomId.toString())
+      }
+    })
+
     // broadcast message into roomId
     this.wsServer.to(dto.roomId.toString()).emit("newMessage", chatRes);
 

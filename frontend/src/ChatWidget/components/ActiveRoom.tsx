@@ -5,6 +5,7 @@ import { API_ROOT } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChatWidget } from "../../context/chatWidgetContext";
 import { auth_net_get } from "../../utils";
+import ChatCard from "./ChatCard";
 import GameInvBtn from "./GameInvBtn";
 
 const memberEndpoint = `${API_ROOT}/members`;
@@ -107,8 +108,7 @@ const ActiveRoom: FunctionComponent = () => {
       message: currChatMsg,
     };
 
-    // widget?.socket?.socket?.emit("message", JSON.stringify(dto));
-    auth?.chatSocket?.emit("message", JSON.stringify(dto))
+    auth?.chatSocket?.emit("message", JSON.stringify(dto));
     setCurrChatMsg("");
   };
 
@@ -165,28 +165,35 @@ const ActiveRoom: FunctionComponent = () => {
       >
         <div className="my-5" ref={topRef}>
           {" "}
-          Blank div
+          ‎
         </div>
 
         {/* Map backwards */}
         <div className="flex flex-col-reverse">
           {widget?.activeRoomMessages?.map((e, i) => (
-            <div key={i} className="py-5">
-              {" "}
-              {e.userId} : {e.message}
-            </div>
+            <ChatCard
+              key={i}
+              message={e}
+              floatRight={e.userId === auth?.user?.id}
+              system={!e.userId}
+            />
           ))}
 
-          {
-            widget?.activeRoomMessages && widget.activeRoomMessages.length < PAGE_SIZE ? 
-            [...Array(PAGE_SIZE - widget.activeRoomMessages.length)].map((e) => <div key = {e}  className="py-5"> </div>) : 
-            null
-          }
+          {widget?.activeRoomMessages &&
+          widget.activeRoomMessages.length < PAGE_SIZE
+            ? [...Array(PAGE_SIZE - widget.activeRoomMessages.length)].map(
+                (e, i) => (
+                  <div key={i} className="py-5">
+                    {" "}
+                  </div>
+                )
+              )
+            : null}
         </div>
 
         <div className="my-5" ref={bottomRef}>
           {" "}
-          Blank div
+          ‎
         </div>
       </div>
 
