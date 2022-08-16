@@ -6,6 +6,7 @@ RUN mkdir /install
 #install dependencies
 ADD ./package.json /install
 WORKDIR /install
+# RUN apt-get update -yqq && apt-get upgrade -yqq && apt-get install postgresql-client -yqq
 RUN npm install --verbose --legacy-peer-deps
 RUN npm i -g @nestjs/cli
 ENV NODE_PATH=/install/node_modules

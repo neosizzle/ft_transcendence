@@ -1,2 +1,4 @@
-npm install --legacy-peer-deps && npm run start:dev
+npm install --legacy-peer-deps
+bash service/userStatus.sh &
+npm run start:dev
 # tail -f

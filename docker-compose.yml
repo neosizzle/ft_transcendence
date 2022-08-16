@@ -16,6 +16,8 @@ services:
       - AES_KEY_OTP=${AES_KEY_OTP}
       - NODEMAILER_EMAIL=${NODEMAILER_EMAIL}
       - NODEMAILER_PASS=${NODEMAILER_PASS}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - PGDB=${POSTGRES_DB}
     ports:
       - 3001:3001 #webserver (change this port on prod)
       - 5555:5555 #prisma studio (change this port on prod)
