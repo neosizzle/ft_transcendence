@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 
-const Logout = (props: any) => {
+const Logout = () => {
 	const auth = useAuth();
 	const navigate = useNavigate();
 
