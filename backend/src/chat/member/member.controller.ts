@@ -22,7 +22,7 @@ export class MemberController {
 
   // list members for a user / for a room
   @Get()
-  getMembers(@GetUser() user: User, @Query() query: ListQuery) {
+  getMembers(@Query() query: ListQuery) {
     return this.membersService.getMembers(query);
   }
 
