@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { Prisma, Mute } from "@prisma/client";
+import { Prisma, Mute, User } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { ListObject, ListQuery, validateListquery } from "src/utils";
+import { AdminService } from "../admin/admin.service";
 import { muteDto } from "./mute.dto";
 
 const transformFilterMute = (
@@ -71,7 +72,8 @@ const generateMutePayload = (listObj: ListObject): Prisma.MuteFindManyArgs => {
 
 @Injectable()
 export class MuteService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService,
+    private readonly adminService: AdminService) { }
 
   private sampleMute: Mute = {
     id: 0,
@@ -97,7 +99,33 @@ export class MuteService {
     );
     return { data: res, total_elements };
   }
-  giveMute(dto: muteDto): Promise<muteDto> {
+  async giveMute(user: User, dto: muteDto) {
+    const query: ListQuery = {
+      filterBy: `${dto.userId},${dto.roomId}`,
+      filterOn: "userId,roomId",
+      page: "1",
+      pageSize: "1",
+      operator: "AND",
+    }
+    const data = await this.adminService.getAdmins(query);
+    if (!data)
+      throw new BadRequestException("You are not an admin.");
+    const checkRoom = await this.prismaService.room.findFirst({
+      where: {
+        id: { equals: dto.roomId },
+        type: { equals: "GC" },
+      }
+    })
+    if (!checkRoom)
+      throw new BadRequestException("Room is not a group chat.");
+    const userMember = await this.prismaService.member.findFirst({
+      where: {
+        userId: { equals: dto.userId },
+        roomId: { equals: dto.roomId },
+      }
+    })
+    if (!userMember)
+      throw new BadRequestException("User is not in the room.");
     //Note that "2022-08-02 doesn't work. Must be complete ISO8601 string, 2022-08-02T05:42:38.573Z"
     return this.prismaService.mute.create({
       data: dto,

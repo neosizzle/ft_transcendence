@@ -3,15 +3,13 @@ import { Chat, Prisma, RoomType } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { ListQuery, validateListquery } from "src/utils";
 import { MemberService } from "../member/member.service";
-import { RoomService } from "../room/room.service";
 import { chatDto } from "./chat.dto";
 import generateChatPayload from "./chat.payload";
 
 @Injectable()
 export class ChatService {
   constructor(private readonly prismaService: PrismaService,
-    private readonly memberService: MemberService,
-    private readonly roomService: RoomService) { }
+    private readonly memberService: MemberService) { }
 
   private sampleChat: Chat = {
     id: 0,
@@ -39,8 +37,6 @@ export class ChatService {
     );
     return { data: res, total_elements };
   }
-  // TODO: (After checking if user is in a room) Need to check if user is actually in RoomType DM or GC, if DM, check if blocked, else
-  // if GC, check if user is muted.
   async insertChat(dto: chatDto) {
     const query: ListQuery = {
       filterBy: `${dto.roomId},${dto.userId}`,
@@ -58,17 +54,20 @@ export class ChatService {
       }
     })
     if (theRoom.type == RoomType.DM) {
-      // Then I would need to get the other userId in the room somehow and check if that
-      // userId has blocked current userId sending the message
-      // theRoom.data[0].members (doesn't work) idk how, think later. It's 2am bro
-      // Can use members and find the member other than the one that is being parsed in from chat
-      const data2 = await this.prismaService.member.findFirst({
+      const otherMember = await this.prismaService.member.findFirst({
         where: {
-          userId: { not: dto.userId},
-          roomId: { equals: dto.roomId},
+          userId: { not: dto.userId },
+          roomId: { equals: dto.roomId },
         }
       })
-      console.log(data2.userId);
+      const findBlock = await this.prismaService.block.findFirst({
+        where: {
+          blockerId: { equals: otherMember.userId },
+          blockeeId: { equals: dto.userId },
+        }
+      })
+      if (findBlock != null)
+        throw new BadRequestException("You have been blocked.");
     }
     else if (theRoom.type == RoomType.GC) {
       const data3 = await this.prismaService.mute.findFirst({
@@ -82,9 +81,9 @@ export class ChatService {
         throw new BadRequestException("User is muted until " + data3.expiresAt.toISOString() + ".");
     }
     return this.prismaService.chat.create({
-      include : {
-        room : true,
-        user : true
+      include: {
+        room: true,
+        user: true
       },
       data: dto,
     });

@@ -447,7 +447,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // ban user in db
     let banRes : Ban;
     try {
-      banRes = await this.ban.giveBan(dto)
+      banRes = await this.ban.giveBan(client.handshake.auth.user, dto)
     } catch (error) {
       client.emit("exception", error);
       return;

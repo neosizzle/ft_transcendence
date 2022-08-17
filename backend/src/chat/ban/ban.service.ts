@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { Ban, Prisma } from "@prisma/client";
+import { Ban, Prisma, User } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { ListObject, ListQuery, validateListquery } from "src/utils";
+import { MemberService } from "../member/member.service";
 import { banDto } from "./ban.dto";
 
 const transformFilterBan = (
@@ -71,7 +72,8 @@ const generateBanPayload = (listObj: ListObject): Prisma.BanFindManyArgs => {
 
 @Injectable()
 export class BanService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService,
+    private readonly memberService: MemberService) { }
 
   private sampleBan: Ban = {
     id: 0,
@@ -98,8 +100,16 @@ export class BanService {
     return { data: res, total_elements };
   }
 
-  async giveBan(dto: banDto){
-    // TODO check for permissions and valid room.
+  async giveBan(user: User, dto: banDto) {
+    const userMember = await this.prismaService.member.findFirst({
+      where: {
+        userId: { equals: dto.userId },
+        roomId: { equals: dto.roomId },
+      }
+    })
+    if (!userMember)
+      throw new BadRequestException("User is not in the room.");
+    await this.memberService.removeMember(user, userMember.id);
     return await this.prismaService.ban.create({
       data: dto,
     });

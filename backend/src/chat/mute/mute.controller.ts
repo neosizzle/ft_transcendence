@@ -1,4 +1,6 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
+import { User } from "@prisma/client";
+import { GetUser } from "src/users/auth/decorator";
 import { AuthGuard } from "src/users/auth/guard";
 import { ListQuery } from "src/utils";
 import { muteDto } from "./mute.dto";
@@ -16,7 +18,7 @@ export class MuteController {
     return this.muteService.getMute(query);
   }
   @Post()
-  create(@Body() muteDto: muteDto): Promise<muteDto> {
-    return this.muteService.giveMute(muteDto);
+  create(@GetUser() user: User, @Body() muteDto: muteDto): Promise<muteDto> {
+    return this.muteService.giveMute(user, muteDto);
   }
 }
