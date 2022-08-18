@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { GameInterface } from '../common/game/Pong';
+import { GameInterface, GameState } from '../common/game/Pong';
 import './Canvas.css';
 
 
@@ -51,12 +51,17 @@ type ToggleButtonProps = {
 	onClick: React.MouseEventHandler<HTMLButtonElement>,
 	queue: QueueInfo,
 	gameType: boolean,
+	gameState: GameState,
 }
 
 // Button to toggle between Original or Customised pong game
 function ToggleButton(props: ToggleButtonProps) {
 	const pos_this = props.queue.position[0];
-	const disabled = pos_this != 0;
+	const disabled: boolean = (
+		(pos_this != 0)
+		|| props.gameState.isRunning.includes(true)
+		|| props.gameState.score.findIndex((score: number) => score > 0) != -1
+	);
 	
 	return (
 		<button
@@ -81,7 +86,8 @@ interface CanvasProps {
 	joinQuitClick: (n: number) => void;
 	deleteSocket: () => void;
 	setGameType: (type: boolean) => void;
-	gameType: boolean
+	gameType: boolean;
+	gameState: GameState;
 }
 
 
@@ -158,6 +164,7 @@ export default class Canvas extends React.Component<CanvasProps> {
 						onClick={() => this.props.setGameType(!this.props.gameType)}
 						queue={this.props.queue}
 						gameType={this.props.gameType}
+						gameState={this.props.gameState}
 						/>
 						
 					<Button style={{float: "right"}}

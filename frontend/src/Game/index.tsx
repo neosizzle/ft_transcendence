@@ -9,6 +9,7 @@ import KeyPressMonitor from '../common/game/KeyPressMonitor';
 interface ReactGameState {
 	queue: QueueInfo
 	gameType: boolean
+	gameState: GameState
 }
 
 /*
@@ -30,7 +31,12 @@ class Game extends React.Component <unknown, ReactGameState> {
 				position: Array(2).fill(-1),
 				size: Array(2).fill(0)
 			},
-			gameType: false
+			gameType: false,
+			gameState: {
+				isRunning: [],
+				score: [],
+				entity: [],
+			},
 		};
 		
 		this.game = new Pong(400, 300);
@@ -75,6 +81,7 @@ class Game extends React.Component <unknown, ReactGameState> {
 		
 		this.socket?.on('game_state', (game_state: GameState) => {
 			this.game.set_state(this.latency, game_state);
+			this.setState({gameState: game_state});
 		});
 		
 		this.socket?.on('game_type', (type: boolean) => {
@@ -175,6 +182,7 @@ class Game extends React.Component <unknown, ReactGameState> {
 			deleteSocket={this.deleteSocket.bind(this)}
 			setGameType={this.setGameType.bind(this)}
 			gameType={this.state.gameType}
+			gameState={this.state.gameState}
 			/>;
 	}
 }
