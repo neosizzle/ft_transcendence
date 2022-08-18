@@ -144,6 +144,7 @@ class Game extends React.Component <unknown, ReactGameState> {
 	}
 	
 	deleteSocket(): void {
+		this.socket?.disconnect();
 		delete this.socket;
 	}
 	
