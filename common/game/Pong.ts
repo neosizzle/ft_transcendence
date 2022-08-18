@@ -10,6 +10,7 @@ export type GameState = {
 export interface GameInterface {
 	control_keys: ControlKeys[];
 	entity: Entity[];	// stores all the game entitities
+	type: boolean;	// true if game is customised
 	control(keypress: Set<KeyboardEvent["key"]>): void;	// handles key presses
 	set_player(n: number): void;	// record the current player number
 	unset_player(n: number): void;	// remove player number from record
@@ -40,6 +41,7 @@ export default class Pong implements GameInterface {
 	
 	entity: Entity[] = [];
 	isRunning: boolean[];
+	type = true;
 	updateClient?: () => void;
 	onGameEnd?: () => void;
 	

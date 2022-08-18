@@ -8,6 +8,7 @@ import KeyPressMonitor from '../common/game/KeyPressMonitor';
 
 interface ReactGameState {
 	queue: QueueInfo
+	gameType: boolean
 }
 
 /*
@@ -29,6 +30,7 @@ class Game extends React.Component <unknown, ReactGameState> {
 				position: Array(2).fill(-1),
 				size: Array(2).fill(0)
 			},
+			gameType: false
 		};
 		
 		this.game = new Pong(400, 300);
@@ -51,6 +53,7 @@ class Game extends React.Component <unknown, ReactGameState> {
 		this.socket?.on('connect', () => {
 			console.log('Connected');
 			this.getQueue();
+			this.getGameType();
 			// keypress monitor is created if connection is made
 			this.keypress = KeyPressMonitor.get_instance(
 								this.onKeyDown.bind(this),
@@ -73,6 +76,10 @@ class Game extends React.Component <unknown, ReactGameState> {
 		this.socket?.on('game_state', (game_state: GameState) => {
 			this.game.set_state(this.latency, game_state);
 		});
+		
+		this.socket?.on('game_type', (type: boolean) => {
+			this.setState({gameType: type});
+		})
 		
 		this.socket?.on('exception', function(data) {
 			console.log('event', data);
@@ -140,6 +147,22 @@ class Game extends React.Component <unknown, ReactGameState> {
 		delete this.socket;
 	}
 	
+	setGameType(type: boolean) {
+		this.setState({gameType: type});
+		this.socket?.emit('set_game_type', type);
+	}
+	
+	// get game type from server
+	getGameType() {
+		this.socket?.emit("get_game_type", (type: boolean) => {
+			console.log("game type = ", type);
+			this.setState({
+				gameType: type,
+			})
+			this.game.type = type;
+		});
+	}
+	
 	render() {
 		return <Canvas
 			width={400}
@@ -149,6 +172,8 @@ class Game extends React.Component <unknown, ReactGameState> {
 			queue={this.state.queue}
 			joinQuitClick={this.joinQuitClick.bind(this)}
 			deleteSocket={this.deleteSocket.bind(this)}
+			setGameType={this.setGameType.bind(this)}
+			gameType={this.state.gameType}
 			/>;
 	}
 }

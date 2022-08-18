@@ -16,8 +16,8 @@ type ButtonProps = {
 	queue_no: number
 }
 
-
-export function Button(props: ButtonProps) {
+// Button for joining or quiting game queue
+function Button(props: ButtonProps) {
 	const pos_this = props.queue.position[props.queue_no];
 	const size = props.queue.size[props.queue_no];
 	const pos_other = props.queue.position[(props.queue_no + 1) % 2];
@@ -46,6 +46,31 @@ export function Button(props: ButtonProps) {
 	);
 }
 
+type ToggleButtonProps = {
+	style: object,
+	onClick: React.MouseEventHandler<HTMLButtonElement>,
+	queue: QueueInfo,
+	gameType: boolean,
+}
+
+// Button to toggle between Original or Customised pong game
+function ToggleButton(props: ToggleButtonProps) {
+	const pos_this = props.queue.position[0];
+	const disabled = pos_this != 0;
+	
+	return (
+		<button
+			type="button"
+			className="join_button"
+			style={props.style}
+			disabled={disabled}
+			onClick={props.onClick}
+		>
+			{props.gameType ? "Customised" : "Original"}
+		</button>
+	)
+}
+
 
 interface CanvasProps {
 	width: number,
@@ -55,6 +80,8 @@ interface CanvasProps {
 	queue: {position: number[], size: number[]};
 	joinQuitClick: (n: number) => void;
 	deleteSocket: () => void;
+	setGameType: (type: boolean) => void;
+	gameType: boolean
 }
 
 
@@ -126,6 +153,13 @@ export default class Canvas extends React.Component<CanvasProps> {
 						queue={this.props.queue}
 						queue_no={0}
 						/>
+					
+					<ToggleButton style={{float: "left"}}
+						onClick={() => this.props.setGameType(!this.props.gameType)}
+						queue={this.props.queue}
+						gameType={this.props.gameType}
+						/>
+						
 					<Button style={{float: "right"}}
 						onClick={() => this.props.joinQuitClick(1)}
 						queue={this.props.queue}

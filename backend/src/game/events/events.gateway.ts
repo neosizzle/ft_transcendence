@@ -67,6 +67,18 @@ export class GameEventsGateway
 		this.game_server.handleDisconnect(client, n);
 	}
 	
+	// client requests to change game type
+	@SubscribeMessage("set_game_type")
+	setGameType(@MessageBody() type: boolean)
+	: void {
+		this.game_server.setGameType(type)
+	}
+	
+	@SubscribeMessage("get_game_type")
+	getGameType(@ConnectedSocket() client: Socket) {
+		client.emit("game_type", this.game_server.game.type);
+	}
+	
 	// records a keydown event from players only
 	@SubscribeMessage('keyDown')
 	keyDown(@MessageBody() key: string, @ConnectedSocket() client: Socket)

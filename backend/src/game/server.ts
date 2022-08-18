@@ -168,4 +168,15 @@ export default class GameServer {
 		
 		return retval;
 	}
+	
+	// if type is true, change to a customised game; else change to
+	// original game.
+	setGameType(type: boolean): void {
+		this.game.type = type;
+		this.server.emit('game_type', type);
+	}
+	
+	getGameType(): boolean {
+		return this.game.type;
+	}
 }
