@@ -43,38 +43,34 @@ export default class GameServer {
 		return index;
 	}
 	
-	// A client disconnects. Check whether client is in queue. If yes,
-	// the client is removed from queue. If the client is also the current
-	// player, release any key that he may be pressing.
+	/* Handles client disconnection
+	 * Check whether client is in queue. If yes, remove from queue.
+	 * If client is also the current player, the current game ends with both
+	 * current players removed from the game.
+	 */
 	handleDisconnect(client: Socket, queue_no?: number): void {
+		// if queue_no is not given, loop through all queues until client is
+		// found
+		let index: number;
 		for (let n = 0; n < this.queues.length; ++n) {
-			// if queue_no is given, only exit the particular queue
-			if (queue_no != null && n != queue_no)
-				continue ;
-			
-			const queue: UniqueQueue<Socket> = this.queues[n];
-			const index: number = queue.indexOf(client);
-			if (index == -1)
-				continue ;
-			queue.erase(client);	// remove client from queue
-			console.log(`client ${client.id} removed as player ${n}`);
-			
-			// if client is player
-			if (index == 0) {
-				// remove player from current game
-				this.game.unset_player(n);
-				
-				// release keys
-				for (const key of Object.values(this.game.control_keys[n]))
-					this.keypress.delete(key);
-				
-				// reset game into a new game
-				this.game.reset(true);
+			index = this.queues[n].indexOf(client);
+			if (index != -1) {
+				queue_no = n;
+				break ;
 			}
-			
-			// ask the next player in the queue to join
-			if (queue.front() != null)
-				queue.front().emit("join", n)
+		}
+		
+		// client is not in any queue. Do nothing.
+		if (index == -1)
+			return ;
+		
+		if (index > 0) {
+			// remove non-current player from queue
+			this.queues[queue_no].erase(client);
+			console.log(`client ${client.id} removed from queue ${queue_no}`);
+		} else if (index == 0) {
+			// end current game and handle players removal
+			this.onGameEnd();
 		}
 		
 		// ask clients to update their queue info and game state
@@ -133,12 +129,28 @@ export default class GameServer {
 	// game has ended, so remove existing players from game
 	onGameEnd(): void {
 		console.log("Game has ended!");
+		
+		// record one of the players as winner
+		/* Insert code here */
+		
 		for (let n = 0; n < this.queues.length; ++n) {
 			const queue: UniqueQueue<Socket> = this.queues[n];
+			this.game.unset_player(n);  // remove player from current game
 			if (queue.size() > 0) {
 				const client: Socket = queue.front();
 				client.emit('unjoin', n);	// unjoin as player n
+				queue.pop();
 			}
+		}
+		
+		this.keypress.keypress = new Set();	// release all keys
+		this.game.reset(true);	// reset game into a new game
+		
+		// ask the next players in the queue to join
+		for (let n = 0; n < this.queues.length; ++n) {
+			const client: Socket = this.queues[n].front()
+			if (client != null)
+				client.emit("join", n)
 		}
 	}
 	
@@ -156,5 +168,4 @@ export default class GameServer {
 		
 		return retval;
 	}
-	
 }
