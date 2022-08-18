@@ -175,13 +175,30 @@ const Profile: FunctionComponent = () => {
         >
           <div
             className="
-						bg-slate-100
 						h-full
 						w-full
 						rounded
 						"
           >
-            more info
+            <div className=" grid sm:grid-cols-3 grid-cols-2 gap-4">
+              <div className="sm:h-full sm:w-full rounded bg-slate-300 m-2 text-center">
+                <div className="mx-auto">Rank</div>
+                <div className="font-bold">
+                  {user.ranking}
+                </div>
+              </div>
+
+              <div className="sm:h-full sm:w-full rounded bg-slate-300 m-2 text-center">
+                <div>W / L</div>
+                <div className="font-bold">
+                  {user.losses ? user.wins / user.losses : user.wins}
+                </div>
+              </div>
+
+            </div>
+            {/* Ranking : {user.ranking}
+            Wins : {user.wins}
+            Losses : {user.losses} */}
           </div>
         </div>
       </div>

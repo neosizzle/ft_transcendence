@@ -89,6 +89,11 @@ const runAdminTests = (pactum: any) => {
       const user = await prisma.user.findFirst({
         where: { username: "new" },
       });
+      
+      await prisma.room.update({
+        where: { id: room.id },
+        data: { ownerId: user.id },
+      });
       const dto = {
         roomId: room.id,
         userId: user.id,
@@ -101,7 +106,7 @@ const runAdminTests = (pactum: any) => {
         .withHeaders({
           Authorization: "Bearer $S{token}",
         })
-        .expectStatus(401)
+        .expectStatus(400)
         .expectBodyContains("error");
     });
 

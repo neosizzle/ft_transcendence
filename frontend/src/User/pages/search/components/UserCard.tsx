@@ -80,7 +80,8 @@ const UserCard: FunctionComponent<UserCardProps> = ({
 
               <div className="hidden sm:block">Level {user.level}</div>
 
-              <div className="text-xs sm:text-sm">Games played : 123</div>
+              <div className="text-xs sm:text-sm">Rank : {user.ranking}</div>
+              <div className="text-xs sm:text-sm">W/L : {user.losses ? user.wins / user.losses : user.wins}</div>
             </div>
           </div>
 

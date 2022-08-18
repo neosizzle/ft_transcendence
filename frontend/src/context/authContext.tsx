@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import React from "react";
 import { API_ROOT, TOKEN_KEY, WS_ROOT } from "../constants";
 import { auth_net_get, net_get } from "../utils";
@@ -22,6 +22,9 @@ export interface User {
   intraName: string;
   createdAt: string;
   updatedAt: string;
+  ranking : number;
+  wins: number;
+  losses: number;
 }
 
 interface Props {

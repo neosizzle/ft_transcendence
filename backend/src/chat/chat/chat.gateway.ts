@@ -27,18 +27,6 @@ import { RoomService } from "../room/room.service";
 import { chatDto } from "./chat.dto";
 import { ChatService } from "./chat.service";
 
-function getAllFuncs(toCheck) {
-  const props = [];
-  let obj = toCheck;
-  do {
-    props.push(...Object.getOwnPropertyNames(obj));
-  } while ((obj = Object.getPrototypeOf(obj)));
-
-  return props.sort().filter((e, i, arr) => {
-    if (e != arr[i + 1] && typeof toCheck[e] == "function") return true;
-  });
-}
-
 class Clients {
   userId: string;
   socketId: string;
@@ -55,7 +43,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   clients: Clients[] = [];
   logger: Logger = new Logger(ChatGateway.name);
 
-  // TODO need chatservice and roomservice banservice , muteservice
   constructor(
     private room: RoomService,
     private prisma: PrismaService,
@@ -118,6 +105,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
   }
 
+  // TODO work with edi for owner transfer and admin promotion/demotion
   /**
    * Handles create new dm / gc
    * @param client Client socket
@@ -141,16 +129,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // add curr user to room
+    const user = client.handshake.auth.user;
     const roomId = roomCreateRes.id.toString();
     client.join(roomId);
 
     // add initial users to room as well if they are online (connected to ws server)
-    // console.log(getAllFuncs(this.wsServer))
     const namespace = this.wsServer;
     let initUsers : string[] = [];
     initUsers = dto.initialUsers.split(",");
-    if (!initUsers.includes(client.handshake.auth.user.id.toString()))
-      initUsers.push(client.handshake.auth.user.id.toString())
+    if (!initUsers.includes(user.id.toString()))
+      initUsers.push(user.id.toString())
     for (const userId of initUsers) {
       const client = this.clients.find(
         (client) => userId.toString() === client.userId.toString()
@@ -160,14 +148,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clientSocket.join(roomId);
 
       // inform initial users that group is created
-      // emmit message from system 'you have been added herer by ${userId}'
+      const sysMsg : Chat = {
+        id : -1,
+        roomId : parseInt(roomId, 10),
+        userId : null,
+        message : `You have been invited to room ${roomId}`,
+        createdAt : new Date(),
+        updatedAt : new Date()
+      }
       if (roomCreateRes.type === "GC") {
-        clientSocket.emit("alert", `You have been added to room ${roomId}`);
-        // clientSocket.emit("newMessage", {
-        //   userId: null,
-        //   roomId,
-        //   message: `You have been added to room ${roomId}`,
-        // });
+        clientSocket.emit("newMessage", sysMsg);
       }
     }
   }
@@ -195,15 +185,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // emmit brodcast and notification to roomid that this user left
+    const sysMsg : Chat = {
+      id : -1,
+      roomId : res.roomId,
+      userId : null,
+      message : `${client.handshake.auth.user.username} has left`,
+      createdAt : new Date(),
+      updatedAt : new Date()
+    }
     client.leave(res.roomId.toString());
-    this.wsServer
-      .to(res.roomId.toString())
-      .emit("alert", `${client.handshake.auth.user.username} has left`);
-    // this.wsServer.to(id).emit("newMessage", {
-    //   userId: null,
-    //   roomId: id,
-    //   message: `${client.handshake.auth.user.username} has left`,
-    // });
+    this.wsServer.to(res.roomId.toString()).emit("newMessage", sysMsg);
   }
 
   /**
@@ -237,13 +228,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       where: { id: member.roomId },
     });
 
-    if (room.type == "GC")
+    if (room.type === "GC")
+    {
+      const sysMsg : Chat = {
+        id : -1,
+        roomId : room.id,
+        userId : null,
+        message : `${client.handshake.auth.user.username} has joined`,
+        createdAt : new Date(),
+        updatedAt : new Date()
+      }
+
       this.wsServer
         .to(room.id.toString())
-        .emit("alert", `${client.handshake.auth.user.username} has joined`);
-
-    // if (room.type == "GC")
-    //   this.wsServer.to(room.id.toString()).emit('newMessage', {userId : null, roomId : room.id, message : `${client.handshake.auth.user.username} has joined`})
+        .emit("newMessage", sysMsg);
+    }
   }
 
   /**

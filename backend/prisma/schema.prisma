@@ -35,6 +35,9 @@ model User {
   username  String     @unique
   intraID   String
   intraName String
+  ranking    Int        @default(1000)
+  wins      Int        @default(0)
+  losses    Int        @default(0)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
@@ -50,6 +53,9 @@ model User {
   bans              Ban[]        @relation(name: "room_bans")
   mutes             Mute[]       @relation(name: "room_mutes")
   messages          Chat[]       @relation(name: "sent_messages")
+  playedAs0         Match[]      @relation(name: "player0")
+  playedAs1         Match[]      @relation(name: "player1")
+  wonMatches        Match[]      @relation(name: "winner")
 }
 
 model Auth {
@@ -157,4 +163,20 @@ model Chat {
   updatedAt DateTime  @updatedAt
   user      User      @relation(name: "sent_messages", fields: [userId], references: [id])
   room      Room      @relation(name: "messages", fields: [roomId], references: [id])
+}
+
+// Game module
+model Match {
+  id            Int @id @default(autoincrement())
+  playerId0     Int
+  playerId1     Int
+  winnerId      Int
+  playerScore0  Int
+  playerScore1  Int
+  isCustom      Boolean @default(false)
+  player0       User    @relation(name: "player0", fields: [playerId0], references: [id])
+  player1       User    @relation(name: "player1", fields: [playerId1], references: [id])
+  winner        User    @relation(name: "winner", fields: [winnerId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
