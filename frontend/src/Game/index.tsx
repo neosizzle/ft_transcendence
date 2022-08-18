@@ -31,7 +31,7 @@ class Game extends React.Component <unknown, ReactGameState> {
 			},
 		};
 		
-		this.game = new Pong(400, 300, 2);
+		this.game = new Pong(400, 300);
 		this.socket = io("http://localhost:3001/game");  // change for production
 		this.socket_handlers();	// initialise socket message handlers
 		

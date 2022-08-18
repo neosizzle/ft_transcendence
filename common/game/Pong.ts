@@ -35,7 +35,6 @@ export default class Pong implements GameInterface {
 	private width: number;
 	private height: number;
 	private ball: Ball | undefined;
-	private player_no: number;
 	private scoreboard: ScoreBoard;
 	private then?: number;
 	
@@ -44,24 +43,19 @@ export default class Pong implements GameInterface {
 	updateClient?: () => void;
 	onGameEnd?: () => void;
 	
-	constructor(width: number, height: number, player_no: number,
+	constructor(width: number, height: number,
 			updateClient?: () => void, onGameEnd?: () => void) {
 		this.width = width;
 		this.height = height;
-		
-		// record the number of players
-		if (player_no < 0 || player_no > 4)
-			throw new RangeError("Number of player must between 0 to 4.");
-		this.player_no = player_no;
 		
 		this.updateClient = updateClient;
 		this.onGameEnd = onGameEnd;
 		
 		// create a scoreboard
-		this.scoreboard = new ScoreBoard(player_no, onGameEnd);
+		this.scoreboard = new ScoreBoard(onGameEnd);
 		
 		this.isRunning = [];
-		for (let i = 0; i < player_no; ++i)
+		for (let i = 0; i < 2; ++i)
 			this.isRunning.push(false);
 		
 		// initialise entities of the game
@@ -137,46 +131,25 @@ export default class Pong implements GameInterface {
 		
 		// create the balls
 		const s: number = w / 120;	// initial speed of ball
-		let vy = (Math.random() / 0.5 - 1) * s * 2 / 3;
+		const vy = (Math.random() / 0.5 - 1) * s * 2 / 3;
 		let vx = Math.sqrt(Math.pow(s, 2) - Math.pow(vy, 2));
 		
 		// aim ball towards last loser, or player 0 initially
-		if (this.player_no <= 2) {
-			if (this.scoreboard.last_loser == 0)
-				vx *= -1;
-		}
-		else {
-			[vx, vy] = [vy, vx];
-			if (this.scoreboard.last_loser == 2)
-				vy = -Math.abs(vy);
-		}
+		if (this.scoreboard.last_loser == 0)
+			vx *= -1;
 		
 		this.ball = new Ball(w/2, h/2, b/2, vx, vy, w, h, updateClient);
 		this.entity.push(this.ball);
 		
 		// create walls
-		if (this.player_no < 4)  // bottom wall
-			this.entity.push(new Wall(w/2, h - b/2, w, b));
-		if (this.player_no < 3)  // top wall
-			this.entity.push(new Wall(w/2, b/2, w, b));
-		if (this.player_no < 2)  // right wall
-			this.entity.push(new Wall(w - b/2, h/2, b, h));
-		if (this.player_no < 1)  // left wall
-			this.entity.push(new Wall(b/2, h/2, b, h));
+		this.entity.push(new Wall(w/2, b/2, w, b));	// top wall
+		this.entity.push(new Wall(w/2, h - b/2, w, b));	// bottom wall
 		
 		// create paddles
-		if (this.player_no >= 4)  // bottom paddle
-			this.entity.push(new Paddle(w/2, h - b*3/2, h*0.2, b, s, w, h,
-				this.control_keys[3]));
-		if (this.player_no >= 3)  // top paddle
-			this.entity.push(new Paddle(w/2, b*3/2, h*0.2, b, s, w, h,
-				this.control_keys[2]));
-		if (this.player_no >= 2)  // right paddle
-			this.entity.push(new Paddle(w - b*3/2, h/2, b, h*0.2, s, w, h,
-				this.control_keys[1]));
-		if (this.player_no >= 1)  // left paddle
-			this.entity.push(new Paddle(b*3/2, h/2, b, h*0.2, s, w, h,
-				this.control_keys[0]));
+		this.entity.push(new Paddle(b*3/2, h/2, b, h*0.2, s, w, h,
+				this.control_keys[0]));	// left paddle
+		this.entity.push(new Paddle(w - b*3/2, h/2, b, h*0.2, s, w, h,
+			this.control_keys[1]));	// right paddle
 	}
 	
 	// clear all the entities in the game
@@ -290,10 +263,6 @@ export default class Pong implements GameInterface {
 			loser = 0;
 		else if (this.ball.x > this.width)
 			loser = 1;
-		else if (this.ball.y < 0)
-			loser = 2;
-		else if (this.ball.y > this.height)
-			loser = 3;
 		else
 			return ;
 		
@@ -306,13 +275,11 @@ export default class Pong implements GameInterface {
 
 
 class ScoreBoard{
-	player_no: number;
 	onGameEnd?: () => void;
 	last_loser = 0;
 	score: number[] = [];
 	
-	constructor(player_no: number, onGameEnd?: () => void) {
-		this.player_no = player_no;
+	constructor(onGameEnd?: () => void) {
 		this.reset();
 		this.onGameEnd = onGameEnd;
 	}
@@ -354,43 +321,17 @@ class ScoreBoard{
 		ctx.fillStyle = 'lightgrey';
 		ctx.strokeStyle = 'lightgrey';
 		ctx.lineWidth = 3;
-		if (this.player_no <= 2) {
-			// draw line
-			ctx.beginPath();
-			ctx.moveTo(width / 2, 15);
-			ctx.lineTo(width / 2, height - 10);
-			ctx.stroke();
-			
-			// draw scores
-			if (this.player_no == 2) {
-				ctx.fillText(this.score[0].toString(),
-					width * 0.1, height * 0.2);
-				ctx.fillText(this.score[1].toString(),
-					width * 0.9, height * 0.2);
-			}
-		}
-		else if (this.player_no <= 4) {
-			// draw lines
-			ctx.beginPath();
-			ctx.moveTo(0, 0);
-			ctx.lineTo(width, height);
-			ctx.stroke();
-			ctx.beginPath();
-			ctx.moveTo(0, height);
-			ctx.lineTo(width, 0);
-			ctx.stroke();
-			
-			// draw scores
-			ctx.fillText(this.score[0].toString(),
-				width * 0.1, height * 0.8);
-			ctx.fillText(this.score[1].toString(),
-				width * 0.9, height * 0.2);
-			ctx.fillText(this.score[2].toString(),
-				width * 0.2, height * 0.1);
-			if (this.player_no == 4)
-				ctx.fillText(this.score[3].toString(),
-					width * 0.8, height * 0.9);
-		}
+		
+		// draw line
+		ctx.beginPath();
+		ctx.moveTo(width / 2, 15);
+		ctx.lineTo(width / 2, height - 10);
+		ctx.stroke();
+		
+		// draw scores
+		ctx.fillText(this.score[0].toString(), width * 0.1, height * 0.2);
+		ctx.fillText(this.score[1].toString(), width * 0.9, height * 0.2);
+		
 		ctx.restore();
 	}
 	
@@ -405,7 +346,7 @@ class ScoreBoard{
 					if (i != j && this.score[i] - this.score[j] < 2)
 						break ;
 				}
-				if (j == this.player_no)
+				if (j == 2)
 					return (i);
 			}
 		}
@@ -416,7 +357,7 @@ class ScoreBoard{
 	// reset the scores
 	reset(): void {
 		this.score = [];
-		for (let i = 0; i < this.player_no; ++i)
+		for (let i = 0; i < 2; ++i)
 			this.score.push(0);
 		this.last_loser = 0;
 	}

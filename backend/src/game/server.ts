@@ -19,7 +19,7 @@ export default class GameServer {
 	constructor(server: Server) {
 		this.server = server;
 		this.keypress = new KeyPressMonitorBase();
-		this.game = new Pong(400, 300, 2,
+		this.game = new Pong(400, 300,
 			this.updateClient.bind(this), this.onGameEnd.bind(this));
 		
 		// run the game in an infinite loop at 60 Hz
