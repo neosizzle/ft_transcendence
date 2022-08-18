@@ -78,6 +78,7 @@ class Game extends React.Component <unknown, ReactGameState> {
 		});
 		
 		this.socket?.on('game_type', (type: boolean) => {
+			this.game.set_type(type);
 			this.setState({gameType: type});
 		})
 		
@@ -156,7 +157,6 @@ class Game extends React.Component <unknown, ReactGameState> {
 	// get game type from server
 	getGameType() {
 		this.socket?.emit("get_game_type", (type: boolean) => {
-			console.log("game type = ", type);
 			this.setState({
 				gameType: type,
 			})

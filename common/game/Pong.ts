@@ -20,6 +20,7 @@ export interface GameInterface {
 	draw(ctx: CanvasRenderingContext2D | null): void;	// draw game onto canvas
 	set_state(latency: number, state: GameState): void;	// set the state of the game
 	get_state(): GameState;	// get the state of the game
+	set_type(type: boolean): void;	// set game type
 	updateClient?: () => void;	// callback function to update game state to clients
 	onGameEnd?: () => void;	// callback function to be run on game end
 }
@@ -41,7 +42,7 @@ export default class Pong implements GameInterface {
 	
 	entity: Entity[] = [];
 	isRunning: boolean[];
-	type = true;
+	type = false;
 	updateClient?: () => void;
 	onGameEnd?: () => void;
 	
@@ -105,7 +106,7 @@ export default class Pong implements GameInterface {
 		this.isRunning = state.isRunning;
 		this.scoreboard.set_state(state.score);
 		for (const i in state.entity)
-			this.entity[i].set_state(latency, state.entity[i]);
+			this.entity[i]?.set_state(latency, state.entity[i]);
 	}
 	
 	get_state(): GameState {
@@ -118,6 +119,30 @@ export default class Pong implements GameInterface {
 			score: this.scoreboard.get_state(),
 			entity: entity_state,
 		};
+	}
+	
+	// set game type. True for customised game, false for original
+	set_type(type: boolean): void {
+		// no change, do nothing.
+		if (this.type == type)
+			return ;
+		else if (type == true) {
+			// add 2 custom walls
+			this.custom_wall();
+		} else {
+			// remove 2 walls, i.e. the last 2 items
+			this.entity.splice(this.entity.length - 2, 2);
+		}
+		this.type = type;
+	}
+	
+	// add 2 custom walls to the game
+	custom_wall(): void {
+		const w = this.width;
+		const h = this.height;
+		const b = this.width * 0.025;	// border thickness
+		this.entity.push(new Wall(w/2, 0.3*h, b, 0.2*h));	// top
+		this.entity.push(new Wall(w/2, 0.7*h, b, 0.2*h));	// bottom
 	}
 	
 	// return whether all players have started the game
@@ -152,6 +177,10 @@ export default class Pong implements GameInterface {
 				this.control_keys[0]));	// left paddle
 		this.entity.push(new Paddle(w - b*3/2, h/2, b, h*0.2, s, w, h,
 			this.control_keys[1]));	// right paddle
+			
+		// custom wall if true
+		if (this.type)
+			this.custom_wall();
 	}
 	
 	// clear all the entities in the game
@@ -173,8 +202,10 @@ export default class Pong implements GameInterface {
 	
 	// reset game into a new round. Score is reset if reset_score is true.
 	reset(reset_score=false): void {
-		if (reset_score)
-			this.scoreboard.reset()
+		if (reset_score) {
+			this.scoreboard.reset();
+			this.type = false;
+		}
 		
 		for (let n = 0; n < this.isRunning.length; ++n)
 			this.isRunning[n] = false;

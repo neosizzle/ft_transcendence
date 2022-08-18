@@ -124,6 +124,7 @@ export default class GameServer {
 	// callback function to update clients of the latest game state
 	updateClient(): void {
 		this.server.emit('game_state', this.game.get_state());
+		this.server.emit('game_type', this.game.type);
 	}
 	
 	// game has ended, so remove existing players from game
@@ -172,7 +173,7 @@ export default class GameServer {
 	// if type is true, change to a customised game; else change to
 	// original game.
 	setGameType(type: boolean): void {
-		this.game.type = type;
+		this.game.set_type(type);
 		this.server.emit('game_type', type);
 	}
 	
