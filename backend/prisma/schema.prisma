@@ -13,6 +13,7 @@ datasource db {
 // cant really split prisma files , apologies for the merge conflcits :(
 // https://github.com/prisma/prisma/issues/2377
 
+// User Module
 enum UserStatus {
   LOGGEDIN
   OFFLINE
@@ -26,57 +27,134 @@ enum FriendshipStatus {
 }
 
 model User {
-  id        Int           @id @default(autoincrement())
-  email     String?       @unique
+  id        Int        @id @default(autoincrement())
+  email     String?    @unique
   avatar    String?
-  status    UserStatus    @default(LOGGEDIN)
-  level     Float         @default(0.0)
-  username  String        @unique
+  status    UserStatus @default(LOGGEDIN)
+  level     Float      @default(0.0)
+  username  String     @unique
   intraID   String
   intraName String
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   // feel free to add relations to your needs
   auth              Auth[]
   userFriends       Friendship[] @relation(name: "users")
   friendUserFriends Friendship[] @relation(name: "friend_users")
-  userBlockers      Block[] @relation(name: "blocker_users")
-  userBlocked       Block[] @relation(name: "blocked_users")
+  userBlockers      Block[]      @relation(name: "blocker_users")
+  userBlocked       Block[]      @relation(name: "blocked_users")
+  members           Member[]     @relation(name: "room_members")
+  ownedRooms        Room[]       @relation(name: "room_owners")
+  admins            Admin[]      @relation(name: "room_admins")
+  bans              Ban[]        @relation(name: "room_bans")
+  mutes             Mute[]       @relation(name: "room_mutes")
+  messages          Chat[]       @relation(name: "sent_messages")
 }
 
 model Auth {
-    id        Int           @id @default(autoincrement())
-    token     String
-    expiresAt DateTime
-    userId    Int           @unique
-    user      User          @relation(fields: [userId], references: [id])
+  id        Int      @id @default(autoincrement())
+  token     String
+  expiresAt DateTime
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Friendship {
-  id             Int                 @id @default(autoincrement())
-  reqStatus      FriendshipStatus    @default(PENDING)
-  userId         Int
-  friendId       Int
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  user           User                @relation(name: "users", fields: [userId], references: [id])
-  friend         User                @relation(name: "friend_users", fields: [friendId], references: [id])
+  id        Int              @id @default(autoincrement())
+  reqStatus FriendshipStatus @default(PENDING)
+  userId    Int
+  friendId  Int
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  user      User             @relation(name: "users", fields: [userId], references: [id])
+  friend    User             @relation(name: "friend_users", fields: [friendId], references: [id])
 }
 
 model Block {
-  id             Int                 @id @default(autoincrement())
-  blockerId      Int
-  blockeeId      Int
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  blocker        User                @relation(name: "blocker_users", fields: [blockerId], references: [id])
-  blockee        User                @relation(name: "blocked_users", fields: [blockeeId], references: [id])
+  id        Int      @id @default(autoincrement())
+  blockerId Int
+  blockeeId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  blocker   User     @relation(name: "blocker_users", fields: [blockerId], references: [id])
+  blockee   User     @relation(name: "blocked_users", fields: [blockeeId], references: [id])
 }
 
 model OTP {
-  id             Int                 @id @default(autoincrement())
-  otp            String
-  exprationTime  DateTime
-  verified       Boolean             @default(false)
+  id            Int      @id @default(autoincrement())
+  otp           String
+  exprationTime DateTime
+  verified      Boolean  @default(false)
+}
+
+// Chat Module
+enum RoomType {
+  DM
+  GC
+}
+
+model Room {
+  id       Int        @id @default(autoincrement())
+  roomName String?    @unique
+  password String?
+  ownerId  Int
+  type     RoomType   @default(DM)
+  owner    User       @relation(name: "room_owners", fields: [ownerId], references: [id])
+  isProtected Boolean @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // relations
+  members      Member[]        @relation(name: "members")
+  admins       Admin[]         @relation(name: "admins")
+  bans         Ban[]           @relation(name: "bans")
+  mutes        Mute[]          @relation(name: "mutes")
+  messages     Chat[]          @relation(name: "messages")
+}
+
+model Member {
+  id     Int        @id @default(autoincrement())
+  userId Int
+  roomId Int
+  user      User    @relation(name: "room_members", fields: [userId], references: [id])
+  room      Room    @relation(name: "members", fields: [roomId], references: [id])
+}
+
+
+model Admin {
+  id     Int        @id @default(autoincrement())
+  userId Int
+  roomId Int
+  user      User    @relation(name: "room_admins", fields: [userId], references: [id])
+  room      Room    @relation(name: "admins", fields: [roomId], references: [id])
+}
+
+model Ban {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  roomId    Int
+  expiresAt DateTime
+  user      User       @relation(name: "room_bans", fields: [userId], references: [id])
+  room      Room       @relation(name: "bans", fields: [roomId], references: [id])
+}
+
+model Mute {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  roomId    Int
+  expiresAt DateTime
+  user      User       @relation(name: "room_mutes", fields: [userId], references: [id])
+  room      Room       @relation(name: "mutes", fields: [roomId], references: [id])
+}
+
+model Chat {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  roomId    Int
+  message   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(name: "sent_messages", fields: [userId], references: [id])
+  room      Room      @relation(name: "messages", fields: [roomId], references: [id])
 }

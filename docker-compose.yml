@@ -16,6 +16,8 @@ services:
       - AES_KEY_OTP=${AES_KEY_OTP}
       - NODEMAILER_EMAIL=${NODEMAILER_EMAIL}
       - NODEMAILER_PASS=${NODEMAILER_PASS}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - PGDB=${POSTGRES_DB}
     ports:
       - 3001:3001 #webserver (change this port on prod)
       - 4896:4896 #game socket.io
@@ -25,6 +27,10 @@ services:
     volumes:
       - ./backend:/ft_transcendence-web #maps current host dir to docker working dir
       - ./common:/ft_transcendence-web/src/common
+    # cpu_count: 2
+    # cpu_percent: 50
+    # mem_limit: 1000000000
+    # memswap_limit: 2000000000
 
   db:
     image: postgres:13.4-buster
@@ -55,6 +61,10 @@ services:
     volumes:
       - ./frontend:/ft_transcendence-front #maps current host dir to docker working dir
       - ./common:/ft_transcendence-front/src/common
+    # cpu_count: 2
+    # cpu_percent: 50
+    # mem_limit: 1000000000
+    # memswap_limit: 2000000000
 
 volumes:
   db:

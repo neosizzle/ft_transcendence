@@ -1,13 +1,14 @@
 import React, { FunctionComponent } from "react";
 
 // interface MatchHistoryTableProps {
-	
+
 // }
- 
+
 const TableRow = () => {
-	return <tr>
-	<td
-	className="
+  return (
+    <tr>
+      <td
+        className="
 	text-center text-dark
 	text-base
 	py-5
@@ -15,11 +16,11 @@ const TableRow = () => {
 	bg-[#F3F6FF]
 	border-b border-l border-[#E8E8E8]
 	"
-	>
-	1/1/1111
-	</td>
-	<td
-	className="
+      >
+        1/1/1111
+      </td>
+      <td
+        className="
 	text-center text-dark
 	text-base
 	py-5
@@ -27,11 +28,11 @@ const TableRow = () => {
 	bg-white
 	border-b border-[#E8E8E8]
 	"
-	>
-	MEIMEI_HUNTER1234
-	</td>
-	<td
-	className="
+      >
+        MEIMEI_HUNTER1234
+      </td>
+      <td
+        className="
 	text-center text-dark
 	text-base
 	py-5
@@ -39,11 +40,11 @@ const TableRow = () => {
 	bg-[#F3F6FF]
 	border-b border-[#E8E8E8]
 	"
-	>
-	Classic
-	</td>
-	<td
-	className="
+      >
+        Classic
+      </td>
+      <td
+        className="
 	text-center text-dark
 	text-base
 	py-5
@@ -51,11 +52,11 @@ const TableRow = () => {
 	bg-white
 	border-b border-[#E8E8E8]
 	"
-	>
-	69-420
-	</td>
-	<td
-	className="
+      >
+        69-420
+      </td>
+      <td
+        className="
 	text-center text-dark
 	text-base
 	py-5
@@ -63,11 +64,11 @@ const TableRow = () => {
 	bg-[#F3F6FF]
 	border-b border-[#E8E8E8]
 	"
-	>
-	MEIMEI_HUNTER1234
-	</td>
-	<td
-	className="
+      >
+        MEIMEI_HUNTER1234
+      </td>
+      <td
+        className="
 	text-center text-dark
 	text-base
 	py-5
@@ -75,10 +76,10 @@ const TableRow = () => {
 	bg-white
 	border-b border-r border-[#E8E8E8]
 	"
-	>
-	<a
-		href="javascript:void(0)"
-		className="
+      >
+        <a
+          href=""
+          className="
 		border border-primary
 		py-2
 		px-6
@@ -87,40 +88,37 @@ const TableRow = () => {
 		rounded
 		hover:bg-primary hover:text-white
 		"
-		>
-	Delete
-	</a>
-	</td>
-</tr>
-}
+        >
+          Delete
+        </a>
+      </td>
+    </tr>
+  );
+};
 
 const MatchHistoryTable: FunctionComponent = () => {
-	return ( 
-		<div
-		className = "flex justify-center pt-4"
-		>
-			<div
-			className="w-5/6"
-			>
-				<div
-				className="
+  return (
+    <div className="flex justify-center pt-4">
+      <div className="w-5/6">
+        <div
+          className="
 				pb-1
 				text-lg
 				"
-				>
-					<h1>Match history</h1>
-				</div>
-				{/* <!-- ====== Table Section Start --> */}
-				<section className="bg-white pb-20 sm:pb-0">
-				<div className="container">
-					<div className="flex flex-wrap -mx-4">
-						<div className="w-full px-4">
-							<div className="max-w-full max-h-screen overflow-auto">
-							<table className="table-auto w-full">
-								<thead>
-									<tr className="bg-primary text-center">
-										<th
-										className="
+        >
+          <h1>Match history</h1>
+        </div>
+        {/* <!-- ====== Table Section Start --> */}
+        <section className="bg-white pb-20 sm:pb-0">
+          <div className="container">
+            <div className="flex flex-wrap -mx-4">
+              <div className="w-full px-4">
+                <div className="max-w-full max-h-screen overflow-auto">
+                  <table className="table-auto w-full">
+                    <thead>
+                      <tr className="bg-primary text-center">
+                        <th
+                          className="
 										w-1/6
 										min-w-[160px]
 										text-lg
@@ -133,11 +131,11 @@ const MatchHistoryTable: FunctionComponent = () => {
 										border-l border-transparent
 										bg-slate-400
 										"
-										>
-										Match Date
-										</th>
-										<th
-										className="
+                        >
+                          Match Date
+                        </th>
+                        <th
+                          className="
 										w-1/6
 										min-w-[160px]
 										text-lg
@@ -149,11 +147,11 @@ const MatchHistoryTable: FunctionComponent = () => {
 										lg:px-4
 										bg-slate-400
 										"
-										>
-										Opponent
-										</th>
-										<th
-										className="
+                        >
+                          Opponent
+                        </th>
+                        <th
+                          className="
 										w-1/6
 										min-w-[160px]
 										text-lg
@@ -165,11 +163,11 @@ const MatchHistoryTable: FunctionComponent = () => {
 										lg:px-4
 										bg-slate-400
 										"
-										>
-										Gamemode
-										</th>
-										<th
-										className="
+                        >
+                          Gamemode
+                        </th>
+                        <th
+                          className="
 										w-1/6
 										min-w-[160px]
 										text-lg
@@ -181,11 +179,11 @@ const MatchHistoryTable: FunctionComponent = () => {
 										lg:px-4
 										bg-slate-400
 										"
-										>
-										Score
-										</th>
-										<th
-										className="
+                        >
+                          Score
+                        </th>
+                        <th
+                          className="
 										w-1/6
 										min-w-[160px]
 										text-lg
@@ -197,11 +195,11 @@ const MatchHistoryTable: FunctionComponent = () => {
 										lg:px-4
 										bg-slate-400
 										"
-										>
-										Winner
-										</th>
-										<th
-										className="
+                        >
+                          Winner
+                        </th>
+                        <th
+                          className="
 										w-1/6
 										min-w-[160px]
 										text-lg
@@ -214,41 +212,41 @@ const MatchHistoryTable: FunctionComponent = () => {
 										border-r border-transparent
 										bg-slate-400
 										"
-										>
-										Action
-										</th>
-									</tr>
-								</thead>
-								<tbody>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-									<TableRow/>
-								</tbody>
-							</table>
-							</div>
-						</div>
-					</div>
-				</div>
-				</section>
-				{/* <!-- ====== Table Section End --> */}
-			</div>
-		</div>
-	);
-}
- 
+                        >
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                      <TableRow />
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        {/* <!-- ====== Table Section End --> */}
+      </div>
+    </div>
+  );
+};
+
 export default MatchHistoryTable;

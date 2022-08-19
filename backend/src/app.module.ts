@@ -1,19 +1,27 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
+import { Module } from "@nestjs/common";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
 import { GameEventsModule } from './game/events/events.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { UsersModule } from './users/users.module';
-import { FriendsModule } from './friends/friends.module';
-import { BlocksModule } from './blocks/blocks.module';
-import { BucketModule } from './bucket/bucket.module';
-import { MulterModule } from '@nestjs/platform-express';
-import { OtpModule } from './otp/otp.module';
+import { PrismaModule } from "./prisma/prisma.module";
+import { ChatModule } from "./chat/chat/chat.module";
+import { UsersModule } from "./users/users/users.module";
+import { BucketModule } from "./bucket/bucket.module";
+import { OtpModule } from "./otp/otp.module";
+import { MailService } from "./mail/mail.service";
+import { MailModule } from "./mail/mail.module";
+import { ConfigService } from "@nestjs/config";
 
 @Module({
-  imports: [AuthModule, GameEventsModule, PrismaModule, UsersModule, FriendsModule, BlocksModule, BucketModule, OtpModule],
+  imports: [
+    GameEventsModule,
+    PrismaModule,
+    BucketModule,
+    OtpModule,
+    MailModule,
+    ChatModule,
+    UsersModule,
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, MailService, ConfigService],
 })
 export class AppModule {}

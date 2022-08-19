@@ -15,3 +15,6 @@
 ```docker exec -it ft_transcendence-web npx prisma <command>```  -- if u want run prisma command (migrate, launch prisma studio etc etc)
 
 ```docker exec -it ft_transcendence-web npm run test:e2e``` -- to run end to end tests
+
+
+https://documenter.getpostman.com/view/15157455/Uzs8Ti9c -- documentation api
