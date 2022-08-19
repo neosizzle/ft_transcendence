@@ -1,10 +1,27 @@
 import React from 'react';
-import io, { Socket } from 'socket.io-client';
+import { Socket } from 'socket.io-client';
 
 import Canvas, { QueueInfo } from './Canvas';
 import Pong, { GameInterface, GameState } from '../common/game/Pong';
 import KeyPressMonitor from '../common/game/KeyPressMonitor';
+import { useAuth, AuthCtx } from '../context/authContext';
 
+
+// this code is needed so as to get useAuth Hook to work with Game class
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const useAuthHOC = (Component: any) => {
+	// eslint-disable-next-line react/display-name
+	return (props: any) => {
+		const auth = useAuth();
+		
+		return <Component auth={auth} {...props} />;
+	};
+};
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+interface authProps {
+	auth: AuthCtx | null
+}
 
 interface ReactGameState {
 	queue: QueueInfo
@@ -17,14 +34,14 @@ This class is the GameClient.
 There are possibly two types of clients: player or spectator.
 Players can control their own game, spectators can only view the game.
 */
-class Game extends React.Component <unknown, ReactGameState> {
+class Game extends React.Component <authProps, ReactGameState> {
 	player: Set<number> = new Set<number>();
-	socket?: Socket;
+	socket?: Socket | null;
 	keypress: KeyPressMonitor | null = null;
 	game: GameInterface;
 	latency = 0;
 	
-	constructor(props: unknown) {
+	constructor(props: authProps) {
 		super(props);
 		this.state = {
 			queue: {
@@ -40,8 +57,13 @@ class Game extends React.Component <unknown, ReactGameState> {
 		};
 		
 		this.game = new Pong(400, 300);
-		this.socket = io("http://localhost:3001/game");  // change for production
+		this.socket = props.auth?.gameSocket;
 		this.socket_handlers();	// initialise socket message handlers
+		this.getQueue();
+		this.getGameType();
+		this.keypress = KeyPressMonitor.get_instance(
+							this.onKeyDown.bind(this),
+							this.onKeyUp.bind(this));
 		
 		// calculate connection latency every 1 second
 		setInterval(() => {
@@ -58,12 +80,6 @@ class Game extends React.Component <unknown, ReactGameState> {
 		// 'connect' event is fired upon connection the the Namespace
 		this.socket?.on('connect', () => {
 			console.log('Connected');
-			this.getQueue();
-			this.getGameType();
-			// keypress monitor is created if connection is made
-			this.keypress = KeyPressMonitor.get_instance(
-								this.onKeyDown.bind(this),
-								this.onKeyUp.bind(this));
 		});
 		
 		// server asks client to join a game
@@ -187,4 +203,4 @@ class Game extends React.Component <unknown, ReactGameState> {
 	}
 }
 
-export default Game;
+export default useAuthHOC(Game);

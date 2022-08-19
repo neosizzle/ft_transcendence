@@ -39,7 +39,13 @@ function App() {
                 </Protected>
               }
             />
-            <Route path="/game" element={<Game />} />
+            <Route path="/game"
+              element={
+                <Protected>
+                  <Game />
+                </Protected>
+              }
+            />
             <Route
               path="/users/*"
               element={

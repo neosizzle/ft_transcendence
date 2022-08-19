@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import React from "react";
 import { API_ROOT, TOKEN_KEY, WS_ROOT } from "../constants";
 import { auth_net_get, net_get } from "../utils";
@@ -10,6 +10,8 @@ const authEndpoint = `${API_ROOT}/auth/authenticate`;
 const userEndpoint = `${API_ROOT}/users/me`;
 const logoutEndpoint = `${API_ROOT}/auth/logout`;
 const chatWsEndpoint = `${WS_ROOT}/ws/chat`;
+const gameWsEndpoint = `${WS_ROOT}/game`;
+
 
 export interface User {
   id: number;
@@ -32,6 +34,7 @@ export interface AuthCtx {
   // user : User | string | null,
   user: User | null;
   chatSocket: Socket | null;
+  gameSocket: Socket | null;
   login: (code?: string | null) => void;
   logout: () => void;
   reset: () => void;
@@ -43,10 +46,12 @@ export const AuthProvider = (props: Props) => {
   // const [user, setUser] = useState<User | string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [chatSocket, setChatSocket] = useState<Socket | null>(null);
+  const [gameSocket, setGameSocket] = useState<Socket | null>(null);
 
   const login = async (code?: string | null) => {
     // alert(code) // uncomment this to obtain the code for backend testing. Usable only once.
     if (!code) {
+      /* CODE DUPLICATION. TO DO: REFACTOR */
       const user = await auth_net_get(userEndpoint);
       const socketio = io(chatWsEndpoint, {
         extraHeaders: {
@@ -57,6 +62,15 @@ export const AuthProvider = (props: Props) => {
         socketio.emit("authHandshake");
       });
       setChatSocket(socketio);
+      
+       // set game socket
+       const gameio = io(gameWsEndpoint, {
+        extraHeaders: {
+          Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
+      });
+      setGameSocket(gameio);
+      
       setUser(user);
       return;
     }
@@ -70,6 +84,15 @@ export const AuthProvider = (props: Props) => {
       socketio.emit("authHandshake");
     });
     setChatSocket(socketio);
+    
+    // set game socket
+    const gameio = io(gameWsEndpoint, {
+        extraHeaders: {
+          Authorization: `Bearer ${data.data.token}`,
+        },
+    });
+    setGameSocket(gameio);
+    
     localStorage.setItem(TOKEN_KEY, data.data.token);
     const res = await auth_net_get(userEndpoint);
     setUser(res);
@@ -86,7 +109,8 @@ export const AuthProvider = (props: Props) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, reset, chatSocket }}>
+    <AuthContext.Provider
+        value={{ user, login, logout, reset, chatSocket, gameSocket }}>
       {props.children}
     </AuthContext.Provider>
   );
