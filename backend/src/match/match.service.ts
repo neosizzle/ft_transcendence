@@ -9,6 +9,8 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { ListObject, ListQuery, validateListquery } from "src/utils";
 import { MatchDto } from "./dto";
 
+const RANK_CONST_GAIN = 42;
+
 /**
  * Transforms string values into values of their specific type
  *
@@ -155,11 +157,53 @@ export class MatchService {
     if (dto.winnerId !== dto.playerId0 && dto.winnerId !== dto.playerId1)
       throw new BadRequestException("Invalid winner");
 
+    // set winner user 
+    let winner : User;
+    let loser : User;
+    if (dto.winnerId === user.id)
+    {
+      winner = user;
+      loser = otherUser;
+    }
+    else{
+      winner = otherUser;
+      loser = user;
+    }
+
+    // Formula for new ranking calculation: (rank of losing player / rank of winning player) * 42 (constant) * ((score difference/100) + 1) Cred. Wallyboy
+    // update winner ranking and winloss
+    const rankGain = loser.ranking / winner.ranking * RANK_CONST_GAIN * (Math.abs(dto.playerScore0 - dto.playerScore1) + 1);
+
+    try {
+      await this.prisma.user.update({
+        where : {
+          id : winner.id
+        },
+        data : {
+          ranking : winner.ranking + rankGain,
+          wins : winner.wins + 1
+        }
+      })
+
+      await this.prisma.user.update({
+        where : {
+          id : loser.id
+        },
+        data : {
+          ranking : loser.ranking - rankGain,
+          losses : loser.losses + 1
+        }
+      })
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
+    }
+
     // add to db
     try {
       const res = await this.prisma.match.create({
         data: dto,
-      });
+      });      
       return res;
     } catch (error) {
       console.error(error);
