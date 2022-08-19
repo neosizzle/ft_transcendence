@@ -6,7 +6,8 @@ import { UniqueQueue } from './queue';
 
 export type QueueInfo =  {
 	position: number[],
-	size: number[]
+	size: number[],
+	player: string[],
 }
 
 export default class GameServer {
@@ -160,6 +161,9 @@ export default class GameServer {
 		const retval = {
 			position: this.queues.map((queue) => queue.indexOf(client)),
 			size: this.queues.map((queue) => queue.size()),
+			player: this.queues.map(
+				(queue) => queue.front() ? queue.front().id : ""
+			),
 		}
 		
 		// if client is the current player, ask it to join game

@@ -6,7 +6,20 @@ import './Canvas.css';
 
 export type QueueInfo =  {
 	position: number[],
-	size: number[]
+	size: number[],
+	player: string[],
+}
+
+function PlayerName(props: any) {
+	const id: string = props.queue.player[props.index];
+	return (
+		<button
+			className="user_button"
+			style={props.style}
+		>
+			{id ? id: "awating player"}
+		</button>
+		);
 }
 
 type ButtonProps = {
@@ -82,7 +95,7 @@ interface CanvasProps {
 	height: number,
 	style: object,
 	game: GameInterface,
-	queue: {position: number[], size: number[]};
+	queue: {position: number[], size: number[], player: string[]};
 	joinQuitClick: (n: number) => void;
 	deleteSocket: () => void;
 	setGameType: (type: boolean) => void;
@@ -153,6 +166,20 @@ export default class Canvas extends React.Component<CanvasProps> {
 					style={this.props.style}
 				/>
 				</div>
+				<div>
+					<PlayerName
+						style={{float: "left"}}
+						index={0}
+						queue={this.props.queue}
+					/>
+					
+					<PlayerName
+						style={{float: "right"}}
+						index={1}
+						queue={this.props.queue}
+					/>
+				</div>
+				<div className="space"></div>
 				<div className="button_div">
 					<Button style={{float: "left"}}
 						onClick={() => this.props.joinQuitClick(0)}

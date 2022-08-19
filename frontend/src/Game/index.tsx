@@ -46,7 +46,8 @@ class Game extends React.Component <authProps, ReactGameState> {
 		this.state = {
 			queue: {
 				position: Array(2).fill(-1),
-				size: Array(2).fill(0)
+				size: Array(2).fill(0),
+				player: Array(2).fill(null),
 			},
 			gameType: false,
 			gameState: {
