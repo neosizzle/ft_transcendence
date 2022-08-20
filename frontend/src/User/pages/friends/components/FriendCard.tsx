@@ -1,8 +1,10 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { User } from "../../../../context/authContext";
+import { useAuth, User } from "../../../../context/authContext";
 import { FriendShip } from "../Friends";
 import { IngameBadge, OfflineBadge, OnlineBadge } from "../../../common/Badges";
+import { BaseWSResponse } from "../../../../Chat/classes";
+import { ERR, INCOMING_STATUS_UPDATE } from "../../../../constants";
 
 interface FriendCardProps {
   friendship?: FriendShip;
@@ -17,6 +19,27 @@ const FriendCard: FunctionComponent<FriendCardProps> = ({
   setCurrRemovingUser,
 }) => {
   const [userToDisplay, setUserToDisplay] = useState<User | null>(null);
+  const auth = useAuth();
+
+  // update user status
+  const handleUserUpdate = (data: User) => {
+    if (data.id === userToDisplay?.id) setUserToDisplay(data);
+  };
+
+  const handleErr = (data: BaseWSResponse) => {
+    alert(data.message);
+  };
+
+  useEffect(() => {
+    if (!auth?.userSocket) return;
+
+    auth.userSocket.on(INCOMING_STATUS_UPDATE, handleUserUpdate);
+    auth.userSocket.on(ERR, handleErr);
+    return () => {
+      auth?.userSocket?.off(INCOMING_STATUS_UPDATE, handleUserUpdate);
+      auth?.userSocket?.off(ERR, handleErr);
+    };
+  }, [auth]);
 
   useEffect(() => {
     if (friendship?.userId === currUser?.id)

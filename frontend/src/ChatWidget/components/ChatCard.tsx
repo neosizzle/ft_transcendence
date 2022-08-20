@@ -1,5 +1,8 @@
 import React, { FunctionComponent } from "react";
 import { Message } from "../../Chat/classes";
+import { useAuth } from "../../context/authContext";
+
+const INV_STR = "/invite";
 
 interface ChatCardProps {
   message: Message;
@@ -12,14 +15,21 @@ const ChatCard: FunctionComponent<ChatCardProps> = ({
   floatRight,
   system,
 }) => {
+  const auth = useAuth();
+  const isInvite = message.message.startsWith(INV_STR);
+
   return (
     <div
       className={`py-5 ${
-        floatRight ? "text-right" : system ? "text-center" : "text-left"
+        system || isInvite ? "text-center" : floatRight ? "text-right" : "text-left"
       }`}
     >
       {" "}
-      {floatRight ? (
+      {isInvite ? (
+        <span className="text-sm text-gray-400">
+          Invite for {auth?.user?.id}
+        </span>
+      ) : floatRight ? (
         message.message
       ) : system ? (
         <span className="text-sm text-gray-400">{message.message}</span>

@@ -60,7 +60,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   handleConnection(client: Socket) {
     // return ack
-    this.logger.log("new incoming conn")
     client.emit("connection accepted", client.handshake);
   }
 
@@ -71,11 +70,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleDisconnect(client: Socket) {
     // remove from client list
     this.clients = this.clients.filter((e) => client.id !== e.socketId);
-
-    this.logger.log("DC CLIENT - current clients :");
-    this.clients.forEach((_client) =>
-      this.logger.log(`socketId ${_client.socketId}, userId ${_client.userId}`)
-    );
   }
 
   /**
@@ -98,11 +92,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     members.forEach((member) => {
       client.join(member.roomId.toString());
     });
-
-    this.logger.log("NEW CLIENT CONNETED - current clients :");
-    this.clients.forEach((_client) =>
-      this.logger.log(`socketId ${_client.socketId}, userId ${_client.userId}`)
-    );
   }
 
   // TODO work with edi for owner transfer and admin promotion/demotion

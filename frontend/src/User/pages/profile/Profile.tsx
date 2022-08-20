@@ -5,8 +5,9 @@ import MatchHistoryTable from "../../common/MatchHistoryTable";
 import moment from "moment";
 import { useLocation, useNavigate } from "react-router-dom";
 import { auth_net_get } from "../../../utils";
-import { API_ROOT } from "../../../constants";
+import { API_ROOT, ERR, INCOMING_STATUS_UPDATE, OUTGOING_MSG, OUTGOING_STATUS_UPDATE } from "../../../constants";
 import { IngameBadge, OfflineBadge, OnlineBadge } from "../../common/Badges";
+import { BaseWSResponse } from "../../../Chat/classes";
 
 const userEndpoint = `${API_ROOT}/users?page=1&pageSize=1`;
 
@@ -49,6 +50,26 @@ const Profile: FunctionComponent = () => {
   const [user, setUser] = useState<User | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // update user status
+  const handleUserUpdate = (data: User) => {
+    if (data.id === user?.id) setUser(data);
+  };
+
+  const handleErr = (data: BaseWSResponse) => {
+    alert(data.message);
+  };
+
+  useEffect(() => {
+    if (!auth?.userSocket) return;
+
+    auth.userSocket.on(INCOMING_STATUS_UPDATE, handleUserUpdate);
+    auth.userSocket.on(ERR, handleErr);
+    return () => {
+      auth?.userSocket?.off(INCOMING_STATUS_UPDATE, handleUserUpdate);
+      auth?.userSocket?.off(ERR, handleErr);
+    };
+  }, [auth]);
 
   useEffect(() => {
     const id = location.pathname.substring(
@@ -183,9 +204,7 @@ const Profile: FunctionComponent = () => {
             <div className=" grid sm:grid-cols-3 grid-cols-2 gap-4">
               <div className="sm:h-full sm:w-full rounded bg-slate-300 m-2 text-center">
                 <div className="mx-auto">Rank</div>
-                <div className="font-bold">
-                  {user.ranking}
-                </div>
+                <div className="font-bold">{user.ranking}</div>
               </div>
 
               <div className="sm:h-full sm:w-full rounded bg-slate-300 m-2 text-center">
@@ -194,11 +213,8 @@ const Profile: FunctionComponent = () => {
                   {user.losses ? user.wins / user.losses : user.wins}
                 </div>
               </div>
-
+              
             </div>
-            {/* Ranking : {user.ranking}
-            Wins : {user.wins}
-            Losses : {user.losses} */}
           </div>
         </div>
       </div>
