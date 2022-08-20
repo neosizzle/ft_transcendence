@@ -1,68 +1,62 @@
-import React, { useState } from 'react';
-import { auth_net_post } from '../utils';
+import React, { useState, useEffect } from 'react';
+import { API_ROOT } from '../constants';
+import { auth_net_get, auth_net_post } from '../utils';
+import { Message } from "./classes";
+
+const chatEndpoint = `${API_ROOT}/chat`;
 
 function Chat() {
 	const [currentMessage, setCurrentMessage] = useState('');
+	// const [totalChats, setTotalChats] = useState(0); // total chat elemnts
+	const [messages, setMessages] = useState<Message[] | null>(null); // The chat
+
+	useEffect(() => {
+		auth_net_get(
+			`${chatEndpoint}?page=1&pageSize=50&filterOn=roomId&filterBy=1&sortBy=Ascending&sortOn=createdAt`
+		).then((data) => {
+			const chats = data.data;
+			const msgsArr: Message[] = [];
+			chats.forEach((chat: Message) => {
+				msgsArr.push(chat);
+			});
+			setMessages(msgsArr);
+		});
+	});
 
 	const sendMessage = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		if (currentMessage !== "") {
-			const jsonData = {
-				"UserID": 1213,
-				"timestamp": "2022-04-23T18:25:43.511Z",
-				"message": "This works too nice"
-			}
-			fetch("http://localhost:3001/chat", {
-				method : 'POST',
-				body: JSON.stringify(jsonData),
-				headers : {'Content-Type' : 'application/json'}
-			})
-			.then((e)=>{
-				return e.json()
-			})
-			.then((data) => console.log(data))
-			.catch(e=>console.log(e))
-			// auth_net_post("http://localhost:3001/chat", jsonData)
-			// .then((e)=>console.log(e))
-			// const messageData = {
-			// 	userID: 5,
-			// 	message: currentMessage,
-			// 	timestamp: new Date(Date.now())
-			// };
-			// try {
-			// 	const res = await postMessage("/chat", messageData);
-			// } catch (err) {
-			// 	console.log(err);
-			// }
+			const dto = {
+				//How to get the current user?
+				userId: 1,
+				roomId: 1,
+				message: `${currentMessage}`,
+			};
+			auth_net_post(
+				`${chatEndpoint}`, dto
+			)
+				.then((data) => console.log(data))
+				.catch(e => console.log(e))
 			console.log("Hi");
+			ClearInput();
 		}
 	};
 	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setCurrentMessage(event.target.value);
 	};
-	// const ClearInput = () => {
-		// 👇️ clear input value
-		// setCurrentMessage('');
-	// };
-	// function sendMessage(event: React.FormEvent<HTMLFormElement>) {
-	// 	event.preventDefault();
-	// 	const element = document.getElementById("chat");
-	// 	const message = (document.getElementById("message") as HTMLInputElement).value;
-	// 	if (element && message) {
-	// 		element.innerHTML += message;
-	// 		element.innerHTML += '<br>';
-	// 	}
-	// 	ClearInput();
-	// }
+	const ClearInput = () => {
+	// 👇️ clear input value
+	setCurrentMessage('');
+	};
 
 	return (
 		<>
 			<div>
 				<h1 className='text-5xl' id="MyHeader">Chat</h1>
 			</div>
-			<p id="chat" className='h-96'></p>
+			<div className='h-96'>{messages?.map(message => <p key={message.id}>{message.message}</p>)}</div>
 			<form onSubmit={(sendMessage)} className="Chat">
-				<input type="text" className="w-fit mt-10 border-2" placeholder="Say something..." id="message" onChange={handleChange} value={currentMessage}/>
+				<input type="text" className="w-fit mt-10 border-2" placeholder="Say something..." id="message" onChange={handleChange} value={currentMessage} />
 			</form>
 		</>
 	);
