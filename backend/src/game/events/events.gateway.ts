@@ -1,3 +1,4 @@
+import { UseGuards } from "@nestjs/common";
 import {
 	OnGatewayConnection,
 	OnGatewayDisconnect,
@@ -9,10 +10,11 @@ import {
 	WebSocketServer,
 	} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-
 import GameServer, { QueueInfo } from '../server'
+import { AuthGuard } from "src/users/auth/guard";
 
 
+@UseGuards(AuthGuard)
 @WebSocketGateway({
 	cors: {
 		origin: '*',	// change this for production
