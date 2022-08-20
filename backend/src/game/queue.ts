@@ -1,4 +1,12 @@
-export default class Queue<T> {
+interface IQueue<T> {
+	empty(): boolean;
+	size(): number;
+	front(): T;
+	back(): T;
+	pop(): void;
+}
+
+export default class Queue<T> implements IQueue<T> {
 	protected arr = new Array<T>(0);
 	
 	// Returns whether the queue is empty: i.e. whether its size is zero.
@@ -86,5 +94,83 @@ export class UniqueQueue<T> extends Queue<T> {
 		}
 		this.elem.delete(val);
 		return retval;
+	}
+}
+
+
+// Simplified implementation of C++ std::pair
+class Pair<T1, T2> {
+	first: T1;
+	second: T2;
+	
+	constructor(key: T1, val: T2) {
+		this.first = key;
+		this.second = val;
+	}
+}
+
+
+export class UniqueKeyValueQueue<Key, T> implements IQueue<Pair<Key, T>> {
+	private queue = new Queue<Key>();
+	private map = new Map<Key, T>();
+	
+	// Returns whether the queue is empty: i.e. whether its size is zero.
+	empty(): boolean {
+		return this.queue.empty();
+	}
+	
+	// Returns the number of elements in the queue.
+	size(): number {
+		return this.queue.size();
+	}
+	
+	// Returns the next element in the queue.
+	front(): Pair<Key, T> {
+		const key: Key = this.queue.front();
+		if (key != null)
+			return new Pair(key, this.map.get(key));
+		else
+			return undefined;
+	}
+	
+	// Returns the last element pushed into the queue.
+	back(): Pair<Key, T> {
+		const key: Key = this.queue[this.size() - 1];
+		if (key != null)
+			return new Pair(key, this.map.get(key));
+		else
+			return undefined;
+	}
+	
+	// Inserts a new element at the end of the queue if it doesn't exist.
+	push(key: Key, val: T): void {
+		if (this.map.has(key))	// don't allow to add to map
+			return ;
+		this.map.set(key, val);
+		this.queue.push(key);
+	}
+	
+	// Removes the next element in the queue, reducing its size by one.
+	pop(): void {
+		const key: Key = this.queue.front();
+		if (key != null) {
+			this.map.delete(key);
+			this.queue.pop();
+		}
+	}
+	
+	// Removes element 'key' from the queue, and returns the number of elements
+	// erased.
+	erase(key: Key): number {
+		if (this.map.has(key) == false)
+			return 0;
+		this.map.delete(key);
+		return this.queue.erase(key);
+	}
+	
+	// Returns the first (least) index of an element within the array equal to
+	// the specified value, or -1 if none is found.
+	indexOf(key: Key): number {
+		return this.queue.indexOf(key);
 	}
 }
