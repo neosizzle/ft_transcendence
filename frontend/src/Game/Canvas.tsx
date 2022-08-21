@@ -97,7 +97,6 @@ interface CanvasProps {
 	game: GameInterface,
 	queue: {position: number[], size: number[], player: string[]};
 	joinQuitClick: (n: number) => void;
-	deleteSocket: () => void;
 	setGameType: (type: boolean) => void;
 	gameType: boolean;
 	gameState: GameState;
@@ -151,8 +150,6 @@ export default class Canvas extends React.Component<CanvasProps> {
 	componentWillUnmount() {
 		// cancel animation frame to prevent leak
 		window.cancelAnimationFrame(this.animationID);
-		// remove old socket
-		this.props.deleteSocket();
 	}
 	
 	render() {

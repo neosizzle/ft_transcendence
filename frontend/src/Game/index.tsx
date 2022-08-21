@@ -170,11 +170,6 @@ class Game extends React.Component <authProps, ReactGameState> {
 		});
 	}
 	
-	deleteSocket(): void {
-		this.socket?.disconnect();
-		delete this.socket;
-	}
-	
 	setGameType(type: boolean) {
 		this.setState({gameType: type});
 		this.socket?.emit('set_game_type', type);
@@ -198,7 +193,6 @@ class Game extends React.Component <authProps, ReactGameState> {
 			game={this.game}
 			queue={this.state.queue}
 			joinQuitClick={this.joinQuitClick.bind(this)}
-			deleteSocket={this.deleteSocket.bind(this)}
 			setGameType={this.setGameType.bind(this)}
 			gameType={this.state.gameType}
 			gameState={this.state.gameState}
