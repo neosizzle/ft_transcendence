@@ -3,6 +3,9 @@ import { Socket, Server } from 'socket.io';
 import Pong, { GameInterface } from '../common/game/Pong';
 import { KeyPressMonitorBase } from '../common/game/KeyPressMonitor';
 import { UniqueKeyValueQueue } from './queue';
+import { UsersService } from 'src/users/users/users.service';
+import { UserStatus } from '@prisma/client';
+
 
 export type QueueInfo =  {
 	position: number[],
@@ -12,6 +15,7 @@ export type QueueInfo =  {
 
 export default class GameServer {
 	server: Server;
+	usersService: UsersService;
 	queues: UniqueKeyValueQueue<string, Socket>[] = [
 		new UniqueKeyValueQueue<string, Socket>(),
 		new UniqueKeyValueQueue<string, Socket>()
@@ -19,8 +23,9 @@ export default class GameServer {
 	keypress: KeyPressMonitorBase;
 	game: GameInterface;
 	
-	constructor(server: Server) {
+	constructor(server: Server, usersService: UsersService) {
 		this.server = server;
+		this.usersService = usersService;
 		this.keypress = new KeyPressMonitorBase();
 		this.game = new Pong(400, 300,
 			this.updateClient.bind(this), this.onGameEnd.bind(this));
@@ -42,6 +47,12 @@ export default class GameServer {
 		const id: string = client.handshake.auth.user.id;
 		queue.push(id, client);
 		const index: number = queue.indexOf(id);
+		// set client status as INGAME if he is a current player
+		if (index == 0) {
+			this.usersService.patchMe(
+				client.handshake.auth.user, {status: UserStatus.INGAME}
+			)
+		}
 		console.log(`client ${id} joined queue ${n} at index ${index}`);
 		this.server.emit("updateQueue");	// ask clients to update queue info
 		return index;
@@ -148,6 +159,12 @@ export default class GameServer {
 			this.game.unset_player(n);  // remove player from current game
 			if (queue.size() > 0) {
 				const client: Socket = queue.front().second;
+				
+				// change user status from INGAME to LOGGEDIN
+				this.usersService.patchMe(
+					client.handshake.auth.user, {status: UserStatus.LOGGEDIN}
+				)
+				
 				client.emit('unjoin', n);	// unjoin as player n
 				queue.pop();
 			}
@@ -159,8 +176,12 @@ export default class GameServer {
 		// ask the next players in the queue to join
 		for (let n = 0; n < this.queues.length; ++n) {
 			const client: Socket = this.queues[n].front()?.second
-			if (client != null)
+			if (client != null) {
 				client.emit("join", n)
+				this.usersService.patchMe(
+					client.handshake.auth.user, {status: UserStatus.INGAME}
+				)
+			}
 		}
 	}
 	
@@ -178,9 +199,12 @@ export default class GameServer {
 		
 		// if client is the current player, ask it to join game
 		for (let i = 0; i < retval.position.length; ++i)
-			if (retval.position[i] == 0)
+			if (retval.position[i] == 0) {
 				client.emit('join', i)	// ask client to join as player i
-		
+				this.usersService.patchMe(
+					client.handshake.auth.user, {status: UserStatus.INGAME}
+				)
+			}
 		return retval;
 	}
 	

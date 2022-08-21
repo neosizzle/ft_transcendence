@@ -9,6 +9,7 @@ import {
 	WebSocketGateway,
 	WebSocketServer,
 	} from '@nestjs/websockets';
+import { UsersService } from 'src/users/users/users.service';
 import { Server, Socket } from 'socket.io';
 import GameServer, { QueueInfo } from '../server'
 import { AuthGuard } from "src/users/auth/guard";
@@ -28,8 +29,10 @@ export class GameEventsGateway
 	clients: Set<Socket> = new Set();
 	game_server: GameServer;
 	
+	constructor(private usersService: UsersService) {}
+	
 	afterInit(): void {
-		this.game_server = new GameServer(this.server)
+		this.game_server = new GameServer(this.server, this.usersService);
 	}
 	
 	// records a connected client. This happens whenever a socket connection
