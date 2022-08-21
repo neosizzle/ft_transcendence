@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as Nodemailer from "nodemailer";
 
@@ -8,7 +8,8 @@ export class MailService {
 
   from = this.config.get("NODEMAILER_EMAIL");
   password = this.config.get("NODEMAILER_PASS");
-
+  logger: Logger = new Logger(MailService.name);
+  
   async sendEmail(to: string, content: string, subject: string) {
     // create reusable transporter object using the default SMTP transport
     const transporter = Nodemailer.createTransport({
@@ -26,7 +27,6 @@ export class MailService {
       subject: subject, // Subject line
       text: content, // plain text body
     });
-
-    console.log("Message sent: %s", info.messageId);
+    this.logger.log("Message sent: "+ info.messageId)
   }
 }

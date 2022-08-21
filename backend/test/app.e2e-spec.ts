@@ -10,6 +10,7 @@ import runOTPTests from "./otp/otp.e2e-spec";
 import runRoomTests from "./chat/room.e2e-spec";
 import runMemberTests from "./chat/member.e2e-spec";
 import runAdminTests from "./chat/admin.e2e-spec";
+import runMatchesTests from "./matches/matches.e2e-spec";
 
 describe("App (e2e)", () => {
   let app: INestApplication;
@@ -96,6 +97,7 @@ describe("App (e2e)", () => {
   runRoomTests(pactum);
   runMemberTests(pactum);
   runAdminTests(pactum);
+  runMatchesTests(pactum);
 
   describe("Auth logout ", () => {
     it(`/auth/logout (GET)`, () => {

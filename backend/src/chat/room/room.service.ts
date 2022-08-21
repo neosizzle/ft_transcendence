@@ -147,7 +147,7 @@ export class RoomService {
     );
 
     // delete passwords
-    res.forEach((e) => delete e.password)
+    res.forEach((e) => delete e.password);
     return { data: res, total_elements };
   }
 
@@ -166,7 +166,6 @@ export class RoomService {
     let initUsers: string[] = [];
     if (dto.initialUsers) {
       initUsers = dto.initialUsers.split(",");
-
 
       //verify that all init users exist
       for (let index = 0; index < initUsers.length; index++) {
@@ -246,7 +245,7 @@ export class RoomService {
       // add self to user if self userid is not in init users
       if (!initUsers.includes(user.id.toString()))
         payload.push({ userId: user.id, roomId: res.id });
-        
+
       initUsers.forEach((e) =>
         payload.push({
           userId: parseInt(e),

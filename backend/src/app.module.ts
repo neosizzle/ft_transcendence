@@ -10,6 +10,7 @@ import { OtpModule } from "./otp/otp.module";
 import { MailService } from "./mail/mail.service";
 import { MailModule } from "./mail/mail.module";
 import { ConfigService } from "@nestjs/config";
+import { MatchModule } from './match/match.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ConfigService } from "@nestjs/config";
     MailModule,
     ChatModule,
     UsersModule,
+    MatchModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailService, ConfigService],

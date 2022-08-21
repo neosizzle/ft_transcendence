@@ -269,7 +269,7 @@ const runMemberTests = (pactum: any) => {
         .expectBodyContains("error");
     });
 
-    it("/members (DELETE) leave", async () => {
+    it("/members (DELETE) kick", async () => {
       const room = await prisma.room.findFirst({
         where: {
           isProtected: true,
@@ -279,10 +279,6 @@ const runMemberTests = (pactum: any) => {
         where: {
           intraName: "tes",
         },
-      });
-      await prisma.room.update({
-        where: { id: room.id },
-        data: { ownerId: user.id },
       });
       const member = await prisma.member.findFirst({
         where: { userId: user.id, roomId: room.id },

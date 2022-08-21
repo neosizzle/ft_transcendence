@@ -1,4 +1,4 @@
-import { cloneDeep } from "lodash";
+import { clone, cloneDeep, last } from "lodash";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -13,7 +13,8 @@ import { useAuth } from "../context/authContext";
 import { useChatWidget } from "../context/chatWidgetContext";
 import ChatWindow from "./ChatWindow";
 
-const PAGE_SIZE = 4;
+const ROOMS_PAGE_SIZE = 4;
+const CHAT_PAGE_SIZE = 10;
 const ChatIcon: FunctionComponent = () => {
   return (
     <svg
@@ -64,7 +65,7 @@ const ChatWidget: FunctionComponent = () => {
       const newMessages = cloneDeep(
         widget?.activeRoomMessagesRef.current as Message[]
       );
-      newMessages.pop();
+      if (newMessages.length === CHAT_PAGE_SIZE)  newMessages.pop();
       newMessages.unshift(data);
       widget?.setActiveRoomMessages(newMessages);
 
@@ -72,8 +73,9 @@ const ChatWidget: FunctionComponent = () => {
       const lastMessages = cloneDeep(
         widget.lastMessagesRef.current as Message[]
       );
-      const lastMsgIdx = lastMessages.findIndex(
-        (e) => e?.roomId === data.roomId
+      const rooms = cloneDeep( widget.roomsRef.current as Room[]);
+      const lastMsgIdx = rooms.findIndex(
+        (e) => e?.id === data.roomId
       );
       lastMessages[lastMsgIdx] = data;
       widget.setLastMessages(lastMessages);
@@ -110,7 +112,7 @@ const ChatWidget: FunctionComponent = () => {
       // add into roomlsit of roomlist has space
       if (
         widget?.roomsRef.current &&
-        widget?.roomsRef.current?.length < PAGE_SIZE
+        widget?.roomsRef.current?.length < ROOMS_PAGE_SIZE
       ) {
         const rooms = cloneDeep(widget?.roomsRef.current as Room[]);
         const lastMsgs = cloneDeep(
@@ -147,8 +149,6 @@ const ChatWidget: FunctionComponent = () => {
    * 2. If not self, update member list
    */
   const handleKick = (data: Member) => {
-    // console.log(data);
-    // alert("KICKED " + data.message);
     if (data.userId == auth?.user?.id) {
       const newRooms = widget?.roomsRef.current?.filter(
         (e) => e.id !== data.roomId
