@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate, NavigateFunction } from "react-router-dom";
 import { Socket } from 'socket.io-client';
 
 import Canvas, { QueueInfo } from './Canvas';
@@ -19,8 +20,18 @@ const useAuthHOC = (Component: any) => {
 };
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+const useNavigateHOC = (Component: any) => {
+	// eslint-disable-next-line react/display-name
+	return (props: any) => {
+		const navigate = useNavigate();
+		
+		return <Component navigate={navigate} {...props} />;
+	};
+};
+
 interface authProps {
 	auth: AuthCtx | null
+	navigate: NavigateFunction
 }
 
 interface ReactGameState {
@@ -106,9 +117,7 @@ class Game extends React.Component <authProps, ReactGameState> {
 			this.setState({gameType: type});
 		})
 		
-		this.socket?.on('exception', function(data) {
-			console.log('event', data);
-		});
+		this.socket?.on('exception', this.handleError.bind(this));
 		
 		this.socket?.on('disconnect', () => {
 			console.log('Disconnected');
@@ -122,6 +131,10 @@ class Game extends React.Component <authProps, ReactGameState> {
 		this.socket?.on("updateQueue", () => {
 			this.getQueue()
 		});
+	}
+	
+	handleError(): void {
+		this.props.navigate("/login");
 	}
 	
 	// callback function to be called by KeyPressMonitor class
@@ -204,4 +217,4 @@ class Game extends React.Component <authProps, ReactGameState> {
 	}
 }
 
-export default useAuthHOC(Game);
+export default useAuthHOC(useNavigateHOC(Game));
