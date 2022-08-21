@@ -22,7 +22,7 @@ export interface GameInterface {
 	get_state(): GameState;	// get the state of the game
 	set_type(type: boolean): void;	// set game type
 	updateClient?: () => void;	// callback function to update game state to clients
-	onGameEnd?: () => void;	// callback function to be run on game end
+	onGameEnd?: (winner?: number) => void;	// callback function to be run on game end
 }
 
 // class representing the Pong game
@@ -308,7 +308,7 @@ export default class Pong implements GameInterface {
 
 
 class ScoreBoard{
-	onGameEnd?: () => void;
+	onGameEnd?: (winner?: number) => void;
 	last_loser = 0;
 	score: number[] = [];
 	
@@ -340,7 +340,7 @@ class ScoreBoard{
 		if (winner != -1) {
 			console.log("Player " + (winner + 1).toString() + " has won!");
 			if (this.onGameEnd !== undefined)
-				this.onGameEnd();
+				this.onGameEnd(winner);
 			this.reset();
 		}
 	}

@@ -1,10 +1,12 @@
 import { Socket, Server } from 'socket.io';
 
-import Pong, { GameInterface } from '../common/game/Pong';
+import Pong, { GameInterface, GameState } from '../common/game/Pong';
 import { KeyPressMonitorBase } from '../common/game/KeyPressMonitor';
 import { UniqueKeyValueQueue } from './queue';
 import { UsersService } from 'src/users/users/users.service';
 import { UserStatus } from '@prisma/client';
+import { MatchService } from 'src/match/match.service';
+import { MatchDto } from 'src/match/dto';
 
 
 export type QueueInfo =  {
@@ -16,16 +18,19 @@ export type QueueInfo =  {
 export default class GameServer {
 	server: Server;
 	usersService: UsersService;
-	queues: UniqueKeyValueQueue<string, Socket>[] = [
-		new UniqueKeyValueQueue<string, Socket>(),
-		new UniqueKeyValueQueue<string, Socket>()
+	matchService: MatchService;
+	queues: UniqueKeyValueQueue<number, Socket>[] = [
+		new UniqueKeyValueQueue<number, Socket>(),
+		new UniqueKeyValueQueue<number, Socket>()
 		];
 	keypress: KeyPressMonitorBase;
 	game: GameInterface;
 	
-	constructor(server: Server, usersService: UsersService) {
+	constructor(server: Server,
+			usersService: UsersService, matchService: MatchService) {
 		this.server = server;
 		this.usersService = usersService;
+		this.matchService = matchService;
 		this.keypress = new KeyPressMonitorBase();
 		this.game = new Pong(400, 300,
 			this.updateClient.bind(this), this.onGameEnd.bind(this));
@@ -43,8 +48,8 @@ export default class GameServer {
 	
 	// 'client' attempts to join queue 'n'. Return the position in queue.
 	handleConnect(client: Socket, n: number): number {
-		const queue: UniqueKeyValueQueue<string, Socket> = this.queues[n];
-		const id: string = client.handshake.auth.user.id;
+		const queue: UniqueKeyValueQueue<number, Socket> = this.queues[n];
+		const id: number = client.handshake.auth.user.id;
 		queue.push(id, client);
 		const index: number = queue.indexOf(id);
 		// set client status as INGAME if he is a current player
@@ -68,7 +73,7 @@ export default class GameServer {
 		// found
 		let index: number;
 		for (let n = 0; n < this.queues.length; ++n) {
-			const id: string = client.handshake.auth.user?.id;
+			const id: number = client.handshake.auth.user?.id;
 			index = this.queues[n].indexOf(id);
 			if (index != -1) {
 				queue_no = n;
@@ -80,14 +85,15 @@ export default class GameServer {
 		if (index == -1)
 			return ;
 		
-		const id: string = client.handshake.auth.user.id;
+		const id: number = client.handshake.auth.user.id;
 		if (index > 0) {
 			// remove non-current player from queue
 			this.queues[queue_no].erase(id);
 			console.log(`client ${id} removed from queue ${queue_no}`);
 		} else if (index == 0) {
-			// end current game and handle players removal
-			this.onGameEnd();
+			// end current game and handle players removal. winner is
+			// from the other queue
+			this.onGameEnd((queue_no + 1) % 2);
 		}
 		
 		// ask clients to update their queue info and game state
@@ -99,8 +105,8 @@ export default class GameServer {
 	 * current player. */
 	start(client: Socket) {
 		for (let n = 0; n < this.queues.length; ++n) {
-			const queue: UniqueKeyValueQueue<string, Socket> = this.queues[n];
-			const id: string = client.handshake.auth.user.id;
+			const queue: UniqueKeyValueQueue<number, Socket> = this.queues[n];
+			const id: number = client.handshake.auth.user.id;
 			if (id != queue.front()?.first)
 				continue ;
 			this.game.start(n);	// game records that that player is ready
@@ -112,8 +118,8 @@ export default class GameServer {
 	// server receives key down event
 	keyDown(client: Socket, key: KeyboardEvent["key"]) {
 		for (let n = 0; n < this.queues.length; ++n) {
-			const queue: UniqueKeyValueQueue<string, Socket> = this.queues[n];
-			const id: string = client.handshake.auth.user.id;
+			const queue: UniqueKeyValueQueue<number, Socket> = this.queues[n];
+			const id: number = client.handshake.auth.user.id;
 			if (id == queue.front()?.first
 					&& Object.values(this.game.control_keys[n]).indexOf(key)
 						!= -1) {
@@ -128,8 +134,8 @@ export default class GameServer {
 	// server receives key up event
 	keyUp(client: Socket, key: KeyboardEvent["key"]) {
 		for (let n = 0; n < this.queues.length; ++n) {
-			const queue: UniqueKeyValueQueue<string, Socket> = this.queues[n];
-			const id: string = client.handshake.auth.user.id;
+			const queue: UniqueKeyValueQueue<number, Socket> = this.queues[n];
+			const id: number = client.handshake.auth.user.id;
 			if (id == queue.front()?.first
 					&& Object.values(this.game.control_keys[n]).indexOf(key)
 						!= -1) {
@@ -147,15 +153,51 @@ export default class GameServer {
 		this.server.emit('game_type', this.game.type);
 	}
 	
+	// record the result of the game, if necessary
+	record_result(winner?: number): void {
+		if (typeof winner === 'undefined')
+			return ;
+		
+		// if there's a queue where there's no player, do nothing
+		if (this.queues.filter(queue => queue.size() == 0).length != 0) {
+			console.log("Only 1 player exists. No record made.")
+			return ;
+		}
+		
+		// get game state to obtain the score
+		const game_state: GameState = this.game.get_state();
+		
+		// if the current total score is 0, do nothing
+		// const total_score: number = game_state.score.reduce(
+		// 	(a: number, b: number) => {return a + b;}
+		// );
+		// if (total_score == 0)
+		// 	return ;
+		
+		const dto: MatchDto = {
+			playerId0: this.queues[0].front().first,
+			playerId1: this.queues[1].front().first,
+			playerScore0: game_state.score[0],
+			playerScore1: game_state.score[1],
+			winnerId: this.queues[winner].front().first,
+			isCustom: this.getGameType(),
+		}
+		
+		// assume player 0 is the one that records the result
+		this.matchService.addMatch(
+			this.queues[0].front().second.handshake.auth.user, dto
+		);
+	}
+	
 	// game has ended, so remove existing players from game
-	onGameEnd(): void {
+	onGameEnd(winner?: number): void {
 		console.log("Game has ended!");
 		
-		// record one of the players as winner
-		/* Insert code here */
+		// record match history if required
+		this.record_result(winner);
 		
 		for (let n = 0; n < this.queues.length; ++n) {
-			const queue: UniqueKeyValueQueue<string, Socket> = this.queues[n];
+			const queue: UniqueKeyValueQueue<number, Socket> = this.queues[n];
 			this.game.unset_player(n);  // remove player from current game
 			if (queue.size() > 0) {
 				const client: Socket = queue.front().second;
