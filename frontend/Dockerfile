@@ -13,4 +13,4 @@ WORKDIR /ft_transcendence-front
 EXPOSE 3000
 
 #start app
-CMD ["bash", "entry.sh"]
+CMD ["bash", "prod.sh"]
