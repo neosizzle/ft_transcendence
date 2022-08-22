@@ -18,6 +18,9 @@
 
 # CMD ["bash", "entry.sh"]
 
+#base image
+FROM node
+
 # Create app directory
 WORKDIR /ft_transcendence-web
 

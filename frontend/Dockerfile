@@ -15,6 +15,9 @@
 # #start app
 # CMD ["bash", "prod.sh"]
 
+#base image
+FROM node
+
 # Create app directory
 WORKDIR /ft_transcendence-front
 
