@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Logger,
-  UseGuards,
-} from "@nestjs/common";
+import { BadRequestException, InternalServerErrorException, Logger, UseGuards } from "@nestjs/common";
 import {
   ConnectedSocket,
   MessageBody,
@@ -24,21 +20,10 @@ import { MemberDto } from "../member/dto";
 import { MemberService } from "../member/member.service";
 import { roomDto, roomPatchDto } from "../room/dto";
 import { RoomService } from "../room/room.service";
-import { chatDto } from "./chat.dto";
+import { chatDto, GameinvDto } from "./chat.dto";
 import { ChatService } from "./chat.service";
 
-function getAllFuncs(toCheck) {
-  const props = [];
-  let obj = toCheck;
-  do {
-    props.push(...Object.getOwnPropertyNames(obj));
-  } while ((obj = Object.getPrototypeOf(obj)));
-
-  return props.sort().filter((e, i, arr) => {
-    if (e != arr[i + 1] && typeof toCheck[e] == "function") return true;
-  });
-}
-
+const INV_STRING = "/invite/";
 class Clients {
   userId: string;
   socketId: string;
@@ -55,14 +40,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   clients: Clients[] = [];
   logger: Logger = new Logger(ChatGateway.name);
 
-  // TODO need chatservice and roomservice banservice , muteservice
   constructor(
     private room: RoomService,
     private prisma: PrismaService,
     private member: MemberService,
     private admin: AdminService,
-    private ban : BanService,
-    private chat : ChatService,
+    private ban: BanService,
+    private chat: ChatService
   ) {}
 
   /**
@@ -73,7 +57,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   handleConnection(client: Socket) {
     // return ack
-    this.logger.log("new incoming conn")
     client.emit("connection accepted", client.handshake);
   }
 
@@ -84,11 +67,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleDisconnect(client: Socket) {
     // remove from client list
     this.clients = this.clients.filter((e) => client.id !== e.socketId);
-
-    this.logger.log("DC CLIENT - current clients :");
-    this.clients.forEach((_client) =>
-      this.logger.log(`socketId ${_client.socketId}, userId ${_client.userId}`)
-    );
   }
 
   /**
@@ -111,13 +89,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     members.forEach((member) => {
       client.join(member.roomId.toString());
     });
-
-    this.logger.log("NEW CLIENT CONNETED - current clients :");
-    this.clients.forEach((_client) =>
-      this.logger.log(`socketId ${_client.socketId}, userId ${_client.userId}`)
-    );
   }
 
+  // TODO work with edi for owner transfer and admin promotion/demotion
   /**
    * Handles create new dm / gc
    * @param client Client socket
@@ -141,16 +115,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // add curr user to room
+    const user = client.handshake.auth.user;
     const roomId = roomCreateRes.id.toString();
     client.join(roomId);
 
     // add initial users to room as well if they are online (connected to ws server)
-    // console.log(getAllFuncs(this.wsServer))
     const namespace = this.wsServer;
-    let initUsers : string[] = [];
+    let initUsers: string[] = [];
     initUsers = dto.initialUsers.split(",");
-    if (!initUsers.includes(client.handshake.auth.user.id.toString()))
-      initUsers.push(client.handshake.auth.user.id.toString())
+    if (!initUsers.includes(user.id.toString()))
+      initUsers.push(user.id.toString());
     for (const userId of initUsers) {
       const client = this.clients.find(
         (client) => userId.toString() === client.userId.toString()
@@ -160,14 +134,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clientSocket.join(roomId);
 
       // inform initial users that group is created
-      // emmit message from system 'you have been added herer by ${userId}'
+      const sysMsg: Chat = {
+        id: -1,
+        roomId: parseInt(roomId, 10),
+        userId: null,
+        message: `You have been invited to room ${roomId}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
       if (roomCreateRes.type === "GC") {
-        clientSocket.emit("alert", `You have been added to room ${roomId}`);
-        // clientSocket.emit("newMessage", {
-        //   userId: null,
-        //   roomId,
-        //   message: `You have been added to room ${roomId}`,
-        // });
+        clientSocket.emit("newMessage", sysMsg);
       }
     }
   }
@@ -195,15 +171,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // emmit brodcast and notification to roomid that this user left
+    const sysMsg: Chat = {
+      id: -1,
+      roomId: res.roomId,
+      userId: null,
+      message: `${client.handshake.auth.user.username} has left`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     client.leave(res.roomId.toString());
-    this.wsServer
-      .to(res.roomId.toString())
-      .emit("alert", `${client.handshake.auth.user.username} has left`);
-    // this.wsServer.to(id).emit("newMessage", {
-    //   userId: null,
-    //   roomId: id,
-    //   message: `${client.handshake.auth.user.username} has left`,
-    // });
+    this.wsServer.to(res.roomId.toString()).emit("newMessage", sysMsg);
   }
 
   /**
@@ -237,13 +214,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       where: { id: member.roomId },
     });
 
-    if (room.type == "GC")
-      this.wsServer
-        .to(room.id.toString())
-        .emit("alert", `${client.handshake.auth.user.username} has joined`);
+    if (room.type === "GC") {
+      const sysMsg: Chat = {
+        id: -1,
+        roomId: room.id,
+        userId: null,
+        message: `${client.handshake.auth.user.username} has joined`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-    // if (room.type == "GC")
-    //   this.wsServer.to(room.id.toString()).emit('newMessage', {userId : null, roomId : room.id, message : `${client.handshake.auth.user.username} has joined`})
+      this.wsServer.to(room.id.toString()).emit("newMessage", sysMsg);
+    }
   }
 
   /**
@@ -289,8 +271,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       userId: patchRes.ownerId,
       roomId: patchRes.id,
       message: `${patchRes.ownerId} has become owner`,
-      createdAt : patchRes.createdAt,
-      updatedAt : patchRes.updatedAt
+      createdAt: patchRes.createdAt,
+      updatedAt: patchRes.updatedAt,
     });
   }
 
@@ -362,16 +344,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: string
   ) {
-    
-
     // parse payload and assign it to dto
     const dto: chatDto = JSON.parse(payload);
 
     // add chat in db
-    let chatRes : Chat;
+    let chatRes: Chat;
     try {
       chatRes = await this.chat.insertChat(dto);
-
     } catch (error) {
       client.emit("exception", error);
       return;
@@ -379,43 +358,53 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // get room members
     const members = await this.prisma.member.findMany({
-      where : {
-        roomId : chatRes.roomId
-      }
-    })
-    
+      where: {
+        roomId: chatRes.roomId,
+      },
+    });
+
     // get members who isnt in ws room
-    const clientsInRoom = this.wsServer.adapter.rooms.get(chatRes.roomId.toString())
-    members.forEach(e => {
-      const connectedClient = this.clients.find((client) => client.userId === e.userId.toString())
+    const clientsInRoom = this.wsServer.adapter.rooms.get(
+      chatRes.roomId.toString()
+    );
+    members.forEach((e) => {
+      const connectedClient = this.clients.find(
+        (client) => client.userId === e.userId.toString()
+      );
       // if user is connected to ws server and not join ws room
-      if (connectedClient && !clientsInRoom.has(e.userId.toString()))
-      {
+      if (connectedClient && !clientsInRoom.has(e.userId.toString())) {
         this.logger.log("client should be in room but isnt.... joining...");
-        this.wsServer.sockets.get(connectedClient.socketId).join(chatRes.roomId.toString())
+        this.wsServer.sockets
+          .get(connectedClient.socketId)
+          .join(chatRes.roomId.toString());
       }
-    })
+    });
 
     // broadcast message into roomId
     this.wsServer.to(dto.roomId.toString()).emit("newMessage", chatRes);
-
   }
 
- /**
+  /**
    * Handles kick
    * @param client Client socket
    * @param payload Request payload
    */
   @SubscribeMessage("kick")
-  async handleKick(@ConnectedSocket() client: Socket, @MessageBody() payload: string) {
+  async handleKick(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: string
+  ) {
     // parse payload and assign it to dto
     const payloadParsed = JSON.parse(payload);
     const memberId = payloadParsed.memberId;
 
     // remove member in db
-    let kickRes : Member;
+    let kickRes: Member;
     try {
-      kickRes = await this.member.removeMember(client.handshake.auth.user, memberId);
+      kickRes = await this.member.removeMember(
+        client.handshake.auth.user,
+        memberId
+      );
     } catch (error) {
       client.emit("exception", error);
       return;
@@ -424,12 +413,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userClient = this.clients.find(
       (client) => kickRes.userId.toString() === client.userId.toString()
     );
-    if (userClient)
-    {
+    if (userClient) {
       const userClientSocket = this.wsServer.sockets.get(userClient.socketId);
       userClientSocket.leave(kickRes.roomId.toString());
     }
-    
+
     // broadcast ban event into roomId
     this.wsServer.to(kickRes.roomId.toString()).emit("userKicked", kickRes);
   }
@@ -440,14 +428,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param payload Request payload
    */
   @SubscribeMessage("ban")
-  async handleBan(@ConnectedSocket() client: Socket, @MessageBody() payload: string) {
+  async handleBan(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: string
+  ) {
     // parse payload and assign it to dto
     const dto: banDto = JSON.parse(payload);
 
     // ban user in db
-    let banRes : Ban;
+    let banRes: Ban;
     try {
-      banRes = await this.ban.giveBan(client.handshake.auth.user, dto)
+      banRes = await this.ban.giveBan(client.handshake.auth.user, dto);
     } catch (error) {
       client.emit("exception", error);
       return;
@@ -456,13 +447,98 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const baneeClient = this.clients.find(
       (client) => dto.userId.toString() === client.userId.toString()
     );
-    if (baneeClient)
-    {
+    if (baneeClient) {
       const baneeClientSocket = this.wsServer.sockets.get(baneeClient.socketId);
       baneeClientSocket.leave(dto.roomId.toString());
     }
-    
+
     // broadcast ban event into roomId
     this.wsServer.to(dto.roomId.toString()).emit("userBanned", banRes);
+  }
+
+  /**
+   * Handles ban
+   * @param client Client socket
+   * @param payload Request payload
+   */
+  @SubscribeMessage("invite")
+  async handleInvite(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: string
+  ) {
+    // extract information
+    const dto: GameinvDto = JSON.parse(payload);
+    const currUser = client.handshake.auth.user;
+    const userIdToInv = dto.userId;
+    const roomIdToInv = dto.roomId;
+
+    // check if user is inviting self
+    if (userIdToInv === currUser.id) {
+      client.emit(
+        "exception",
+        new BadRequestException("Cant invite self to game")
+      );
+      return;
+    }
+
+    // check if both current user and user to invite is in the same room as dto.roomid
+    const member = await this.prisma.member.findFirst({
+      where: {
+        userId: userIdToInv,
+        roomId: roomIdToInv,
+      },
+    });
+    if (!member) {
+      client.emit("exception", new BadRequestException("Invalid invitation"));
+      return;
+    }
+
+    // get room
+    const room = await this.prisma.room.findUnique({
+      where: { id: member.roomId },
+    });
+
+    // check if room is dm and user is not blocked
+    if (room.type === "GC") {
+      client.emit("exception", new BadRequestException("Cant invite in GC"));
+      return;
+    }
+
+    const blocked = await this.prisma.block.findFirst({
+      where: {
+        OR: [
+          {
+            blockeeId: userIdToInv,
+            blockerId: currUser.id,
+          },
+          {
+            blockeeId: currUser.id,
+            blockerId: userIdToInv,
+          },
+        ],
+      },
+    });
+    if (blocked) {
+      client.emit("exception", new BadRequestException("User blocked"));
+      return;
+    }
+
+    // add message to chat
+    let msgRes : Chat;
+    try {
+      msgRes = await this.prisma.chat.create({
+        data : {
+          userId : null,
+          roomId : room.id,
+          message : `${INV_STRING}${dto.queuePosition}/${userIdToInv}`
+        }
+      })
+    } catch (error) {
+      client.emit("exception", new InternalServerErrorException(error.message));
+      return;
+    }
+
+    // emit message
+    this.wsServer.to(room.id.toString()).emit("newMessage", msgRes);
   }
 }

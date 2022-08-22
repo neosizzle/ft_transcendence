@@ -24,7 +24,7 @@ const transformFilterUser = (
   filterBy: string,
   filterOn: string
 ): string | number | UserStatus | Date => {
-  if (filterOn === "id" || filterOn === "level")
+  if (filterOn === "id" || filterOn === "level" || filterOn === "ranking" || filterOn === "wins" || filterOn === "losses")
     return parseFloat(filterBy) ? parseFloat(filterBy) : -1;
   if (filterOn === "status") {
     switch (filterBy) {

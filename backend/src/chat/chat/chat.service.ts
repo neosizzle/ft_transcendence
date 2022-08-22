@@ -62,12 +62,20 @@ export class ChatService {
       })
       const findBlock = await this.prismaService.block.findFirst({
         where: {
-          blockerId: { equals: otherMember.userId },
-          blockeeId: { equals: dto.userId },
+          OR : [
+            {
+              blockerId: { equals: otherMember.userId },
+              blockeeId: { equals: dto.userId },
+            },
+            {
+              blockerId: { equals: dto.userId },
+              blockeeId: { equals: otherMember.userId },
+            }
+          ]
         }
       })
       if (findBlock != null)
-        throw new BadRequestException("You have been blocked.");
+        throw new BadRequestException("User blocked.");
     }
     else if (theRoom.type == RoomType.GC) {
       const data3 = await this.prismaService.mute.findFirst({

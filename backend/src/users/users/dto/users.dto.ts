@@ -5,21 +5,21 @@ export class UserPatchDto {
   @IsEmail()
   @IsString()
   @IsOptional()
-  email: string;
+  email?: string;
 
   @IsString()
   @IsOptional()
-  avatar: string;
+  avatar?: string;
 
   @IsString()
   @IsOptional()
-  username: string;
+  username?: string;
 
   @IsString()
   @IsOptional()
-  status: UserStatus;
+  status?: UserStatus;
 
   @IsOptional()
   @IsNumber()
-  level: number;
+  level?: number;
 }

@@ -83,7 +83,6 @@ const Edit: FunctionComponent = () => {
           if (currAvatar) payload["avatar"] = currAvatar;
           if (currUsername) payload["username"] = currUsername;
           auth_net_patch(usersEndpoint, payload).then((data) => {
-            console.log(data);
             if (data.error) {
               if (data.message.includes("username"))
                 setUsernameErr(data.message);

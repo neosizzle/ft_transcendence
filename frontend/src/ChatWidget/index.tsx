@@ -1,4 +1,4 @@
-import { cloneDeep } from "lodash";
+import { clone, cloneDeep, last } from "lodash";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -13,7 +13,8 @@ import { useAuth } from "../context/authContext";
 import { useChatWidget } from "../context/chatWidgetContext";
 import ChatWindow from "./ChatWindow";
 
-const PAGE_SIZE = 4;
+const ROOMS_PAGE_SIZE = 4;
+const CHAT_PAGE_SIZE = 10;
 const ChatIcon: FunctionComponent = () => {
   return (
     <svg
@@ -64,7 +65,7 @@ const ChatWidget: FunctionComponent = () => {
       const newMessages = cloneDeep(
         widget?.activeRoomMessagesRef.current as Message[]
       );
-      newMessages.pop();
+      if (newMessages.length === CHAT_PAGE_SIZE)  newMessages.pop();
       newMessages.unshift(data);
       widget?.setActiveRoomMessages(newMessages);
 
@@ -72,8 +73,9 @@ const ChatWidget: FunctionComponent = () => {
       const lastMessages = cloneDeep(
         widget.lastMessagesRef.current as Message[]
       );
-      const lastMsgIdx = lastMessages.findIndex(
-        (e) => e?.roomId === data.roomId
+      const rooms = cloneDeep( widget.roomsRef.current as Room[]);
+      const lastMsgIdx = rooms.findIndex(
+        (e) => e?.id === data.roomId
       );
       lastMessages[lastMsgIdx] = data;
       widget.setLastMessages(lastMessages);
@@ -110,7 +112,7 @@ const ChatWidget: FunctionComponent = () => {
       // add into roomlsit of roomlist has space
       if (
         widget?.roomsRef.current &&
-        widget?.roomsRef.current?.length < PAGE_SIZE
+        widget?.roomsRef.current?.length < ROOMS_PAGE_SIZE
       ) {
         const rooms = cloneDeep(widget?.roomsRef.current as Room[]);
         const lastMsgs = cloneDeep(
@@ -147,8 +149,6 @@ const ChatWidget: FunctionComponent = () => {
    * 2. If not self, update member list
    */
   const handleKick = (data: Member) => {
-    // console.log(data);
-    // alert("KICKED " + data.message);
     if (data.userId == auth?.user?.id) {
       const newRooms = widget?.roomsRef.current?.filter(
         (e) => e.id !== data.roomId
@@ -184,21 +184,21 @@ const ChatWidget: FunctionComponent = () => {
   useEffect(() => {
 
     // add socket listeners
-    if (!auth?.chatSocket) return;
-    auth.chatSocket.on(INCOMING_MSG, handleNewMsg);
-    auth.chatSocket.on(ERR, handleError);
-    auth.chatSocket.on(INCOMING_KICK, handleKick);
-    auth.chatSocket.on(INCOMING_BAN, handleBan);
+    if (!auth?.chatWidgetSocket) return;
+    auth.chatWidgetSocket.on(INCOMING_MSG, handleNewMsg);
+    auth.chatWidgetSocket.on(ERR, handleError);
+    auth.chatWidgetSocket.on(INCOMING_KICK, handleKick);
+    auth.chatWidgetSocket.on(INCOMING_BAN, handleBan);
 
     // add document listener
     document.addEventListener("click", handleClose);
 
     return () => {
       // remove socket listeners
-      auth?.chatSocket?.off(INCOMING_MSG, handleNewMsg);
-      auth?.chatSocket?.off(ERR, handleError);
-      auth?.chatSocket?.off(INCOMING_KICK, handleKick);
-      auth?.chatSocket?.off(INCOMING_BAN, handleBan)
+      auth?.chatWidgetSocket?.off(INCOMING_MSG, handleNewMsg);
+      auth?.chatWidgetSocket?.off(ERR, handleError);
+      auth?.chatWidgetSocket?.off(INCOMING_KICK, handleKick);
+      auth?.chatWidgetSocket?.off(INCOMING_BAN, handleBan)
 
       // remove document listener
       document.removeEventListener("click", handleClose);

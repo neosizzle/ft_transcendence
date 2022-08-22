@@ -20,11 +20,13 @@ services:
       - PGDB=${POSTGRES_DB}
     ports:
       - 3001:3001 #webserver (change this port on prod)
+      - 4896:4896 #game socket.io
       - 5555:5555 #prisma studio (change this port on prod)
     networks:
       - ft_trans
     volumes:
       - ./backend:/ft_transcendence-web #maps current host dir to docker working dir
+      - ./common:/ft_transcendence-web/src/common
     # cpu_count: 2
     # cpu_percent: 50
     # mem_limit: 1000000000
@@ -58,6 +60,7 @@ services:
 
     volumes:
       - ./frontend:/ft_transcendence-front #maps current host dir to docker working dir
+      - ./common:/ft_transcendence-front/src/common
     # cpu_count: 2
     # cpu_percent: 50
     # mem_limit: 1000000000

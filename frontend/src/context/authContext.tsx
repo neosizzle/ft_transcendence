@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import React from "react";
 import { API_ROOT, TOKEN_KEY, WS_ROOT } from "../constants";
 import { auth_net_get, net_get } from "../utils";
@@ -10,6 +10,8 @@ const authEndpoint = `${API_ROOT}/auth/authenticate`;
 const userEndpoint = `${API_ROOT}/users/me`;
 const logoutEndpoint = `${API_ROOT}/auth/logout`;
 const chatWsEndpoint = `${WS_ROOT}/ws/chat`;
+const gameWsEndpoint = `${WS_ROOT}/game`;
+const userWsEndpoint = `${WS_ROOT}/ws/users`;
 
 export interface User {
   id: number;
@@ -22,6 +24,9 @@ export interface User {
   intraName: string;
   createdAt: string;
   updatedAt: string;
+  ranking: number;
+  wins: number;
+  losses: number;
 }
 
 interface Props {
@@ -31,7 +36,9 @@ interface Props {
 export interface AuthCtx {
   // user : User | string | null,
   user: User | null;
-  chatSocket: Socket | null;
+  chatWidgetSocket: Socket | null;
+  gameSocket: Socket | null;
+  userSocket: Socket | null;
   login: (code?: string | null) => void;
   logout: () => void;
   reset: () => void;
@@ -40,44 +47,101 @@ export interface AuthCtx {
 const AuthContext = createContext<AuthCtx | null>(null);
 
 export const AuthProvider = (props: Props) => {
-  // const [user, setUser] = useState<User | string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [chatSocket, setChatSocket] = useState<Socket | null>(null);
+  const [chatWidgetSocket, setChatWidgetSocket] = useState<Socket | null>(null);
+  const [gameSocket, setGameSocket] = useState<Socket | null>(null);
+  const [userSocket, setUserSocket] = useState<Socket | null>(null);
 
   const login = async (code?: string | null) => {
     // alert(code) // uncomment this to obtain the code for backend testing. Usable only once.
     if (!code) {
+      /* CODE DUPLICATION. TO DO: REFACTOR */
       const user = await auth_net_get(userEndpoint);
-      const socketio = io(chatWsEndpoint, {
+
+      // Init chat widget socket
+      const chatWidgetSocketIo = io(chatWsEndpoint, {
         extraHeaders: {
           Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
         },
       });
-      socketio.on("connection accepted", () => {
-        socketio.emit("authHandshake");
+      chatWidgetSocketIo.on("connection accepted", () => {
+        chatWidgetSocketIo.emit("authHandshake");
       });
-      setChatSocket(socketio);
+      setChatWidgetSocket(chatWidgetSocketIo);
+
+      // Init game socket
+      const gameio = io(gameWsEndpoint, {
+        extraHeaders: {
+          Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
+      });
+      setGameSocket(gameio);
+
+      // Init user socket
+      const usersSocketio = io(userWsEndpoint, {
+        extraHeaders: {
+          Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
+      });
+      usersSocketio.on("connection accepted", () => {
+        usersSocketio.emit("authHandshake");
+      });
+
+      setUserSocket(usersSocketio);
+
       setUser(user);
       return;
     }
     const data = await net_get(`${authEndpoint}/?code=${code}`);
-    const socketio = io(chatWsEndpoint, {
+
+    // init chat widget socket
+    const chatWidgetIo = io(chatWsEndpoint, {
       extraHeaders: {
         Authorization: `Bearer ${data.data.token}`,
       },
     });
-    socketio.on("connection accepted", () => {
-      socketio.emit("authHandshake");
+    chatWidgetIo.on("connection accepted", () => {
+      chatWidgetIo.emit("authHandshake");
     });
-    setChatSocket(socketio);
+    setChatWidgetSocket(chatWidgetIo);
+
+    // Init user socket
+    const usersSocketio = io(userWsEndpoint, {
+      extraHeaders: {
+        Authorization: `Bearer ${data.data.token}`,
+      },
+    });
+    usersSocketio.on("connection accepted", () => {
+      usersSocketio.emit("authHandshake");
+    });
+
+    setUserSocket(usersSocketio);
+
+    // set game socket
+    const gameio = io(gameWsEndpoint, {
+      extraHeaders: {
+        Authorization: `Bearer ${data.data.token}`,
+      },
+    });
+    setGameSocket(gameio);
+
     localStorage.setItem(TOKEN_KEY, data.data.token);
     const res = await auth_net_get(userEndpoint);
     setUser(res);
   };
   const logout = async () => {
     setUser(null);
-    chatSocket?.disconnect();
-    setChatSocket(null);
+
+    // Disconnect chat widget socket
+    chatWidgetSocket?.disconnect();
+    setChatWidgetSocket(null);
+
+    // Disconnect user socket
+    userSocket?.disconnect();
+    setUserSocket(null);
+
+    // Disconnect game socket
+
     auth_net_get(logoutEndpoint);
     localStorage.removeItem(TOKEN_KEY);
   };
@@ -86,7 +150,17 @@ export const AuthProvider = (props: Props) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, reset, chatSocket }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        reset,
+        chatWidgetSocket,
+        gameSocket,
+        userSocket,
+      }}
+    >
       {props.children}
     </AuthContext.Provider>
   );

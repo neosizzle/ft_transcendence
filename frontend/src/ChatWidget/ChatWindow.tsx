@@ -78,6 +78,15 @@ const ChatWindow: FunctionComponent<ChatWindowProps> = ({ open }) => {
         open ? "" : "hidden"
       } absolute bottom-full right-0 bg-white w-60 h-60 drop-shadow-xl rounded lg:rounded-none lg:h-96 lg:w-full mb-3 lg:mb-0`}
     >
+      {/* Alert Notification */}
+      {widget?.openAlert.isOpen ? (
+        <Alert
+          alert={widget.openAlert}
+          setOpenAlert={widget.setOpenAlert}
+          message={widget.alertMessage}
+        />
+      ) : null}
+      
       {widget?.currActiveRoom ? (
         // ActiveRoom
         <ActiveRoom />
@@ -92,14 +101,6 @@ const ChatWindow: FunctionComponent<ChatWindowProps> = ({ open }) => {
         />
       )}
 
-      {/* Alert Notification */}
-      {widget?.openAlert.isOpen ? (
-        <Alert
-          alert={widget.openAlert}
-          setOpenAlert={widget.setOpenAlert}
-          message={widget.alertMessage}
-        />
-      ) : null}
     </div>
   );
 };

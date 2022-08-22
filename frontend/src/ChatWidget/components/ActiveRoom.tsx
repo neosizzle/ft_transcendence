@@ -1,5 +1,6 @@
 import React, { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Room } from "../../Chat/classes";
 import Alert, { AlertType } from "../../commonComponents/Alert";
 import { API_ROOT } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
@@ -12,7 +13,7 @@ const memberEndpoint = `${API_ROOT}/members`;
 const chatEndpoint = `${API_ROOT}/chat`;
 const SCROLL_UP = 1;
 const SCROLL_DOWN = -1;
-const PAGE_SIZE = 10;
+const CHAT_PAGE_SIZE = 10;
 
 const ActiveRoom: FunctionComponent = () => {
   const [user, setUser] = useState<User | null>(null); // pair object if room is a DM
@@ -65,7 +66,7 @@ const ActiveRoom: FunctionComponent = () => {
   useEffect(() => {
     // get chat messages
     auth_net_get(
-      `${chatEndpoint}?page=${currChatPage}&pageSize=${PAGE_SIZE}&filterOn=roomId&filterBy=${widget?.currActiveRoom?.id}&sortBy=Descending&sortOn=createdAt`
+      `${chatEndpoint}?page=${currChatPage}&pageSize=${CHAT_PAGE_SIZE}&filterOn=roomId&filterBy=${widget?.currActiveRoom?.id}&sortBy=Descending&sortOn=createdAt`
     ).then((data) => {
       setTotalChats(data.total_elements);
       widget?.setActiveRoomMessages(data.data);
@@ -85,7 +86,7 @@ const ActiveRoom: FunctionComponent = () => {
   // scroll handler
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (e.currentTarget.scrollTop === 0) {
-      if (totalChats / PAGE_SIZE < 1 || currChatPage >= totalChats / PAGE_SIZE)
+      if (totalChats / CHAT_PAGE_SIZE < 1 || currChatPage >= totalChats / CHAT_PAGE_SIZE)
         return;
       setCurrChatPage(currChatPage + 1);
       setScrollDirection(SCROLL_UP);
@@ -108,8 +109,9 @@ const ActiveRoom: FunctionComponent = () => {
       message: currChatMsg,
     };
 
-    auth?.chatSocket?.emit("message", JSON.stringify(dto));
+    auth?.chatWidgetSocket?.emit("message", JSON.stringify(dto));
     setCurrChatMsg("");
+    setTotalChats(totalChats + 1);
   };
 
   return (
@@ -152,7 +154,7 @@ const ActiveRoom: FunctionComponent = () => {
         {/* Invite to queue btn */}
         {user ? (
           <div className="col-span-1">
-            <GameInvBtn user={user} />
+            <GameInvBtn user={user} room={widget?.currActiveRoom as Room} />
           </div>
         ) : null}
       </div>
@@ -180,8 +182,8 @@ const ActiveRoom: FunctionComponent = () => {
           ))}
 
           {widget?.activeRoomMessages &&
-          widget.activeRoomMessages.length < PAGE_SIZE
-            ? [...Array(PAGE_SIZE - widget.activeRoomMessages.length)].map(
+          widget.activeRoomMessages.length < CHAT_PAGE_SIZE
+            ? [...Array(CHAT_PAGE_SIZE - widget.activeRoomMessages.length)].map(
                 (e, i) => (
                   <div key={i} className="py-5">
                     {" "}

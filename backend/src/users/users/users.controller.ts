@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Patch, Query, UseGuards } from "@nestjs/common";
-import { User } from "@prisma/client";
+import { User, UserStatus } from "@prisma/client";
 import { UserPatchDto } from "./dto";
 import { UsersService } from "./users.service";
 import { AuthGuard } from "../auth/guard";
@@ -26,6 +26,7 @@ export class UsersController {
   // edit a user
   @Patch("me")
   patchMe(@GetUser() user: User, @Body() dto: UserPatchDto) {
+
     return this.usersService.patchMe(user, dto);
   }
 }

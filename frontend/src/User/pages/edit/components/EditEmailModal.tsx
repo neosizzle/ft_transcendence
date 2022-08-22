@@ -155,6 +155,7 @@ const EditEmailModal: FunctionComponent<EditEmailModalProps> = ({
                 onClick={() => {
                   if (otpSuccess) return;
                   if (currSlide) setCurrSlide(0);
+                  else setOpenEditEmailModal(false);
                 }}
                 className={`${
                   loading ? "opacity-50" : ""
