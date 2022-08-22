@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { GameInterface, GameState } from '../common/game/Pong';
+import { GameInterface, GameState } from './Pong';
 import './Canvas.css';
 
 
