@@ -1,16 +1,34 @@
-#base image
-FROM node
+# #base image
+# FROM node
 
-RUN mkdir /install
+# RUN mkdir /install
 
-#install dependencies global
-RUN npm install -g react-scripts
+# #install dependencies global
+# RUN npm install -g react-scripts
 
-ADD . /ft_transcendence-front
+# ADD . /ft_transcendence-front
+# WORKDIR /ft_transcendence-front
+
+# #expose port
+# EXPOSE 3000
+
+# #start app
+# CMD ["bash", "prod.sh"]
+
+# Create app directory
 WORKDIR /ft_transcendence-front
 
-#expose port
-EXPOSE 3000
+# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
+COPY package*.json ./
 
-#start app
-CMD ["bash", "prod.sh"]
+RUN npm install --legacy-peer-deps
+# If you are building your code for production
+# RUN npm ci --only=production
+
+# Bundle app source
+COPY . .
+
+EXPOSE 3000
+CMD [ "bash", "prod.sh" ]

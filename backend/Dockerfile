@@ -1,19 +1,37 @@
-#base image
-FROM node
+# #base image
+# FROM node
 
-RUN mkdir /install
+# RUN mkdir /install
 
-#install dependencies
-ADD ./package.json /install
-WORKDIR /install
-# RUN apt-get update -yqq && apt-get upgrade -yqq && apt-get install postgresql-client -yqq
-RUN npm install --verbose --legacy-peer-deps
-RUN npm i -g @nestjs/cli
-ENV NODE_PATH=/install/node_modules
+# #install dependencies
+# ADD ./package.json /install
+# WORKDIR /install
+# # RUN apt-get update -yqq && apt-get upgrade -yqq && apt-get install postgresql-client -yqq
+# RUN npm install --verbose --legacy-peer-deps
+# RUN npm i -g @nestjs/cli
+# ENV NODE_PATH=/install/node_modules
 
-ADD . /ft_transcendence-web
+# ADD . /ft_transcendence-web
+# WORKDIR /ft_transcendence-web
+
+# EXPOSE 3000
+
+# CMD ["bash", "entry.sh"]
+
+# Create app directory
 WORKDIR /ft_transcendence-web
 
-EXPOSE 3000
+# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
+COPY package*.json ./
 
-CMD ["bash", "entry.sh"]
+RUN npm install --legacy-peer-deps
+# If you are building your code for production
+# RUN npm ci --only=production
+
+# Bundle app source
+COPY . .
+
+EXPOSE 3001
+CMD [ "bash", "entry.sh" ]
