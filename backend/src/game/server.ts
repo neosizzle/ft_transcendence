@@ -1,7 +1,7 @@
 import { Socket, Server } from 'socket.io';
 
-import Pong, { GameInterface, GameState } from '../common/game/Pong';
-import { KeyPressMonitorBase } from '../common/game/KeyPressMonitor';
+import Pong, { GameInterface, GameState } from './Pong';
+import { KeyPressMonitorBase } from './KeyPressMonitor';
 import { UniqueKeyValueQueue } from './queue';
 import { UsersService } from 'src/users/users/users.service';
 import { UserStatus } from '@prisma/client';
