@@ -76,15 +76,18 @@ const ListCard: FunctionComponent<ListCardProps> = ({ room, idx }) => {
         <div className="text-md lg:text-lg">
           {user ? user.username : room.roomName}
         </div>
+
         <div className="text-sm truncate">
           {widget?.lastMessages && widget.lastMessages[idx]
-            ? `${widget.lastMessages[idx].user?.username} : ${widget?.lastMessages[idx]?.message}`
+            ? widget.lastMessages[idx].user
+              ? `${widget.lastMessages[idx].user?.username} : ${widget?.lastMessages[idx]?.message}`
+              : widget?.lastMessages[idx]?.message
             : null}
         </div>
       </div>
 
       {/* Action */}
-      {user ? <GameInvBtn user={user} /> : null}
+      {user ? <GameInvBtn user={user} room={room} /> : null}
     </div>
   );
 };

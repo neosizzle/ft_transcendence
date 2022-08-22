@@ -18,8 +18,8 @@ export class MatchController {
   }
 
   // add new match
-  @Post()
-  addMatch(@GetUser() user: User, @Body() dto: MatchDto) {
-    return this.matchService.addMatch(user, dto);
-  }
+  // @Post()
+  // addMatch(@GetUser() user: User, @Body() dto: MatchDto) {
+  //   return this.matchService.addMatch(user, dto);
+  // }
 }

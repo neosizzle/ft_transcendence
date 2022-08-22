@@ -2,7 +2,7 @@ import React, { FunctionComponent } from "react";
 import { Message } from "../../Chat/classes";
 import { useAuth } from "../../context/authContext";
 
-const INV_STR = "/invite";
+const INV_STR = "/invite/";
 
 interface ChatCardProps {
   message: Message;
@@ -16,12 +16,16 @@ const ChatCard: FunctionComponent<ChatCardProps> = ({
   system,
 }) => {
   const auth = useAuth();
-  const isInvite = message.message.startsWith(INV_STR);
+  const isInvite = message.message === INV_STR;
 
   return (
     <div
       className={`py-5 ${
-        system || isInvite ? "text-center" : floatRight ? "text-right" : "text-left"
+        system || isInvite
+          ? "text-center"
+          : floatRight
+          ? "text-right"
+          : "text-left"
       }`}
     >
       {" "}

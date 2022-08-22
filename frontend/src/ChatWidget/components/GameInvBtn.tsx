@@ -1,12 +1,16 @@
 import React, { FunctionComponent, useState } from "react";
-import { User } from "../../context/authContext";
+import { Room } from "../../Chat/classes";
+import { OUTGOING_INV, OUTGOING_MSG } from "../../constants";
+import { useAuth, User } from "../../context/authContext";
 
 interface GameInvBtnProps {
   user: User;
+  room: Room;
 }
 
-const GameInvBtn: FunctionComponent<GameInvBtnProps> = ({ user }) => {
+const GameInvBtn: FunctionComponent<GameInvBtnProps> = ({ user, room }) => {
   const [hover, setHover] = useState<boolean>(false);
+  const auth = useAuth();
 
   return (
     <div className="h-full relative">
@@ -20,6 +24,12 @@ const GameInvBtn: FunctionComponent<GameInvBtnProps> = ({ user }) => {
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
         onClick={(e) => {
+          // TODO check if user is in queue
+
+          auth?.chatSocket?.emit(
+            OUTGOING_INV,
+            JSON.stringify({ userId: user.id, roomId: room.id })
+          );
           alert(`inv ${user.id} to queue`);
           e.stopPropagation();
         }}

@@ -14,6 +14,16 @@ export class chatDto {
   message: string;
 }
 
+export class GameinvDto {
+  @IsNotEmpty()
+  @IsNumber()
+  userId: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  roomId: number;
+}
+
 // ws data sent to client
 export class BaseWSResponse {
   userId: number | null;

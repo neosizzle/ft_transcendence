@@ -1,5 +1,6 @@
 import React, { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Room } from "../../Chat/classes";
 import Alert, { AlertType } from "../../commonComponents/Alert";
 import { API_ROOT } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
@@ -153,7 +154,7 @@ const ActiveRoom: FunctionComponent = () => {
         {/* Invite to queue btn */}
         {user ? (
           <div className="col-span-1">
-            <GameInvBtn user={user} />
+            <GameInvBtn user={user} room={widget?.currActiveRoom as Room} />
           </div>
         ) : null}
       </div>

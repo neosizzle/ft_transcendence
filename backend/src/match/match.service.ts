@@ -134,24 +134,19 @@ export class MatchService {
     return { data: res, total_elements };
   }
 
+  // TODO remove user check
   // add match entry
-  async addMatch(user: User, dto: MatchDto) {
-    // check if user id is in one of the dtos
-    if (user.id !== dto.playerId0 && user.id !== dto.playerId1)
-      throw new BadRequestException("User ID not in player1 nor player0");
+  async addMatch(dto: MatchDto) {
 
     // check if both user ids are not the same
     if (dto.playerId0 === dto.playerId1)
       throw new BadRequestException("Player0 and player1 must be different");
 
     // check if both player exists
-    let otherUser : User;
-    if (user.id === dto.playerId0)
-      otherUser = await this.prisma.user.findUnique({where : { id : dto.playerId1 }})
-    else
-      otherUser = await this.prisma.user.findUnique({where : { id : dto.playerId0 }})
+    const player0 = await this.prisma.user.findUnique({where : { id : dto.playerId0 }});
+    const player1 = await this.prisma.user.findUnique({where : { id : dto.playerId1 }});
 
-    if (!otherUser) throw new NotFoundException("user not found");
+    if (!player0 || !player1) throw new NotFoundException("user not found");
 
     // check if winner is either of player ids
     if (dto.winnerId !== dto.playerId0 && dto.winnerId !== dto.playerId1)
@@ -160,18 +155,18 @@ export class MatchService {
     // set winner user 
     let winner : User;
     let loser : User;
-    if (dto.winnerId === user.id)
+    if (dto.winnerId === player0.id)
     {
-      winner = user;
-      loser = otherUser;
+      winner = player0;
+      loser = player1;
     }
     else{
-      winner = otherUser;
-      loser = user;
+      winner = player1;
+      loser = player0;
     }
 
     // Formula for new ranking calculation: (rank of losing player / rank of winning player) * 42 (constant) * ((score difference/100) + 1) Cred. Wallyboy
-    // update winner ranking and winloss
+    // update winner ranking and winloss and level
     const rankGain = loser.ranking / winner.ranking * RANK_CONST_GAIN * (Math.abs(dto.playerScore0 - dto.playerScore1) + 1);
 
     try {
@@ -181,7 +176,8 @@ export class MatchService {
         },
         data : {
           ranking : winner.ranking + rankGain,
-          wins : winner.wins + 1
+          wins : winner.wins + 1,
+          level : winner.level + 0.2,
         }
       })
 
@@ -191,7 +187,8 @@ export class MatchService {
         },
         data : {
           ranking : loser.ranking - rankGain,
-          losses : loser.losses + 1
+          losses : loser.losses + 1,
+          level : loser.level + 0.2,
         }
       })
     } catch (error) {
