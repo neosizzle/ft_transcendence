@@ -31,7 +31,6 @@ COPY package*.json ./
 
 RUN npm install --legacy-peer-deps 
 RUN npm install -g webpack
-RUN npm link webpack
 # If you are building your code for production
 # RUN npm ci --only=production
 
