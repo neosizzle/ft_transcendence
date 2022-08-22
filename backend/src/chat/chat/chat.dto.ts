@@ -22,6 +22,10 @@ export class GameinvDto {
   @IsNotEmpty()
   @IsNumber()
   roomId: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  queuePosition: number;
 }
 
 // ws data sent to client

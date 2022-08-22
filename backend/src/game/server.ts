@@ -184,8 +184,7 @@ export default class GameServer {
 		}
 		
 		// assume player 0 is the one that records the result
-		this.matchService.addMatch(
-			this.queues[0].front().second.handshake.auth.user, dto
+		this.matchService.addMatch(dto
 		);
 	}
 	

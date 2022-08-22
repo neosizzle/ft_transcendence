@@ -134,7 +134,6 @@ export class MatchService {
     return { data: res, total_elements };
   }
 
-  // TODO remove user check
   // add match entry
   async addMatch(dto: MatchDto) {
 
@@ -167,7 +166,7 @@ export class MatchService {
 
     // Formula for new ranking calculation: (rank of losing player / rank of winning player) * 42 (constant) * ((score difference/100) + 1) Cred. Wallyboy
     // update winner ranking and winloss and level
-    const rankGain = loser.ranking / winner.ranking * RANK_CONST_GAIN * (Math.abs(dto.playerScore0 - dto.playerScore1) + 1);
+    const rankGain = (loser.ranking / winner.ranking ? winner.ranking : 1) * RANK_CONST_GAIN * (Math.abs(dto.playerScore0 - dto.playerScore1) + 1);
 
     try {
       await this.prisma.user.update({

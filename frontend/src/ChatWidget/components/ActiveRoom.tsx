@@ -109,7 +109,7 @@ const ActiveRoom: FunctionComponent = () => {
       message: currChatMsg,
     };
 
-    auth?.chatSocket?.emit("message", JSON.stringify(dto));
+    auth?.chatWidgetSocket?.emit("message", JSON.stringify(dto));
     setCurrChatMsg("");
     setTotalChats(totalChats + 1);
   };

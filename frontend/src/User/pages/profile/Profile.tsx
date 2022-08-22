@@ -5,7 +5,7 @@ import MatchHistoryTable from "../../common/MatchHistoryTable";
 import moment from "moment";
 import { useLocation, useNavigate } from "react-router-dom";
 import { auth_net_get } from "../../../utils";
-import { API_ROOT, ERR, INCOMING_STATUS_UPDATE, OUTGOING_MSG, OUTGOING_STATUS_UPDATE } from "../../../constants";
+import { API_ROOT, ERR, INCOMING_STATUS_UPDATE } from "../../../constants";
 import { IngameBadge, OfflineBadge, OnlineBadge } from "../../common/Badges";
 import { BaseWSResponse } from "../../../Chat/classes";
 

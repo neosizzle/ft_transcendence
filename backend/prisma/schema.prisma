@@ -156,12 +156,12 @@ model Mute {
 
 model Chat {
   id        Int       @id @default(autoincrement())
-  userId    Int
+  userId    Int?
   roomId    Int
   message   String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  user      User      @relation(name: "sent_messages", fields: [userId], references: [id])
+  user      User?      @relation(name: "sent_messages", fields: [userId], references: [id])
   room      Room      @relation(name: "messages", fields: [roomId], references: [id])
 }
 

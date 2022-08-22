@@ -15,6 +15,7 @@ interface ListCardProps {
 
 const DEF_PIC = "/assets/default-pp.webp";
 const memberEndpoint = `${API_ROOT}/members`;
+const INV_STR = "/invite/"
 
 const ListCard: FunctionComponent<ListCardProps> = ({ room, idx }) => {
   const [loading, setLoading] = useState<boolean>(true); //loading state
@@ -81,7 +82,7 @@ const ListCard: FunctionComponent<ListCardProps> = ({ room, idx }) => {
           {widget?.lastMessages && widget.lastMessages[idx]
             ? widget.lastMessages[idx].user
               ? `${widget.lastMessages[idx].user?.username} : ${widget?.lastMessages[idx]?.message}`
-              : widget?.lastMessages[idx]?.message
+              : widget?.lastMessages[idx]?.message.startsWith(INV_STR) ? "Game invite" : widget?.lastMessages[idx]?.message
             : null}
         </div>
       </div>

@@ -1,7 +1,9 @@
 import React, { FunctionComponent, useState } from "react";
 import { Room } from "../../Chat/classes";
-import { OUTGOING_INV, OUTGOING_MSG } from "../../constants";
+import { OUTGOING_GET_QUEUE, OUTGOING_INV} from "../../constants";
 import { useAuth, User } from "../../context/authContext";
+import { useChatWidget } from "../../context/chatWidgetContext";
+import { QueueInfo } from "../../Game/Canvas";
 
 interface GameInvBtnProps {
   user: User;
@@ -11,6 +13,7 @@ interface GameInvBtnProps {
 const GameInvBtn: FunctionComponent<GameInvBtnProps> = ({ user, room }) => {
   const [hover, setHover] = useState<boolean>(false);
   const auth = useAuth();
+  const widget = useChatWidget();
 
   return (
     <div className="h-full relative">
@@ -24,13 +27,27 @@ const GameInvBtn: FunctionComponent<GameInvBtnProps> = ({ user, room }) => {
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
         onClick={(e) => {
-          // TODO check if user is in queue
+          // If user is not in queue, reject action
+          auth?.gameSocket?.emit(OUTGOING_GET_QUEUE, (queue : QueueInfo) => {
+            if (queue.position[0] === -1 && queue.position[1] === -1 )
+            {
+              widget?.setAlertMessage("User not in queue")
+              widget?.setOpenAlert({type : "error", isOpen : true})
+              return ;
+            }
 
-          auth?.chatSocket?.emit(
-            OUTGOING_INV,
-            JSON.stringify({ userId: user.id, roomId: room.id })
-          );
-          alert(`inv ${user.id} to queue`);
+            //determines if invited to queue 0 or queue 1
+            console.log(queue.position)
+            let queuePosition : number;
+            if (queue.position[0] > -1 ) queuePosition = 1;
+            else queuePosition = 0
+            
+            console.log("qtojoin ", queuePosition)
+            auth?.chatWidgetSocket?.emit(
+              OUTGOING_INV,
+              JSON.stringify({ userId: user.id, roomId: room.id, queuePosition })
+            );
+          })
           e.stopPropagation();
         }}
       >

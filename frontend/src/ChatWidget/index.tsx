@@ -184,21 +184,21 @@ const ChatWidget: FunctionComponent = () => {
   useEffect(() => {
 
     // add socket listeners
-    if (!auth?.chatSocket) return;
-    auth.chatSocket.on(INCOMING_MSG, handleNewMsg);
-    auth.chatSocket.on(ERR, handleError);
-    auth.chatSocket.on(INCOMING_KICK, handleKick);
-    auth.chatSocket.on(INCOMING_BAN, handleBan);
+    if (!auth?.chatWidgetSocket) return;
+    auth.chatWidgetSocket.on(INCOMING_MSG, handleNewMsg);
+    auth.chatWidgetSocket.on(ERR, handleError);
+    auth.chatWidgetSocket.on(INCOMING_KICK, handleKick);
+    auth.chatWidgetSocket.on(INCOMING_BAN, handleBan);
 
     // add document listener
     document.addEventListener("click", handleClose);
 
     return () => {
       // remove socket listeners
-      auth?.chatSocket?.off(INCOMING_MSG, handleNewMsg);
-      auth?.chatSocket?.off(ERR, handleError);
-      auth?.chatSocket?.off(INCOMING_KICK, handleKick);
-      auth?.chatSocket?.off(INCOMING_BAN, handleBan)
+      auth?.chatWidgetSocket?.off(INCOMING_MSG, handleNewMsg);
+      auth?.chatWidgetSocket?.off(ERR, handleError);
+      auth?.chatWidgetSocket?.off(INCOMING_KICK, handleKick);
+      auth?.chatWidgetSocket?.off(INCOMING_BAN, handleBan)
 
       // remove document listener
       document.removeEventListener("click", handleClose);

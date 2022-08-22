@@ -1,4 +1,4 @@
-import { BadRequestException, Logger, UseGuards } from "@nestjs/common";
+import { BadRequestException, InternalServerErrorException, Logger, UseGuards } from "@nestjs/common";
 import {
   ConnectedSocket,
   MessageBody,
@@ -523,26 +523,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
+    // add message to chat
+    let msgRes : Chat;
+    try {
+      msgRes = await this.prisma.chat.create({
+        data : {
+          userId : null,
+          roomId : room.id,
+          message : `${INV_STRING}${dto.queuePosition}/${userIdToInv}`
+        }
+      })
+    } catch (error) {
+      client.emit("exception", new InternalServerErrorException(error.message));
+      return;
+    }
+
     // emit message
-    const invtedSocket = this.clients.find(
-      (e) => e.userId.toString() === userIdToInv.toString()
-    );
-    client.emit("newMessage", {
-      id: -1,
-      userId: null,
-      roomId: member.roomId,
-      message: "Invite sent",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    if (!invtedSocket) return;
-    this.wsServer.sockets.get(invtedSocket.socketId).emit("newMessage", {
-      id: -1,
-      userId: null,
-      roomId: member.roomId,
-      message: INV_STRING,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    this.wsServer.to(room.id.toString()).emit("newMessage", msgRes);
   }
 }
