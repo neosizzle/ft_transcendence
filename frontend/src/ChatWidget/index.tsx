@@ -1,13 +1,7 @@
-import { clone, cloneDeep, last } from "lodash";
+import { cloneDeep } from "lodash";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Ban,
-  BaseWSResponse,
-  Member,
-  Message,
-  Room,
-} from "../Chat/classes";
+import { Ban, BaseWSResponse, Member, Message, Room } from "../Chat/classes";
 import { ERR, INCOMING_BAN, INCOMING_KICK, INCOMING_MSG } from "../constants";
 import { useAuth } from "../context/authContext";
 import { useChatWidget } from "../context/chatWidgetContext";
@@ -65,7 +59,7 @@ const ChatWidget: FunctionComponent = () => {
       const newMessages = cloneDeep(
         widget?.activeRoomMessagesRef.current as Message[]
       );
-      if (newMessages.length === CHAT_PAGE_SIZE)  newMessages.pop();
+      if (newMessages.length === CHAT_PAGE_SIZE) newMessages.pop();
       newMessages.unshift(data);
       widget?.setActiveRoomMessages(newMessages);
 
@@ -73,10 +67,8 @@ const ChatWidget: FunctionComponent = () => {
       const lastMessages = cloneDeep(
         widget.lastMessagesRef.current as Message[]
       );
-      const rooms = cloneDeep( widget.roomsRef.current as Room[]);
-      const lastMsgIdx = rooms.findIndex(
-        (e) => e?.id === data.roomId
-      );
+      const rooms = cloneDeep(widget.roomsRef.current as Room[]);
+      const lastMsgIdx = rooms.findIndex((e) => e?.id === data.roomId);
       lastMessages[lastMsgIdx] = data;
       widget.setLastMessages(lastMessages);
     } else if (
@@ -182,7 +174,6 @@ const ChatWidget: FunctionComponent = () => {
 
   // initial actions
   useEffect(() => {
-
     // add socket listeners
     if (!auth?.chatWidgetSocket) return;
     auth.chatWidgetSocket.on(INCOMING_MSG, handleNewMsg);
@@ -198,7 +189,7 @@ const ChatWidget: FunctionComponent = () => {
       auth?.chatWidgetSocket?.off(INCOMING_MSG, handleNewMsg);
       auth?.chatWidgetSocket?.off(ERR, handleError);
       auth?.chatWidgetSocket?.off(INCOMING_KICK, handleKick);
-      auth?.chatWidgetSocket?.off(INCOMING_BAN, handleBan)
+      auth?.chatWidgetSocket?.off(INCOMING_BAN, handleBan);
 
       // remove document listener
       document.removeEventListener("click", handleClose);

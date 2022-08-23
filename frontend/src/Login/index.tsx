@@ -24,7 +24,7 @@ const Login = () => {
     // window.location.href will cause infinite redirect loop
     else
       window.location.replace(
-        "https://api.intra.42.fr/oauth/authorize?client_id=9bb9d1702c9ddda04e2b99da9b32d7ecfd7be565846ed56b2055f25d51221261&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Flogin&response_type=code"
+        `${process.env.REACT_APP_API_HOST_42}/oauth/authorize?client_id=${process.env.REACT_APP_API_UID_42}&redirect_uri=${encodeURIComponent(process.env.REACT_APP_API_REDIR_URI_42 as string)}&response_type=code`
       );
   }, []);
 

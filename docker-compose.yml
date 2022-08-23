@@ -57,7 +57,10 @@ services:
       - 3000:3000 #frontend (change this port on prod)
     networks:
       - ft_trans
-
+    environment:
+    - REACT_APP_API_UID_42=${API_UID_42}
+    - REACT_APP_API_REDIR_URI_42=${API_REDIR_URI_42}
+    - REACT_APP_API_HOST_42=${API_HOST_42}
     volumes:
       - ./frontend:/ft_transcendence-front #maps current host dir to docker working dir
       - ./common:/ft_transcendence-front/src/common
