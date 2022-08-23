@@ -2,8 +2,8 @@ import React from 'react';
 import { Socket } from 'socket.io-client';
 
 import Canvas, { QueueInfo } from './Canvas';
-import Pong, { GameInterface, GameState } from '../common/game/Pong';
-import KeyPressMonitor from '../common/game/KeyPressMonitor';
+import Pong, { GameInterface, GameState } from './Pong';
+import KeyPressMonitor from './KeyPressMonitor';
 import { useAuth, AuthCtx } from '../context/authContext';
 
 
