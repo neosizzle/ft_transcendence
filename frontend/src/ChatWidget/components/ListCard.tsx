@@ -13,7 +13,7 @@ interface ListCardProps {
   idx: number;
 }
 
-const DEF_PIC = "/assets/default-pp.webp";
+const DEF_PIC = "/assets/default-gc.png";
 const memberEndpoint = `${API_ROOT}/members`;
 const INV_STR = "/invite/"
 
