@@ -44,7 +44,7 @@ services:
       - web
     build:
       context: ./frontend
-      dockerfile: ./frontend/Dockerfile.prod
+      dockerfile: ./Dockerfile.prod
     container_name: ft_transcendence-front
     ports:
       - 3000:3000 #frontend (change this port on prod)
