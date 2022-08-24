@@ -43,7 +43,7 @@ export class GameEventsGateway
 	// records a connected client. This happens whenever a socket connection
 	// is established between client and server.
 	handleConnection(client: Socket): void {
-		console.log(`spectator ${client.id} connected`);
+		// console.log(`spectator ${client.id} connected`);
 		this.game_server.spectate(client);
 		this.clients.add(client);
 	}
@@ -51,7 +51,7 @@ export class GameEventsGateway
 	// records an unconnected client / player. This happens whenever a socket
 	// connection is disconnected.
 	handleDisconnect(client: Socket): void {
-		console.log(`spectator ${client.id} disconnected`);
+		// console.log(`spectator ${client.id} disconnected`);
 		this.clients.delete(client);
 		this.game_server.handleDisconnect(client);
 	}

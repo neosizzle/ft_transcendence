@@ -80,7 +80,7 @@ class Game extends React.Component <authProps, ReactGameState> {
 	socket_handlers() {
 		// 'connect' event is fired upon connection the the Namespace
 		this.socket?.on('connect', () => {
-			console.log('Connected');
+			// console.log('Connected');
 		});
 		
 		// server asks client to join a game
@@ -91,7 +91,7 @@ class Game extends React.Component <authProps, ReactGameState> {
 		
 		// server asks client to unjoin a game
 		this.socket?.on('unjoin', (n: number) => {
-			console.log(`I quit as player ${n}`);
+			// console.log(`I quit as player ${n}`);
 			this.player.delete(n);
 			this.game.unset_player(n);
 		});
@@ -109,7 +109,7 @@ class Game extends React.Component <authProps, ReactGameState> {
 		this.socket?.on('exception', this.handleError.bind(this));
 		
 		this.socket?.on('disconnect', () => {
-			console.log('Disconnected');
+			// console.log('Disconnected');
 			
 			// keypress monitor is deleted if connection dropped
 			if (this.keypress != null) {
@@ -152,12 +152,12 @@ class Game extends React.Component <authProps, ReactGameState> {
 		if (this.state.queue.position[n] == -1) {
 			// if not in queue, let client join queue
 			this.socket?.emit("join_queue", n, (n: number) => {
-				console.log(`I am no. ${n + 1} in the queue`);
+				// console.log(`I am no. ${n + 1} in the queue`);
 			});
 		} else {
 			// if not the current player, let client quit queue
 			this.socket?.emit("unjoin_queue", n);
-			console.log(`I've quit queue ${n}`);
+			// console.log(`I've quit queue ${n}`);
 		}
 	}
 	

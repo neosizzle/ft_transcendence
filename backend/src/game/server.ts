@@ -58,7 +58,7 @@ export default class GameServer {
 				client.handshake.auth.user, {status: UserStatus.INGAME}
 			)
 		}
-		console.log(`client ${id} joined queue ${n} at index ${index}`);
+		// console.log(`client ${id} joined queue ${n} at index ${index}`);
 		this.server.emit("updateQueue");	// ask clients to update queue info
 		return index;
 	}
@@ -89,7 +89,7 @@ export default class GameServer {
 		if (index > 0) {
 			// remove non-current player from queue
 			this.queues[queue_no].erase(id);
-			console.log(`client ${id} removed from queue ${queue_no}`);
+			// console.log(`client ${id} removed from queue ${queue_no}`);
 		} else if (index == 0) {
 			// end current game and handle players removal. winner is
 			// from the other queue
@@ -110,7 +110,7 @@ export default class GameServer {
 			if (id != queue.front()?.first)
 				continue ;
 			this.game.start(n);	// game records that that player is ready
-			console.log(`Player ${n} pressed start.`)
+			// console.log(`Player ${n} pressed start.`)
 			this.game.control(this.keypress.keypress);
 		}
 	}
@@ -123,7 +123,7 @@ export default class GameServer {
 			if (id == queue.front()?.first
 					&& Object.values(this.game.control_keys[n]).indexOf(key)
 						!= -1) {
-				console.log(`Received keydown ${key} from player ${n}`);
+				// console.log(`Received keydown ${key} from player ${n}`);
 				this.keypress.add(key);
 				this.game.control(this.keypress.keypress);
 				break ;
@@ -139,7 +139,7 @@ export default class GameServer {
 			if (id == queue.front()?.first
 					&& Object.values(this.game.control_keys[n]).indexOf(key)
 						!= -1) {
-				console.log(`Received keyup ${key} from player ${n}`);
+				// console.log(`Received keyup ${key} from player ${n}`);
 				this.keypress.delete(key);
 				this.game.control(this.keypress.keypress);
 				break ;
@@ -160,7 +160,7 @@ export default class GameServer {
 		
 		// if there's a queue where there's no player, do nothing
 		if (this.queues.filter(queue => queue.size() == 0).length != 0) {
-			console.log("Only 1 player exists. No record made.")
+			// console.log("Only 1 player exists. No record made.")
 			return ;
 		}
 		
@@ -190,7 +190,7 @@ export default class GameServer {
 	
 	// game has ended, so remove existing players from game
 	onGameEnd(winner?: number): void {
-		console.log("Game has ended!");
+		// console.log("Game has ended!");
 		
 		// record match history if required
 		this.record_result(winner);
