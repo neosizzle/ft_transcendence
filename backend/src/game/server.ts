@@ -249,6 +249,15 @@ export default class GameServer {
 		return retval;
 	}
 	
+	// return whether user 'id' is in queue
+	userInQueue(id: number) {
+		for (const queue of this.queues) {
+			if (queue.indexOf(id) != -1)
+				return true;
+		}
+		return false;
+	}
+	
 	// if type is true, change to a customised game; else change to
 	// original game.
 	setGameType(type: boolean): void {

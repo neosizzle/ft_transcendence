@@ -110,4 +110,11 @@ export class GameEventsGateway
 	getQueue(@ConnectedSocket() client: Socket): QueueInfo {
 		return this.game_server.getQueue(client);
 	}
+	
+	// client asks whether a user is in the queue. Returns true if user
+	// is in queue, false otherwise.
+	@SubscribeMessage('user_in_queue')
+	userInQueue(@MessageBody() id: number): boolean {
+		return this.game_server.userInQueue(id);
+	}
 }
