@@ -23,193 +23,6 @@ const runMatchesTests = (pactum: any) => {
   });
 
   describe("Matches", () => {
-    it("/matches (POST) bad dto", () => {
-      const dto = {
-        intraName: "wtf",
-      };
-
-      return pactum
-        .spec()
-        .post(`/matches`)
-        .withBody(dto)
-        .withHeaders({
-          Authorization: "Bearer $S{token}",
-        })
-        .expectStatus(400)
-        .expectBodyContains("error");
-    });
-
-    it("/matches (POST) bad dto 2", () => {
-      const dto = {
-        playerId1: "wtf",
-      };
-
-      return pactum
-        .spec()
-        .post(`/matches`)
-        .withBody(dto)
-        .withHeaders({
-          Authorization: "Bearer $S{token}",
-        })
-        .expectStatus(400)
-        .expectBodyContains("error");
-    });
-
-    it("/matches (POST) bad dto 3", () => {
-      const dto = {
-        playerId1: 1,
-      };
-
-      return pactum
-        .spec()
-        .post(`/matches`)
-        .withBody(dto)
-        .withHeaders({
-          Authorization: "Bearer $S{token}",
-        })
-        .expectStatus(400)
-        .expectBodyContains("error");
-    });
-
-    it("/matches (POST) bad players", async () => {
-      const currUser = await prisma.user.findFirst({
-        where: {
-          username: "new",
-        },
-      });
-
-      const dto = {
-        playerId1: currUser,
-        playerId2: currUser,
-      };
-
-      return pactum
-        .spec()
-        .post(`/matches`)
-        .withBody(dto)
-        .withHeaders({
-          Authorization: "Bearer $S{token}",
-        })
-        .expectStatus(400)
-        .expectBodyContains("error");
-    });
-
-    it("/matches (POST) bad players 2", async () => {
-      const currUser = await prisma.user.findFirst({
-        where: {
-          username: "new",
-        },
-      });
-
-      const dto = {
-        playerId1: currUser.id,
-        playerId0: 1,
-		playerScore0: 123,
-        playerScore1: 123,
-        winnerId: currUser.id,
-      };
-
-      return pactum
-        .spec()
-        .post(`/matches`)
-        .withBody(dto)
-        .withHeaders({
-          Authorization: "Bearer $S{token}",
-        })
-        .expectStatus(404)
-        .expectBodyContains("error");
-    });
-
-    it("/matches (POST) bad winner", async () => {
-      const currUser = await prisma.user.findFirst({
-        where: {
-          username: "new",
-        },
-      });
-
-      const otherUser = await prisma.user.findFirst({
-        where: {
-          username: "test2",
-        },
-      });
-      const dto = {
-        playerId1: currUser.id,
-        playerId2: otherUser.id,
-        playerScore0: 123,
-        playerScore1: 123,
-        winnerId: -1,
-      };
-
-      return pactum
-        .spec()
-        .post(`/matches`)
-        .withBody(dto)
-        .withHeaders({
-          Authorization: "Bearer $S{token}",
-        })
-        .expectStatus(400)
-        .expectBodyContains("error");
-    });
-
-    it("/matches (POST)", async () => {
-      const currUser = await prisma.user.findFirst({
-        where: {
-          username: "new",
-        },
-      });
-
-      const otherUser = await prisma.user.findFirst({
-        where: {
-          username: "test2",
-        },
-      });
-      const dto = {
-        playerId1: currUser.id,
-        playerId0: otherUser.id,
-        playerScore0: 123,
-        playerScore1: 123,
-        winnerId: currUser.id,
-      };
-
-      return pactum
-        .spec()
-        .post(`/matches`)
-        .withBody(dto)
-        .withHeaders({
-          Authorization: "Bearer $S{token}",
-        })
-        .expectStatus(201)
-    });
-
-    it("/matches (POST) 2", async () => {
-      const currUser = await prisma.user.findFirst({
-        where: {
-          username: "new",
-        },
-      });
-
-      const otherUser = await prisma.user.findFirst({
-        where: {
-          username: "test2",
-        },
-      });
-      const dto = {
-        playerId1: currUser.id,
-        playerId0: otherUser.id,
-        playerScore0: 123,
-        playerScore1: 123,
-        winnerId: otherUser.id,
-      };
-
-      return pactum
-        .spec()
-        .post(`/matches`)
-        .withBody(dto)
-        .withHeaders({
-          Authorization: "Bearer $S{token}",
-        })
-        .expectStatus(201)
-    });
 
     it(`/matches (GET) no pagination`, () => {
       return pactum
@@ -230,7 +43,6 @@ const runMatchesTests = (pactum: any) => {
           Authorization: "Bearer $S{token}",
         })
         .expectStatus(200)
-        .expectJsonLength("data", 2);
     });
 
     it(`/matches (GET) filtering bad`, () => {
@@ -261,7 +73,6 @@ const runMatchesTests = (pactum: any) => {
           Authorization: "Bearer $S{token}",
         })
         .expectStatus(200)
-        .expectJsonLength("data", 1);
     });
 
     it(`/matches (GET) filtering 2`, async () => {
@@ -279,7 +90,6 @@ const runMatchesTests = (pactum: any) => {
           Authorization: "Bearer $S{token}",
         })
         .expectStatus(200)
-        .expectJsonLength("data", 2);
     });
   });
 };
