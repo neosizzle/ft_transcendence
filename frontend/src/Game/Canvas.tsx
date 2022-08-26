@@ -12,12 +12,21 @@ export type QueueInfo =  {
 
 function PlayerName(props: any) {
 	const id: string = props.queue.player[props.index];
+	const size: number = props.queue.size[props.index];
+	
 	return (
 		<button
 			className="user_button"
 			style={props.style}
 		>
-			{id ? id: "awating player"}
+			{size == 0 ?
+				"awaiting player" :
+				id
+				+ ((size > 1) ?
+					" and " + (size - 1).toString() + " others" :
+					""
+				)
+			}
 		</button>
 		);
 }
@@ -35,6 +44,7 @@ function Button(props: ButtonProps) {
 	const size = props.queue.size[props.queue_no];
 	const pos_other = props.queue.position[(props.queue_no + 1) % 2];
 	const disabled = pos_this == 0 || pos_other >= 0;
+	const player = props.queue.player[props.queue_no]
 	
 	return (
 		<button
@@ -43,16 +53,15 @@ function Button(props: ButtonProps) {
 			style={props.style}
 			disabled={disabled}
 			onClick={props.onClick}>
-				{pos_this >= 0 ? pos_this + 1 + " of " : ""}
-				{size} in Queue.
-				{pos_this == 0 ? "" :
+				{pos_this == 0 ?
+					"Playing" :
 					<>
-					<br></br>
-					{disabled ? "" :
-						<>
-						Click to {pos_this >= 0 ? "un" : ""}join.
-						</>
-					}
+						{pos_other >= 0 ?
+							"Unvailable" :
+							<>
+							Click to {pos_this >= 0 ? "un" : ""}join.
+							</>
+						}
 					</>
 				}
 		</button>
@@ -84,7 +93,7 @@ function ToggleButton(props: ToggleButtonProps) {
 			disabled={disabled}
 			onClick={props.onClick}
 		>
-			{props.gameType ? "Customised" : "Original"}
+			Type: {props.gameType ? "Customised" : "Original"}
 		</button>
 	)
 }
