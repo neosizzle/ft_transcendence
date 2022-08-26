@@ -10,7 +10,13 @@ export type QueueInfo =  {
 	player: string[],
 }
 
-function PlayerName(props: any) {
+type PlayerProps = {
+	style: object,
+	index: number
+	queue: QueueInfo,
+}
+
+function PlayerName(props: PlayerProps) {
 	const id: string = props.queue.player[props.index];
 	const size: number = props.queue.size[props.index];
 	
@@ -41,10 +47,8 @@ type ButtonProps = {
 // Button for joining or quiting game queue
 function Button(props: ButtonProps) {
 	const pos_this = props.queue.position[props.queue_no];
-	const size = props.queue.size[props.queue_no];
 	const pos_other = props.queue.position[(props.queue_no + 1) % 2];
 	const disabled = pos_this == 0 || pos_other >= 0;
-	const player = props.queue.player[props.queue_no]
 	
 	return (
 		<button
