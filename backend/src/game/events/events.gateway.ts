@@ -43,7 +43,7 @@ export class GameEventsGateway
 	// records a connected client. This happens whenever a socket connection
 	// is established between client and server.
 	handleConnection(client: Socket): void {
-		console.log(`spectator ${client.id} connected`);
+		// console.log(`spectator ${client.id} connected`);
 		this.game_server.spectate(client);
 		this.clients.add(client);
 	}
@@ -51,7 +51,7 @@ export class GameEventsGateway
 	// records an unconnected client / player. This happens whenever a socket
 	// connection is disconnected.
 	handleDisconnect(client: Socket): void {
-		console.log(`spectator ${client.id} disconnected`);
+		// console.log(`spectator ${client.id} disconnected`);
 		this.clients.delete(client);
 		this.game_server.handleDisconnect(client);
 	}
@@ -109,5 +109,12 @@ export class GameEventsGateway
 	@SubscribeMessage('getQueue')
 	getQueue(@ConnectedSocket() client: Socket): QueueInfo {
 		return this.game_server.getQueue(client);
+	}
+	
+	// client asks whether a user is in the queue. Returns true if user
+	// is in queue, false otherwise.
+	@SubscribeMessage('user_in_queue')
+	userInQueue(@MessageBody() id: number): boolean {
+		return this.game_server.userInQueue(id);
 	}
 }
