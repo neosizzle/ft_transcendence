@@ -30,6 +30,11 @@ const ActionMenu: FunctionComponent<ActionMenuProps> = ({
   };
 
   const joinGame = () => {
+    // check if current user is in queue
+
+    // check if that user is in queue 
+
+    // join queue and navigate to game
     alert(`Joining ${user.id}s game`);
     setCurrUser(null);
   };
@@ -85,7 +90,7 @@ const ActionMenu: FunctionComponent<ActionMenuProps> = ({
   };
 
   return (
-    <div className="z-10 py-2 drop-shadow-md bg-white rounded border border-gray-200">
+    <div className="z-10 py-2 drop-shadow-md bg-white rounded border border-gray-200 w-[30rem]">
       {/* View profile */}
       <button
         className="block text-left hover:bg-gray-300 py-3 w-full px-4"

@@ -369,11 +369,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
     members.forEach((e) => {
       const connectedClient = this.clients.find(
-        (client) => client.userId === e.userId.toString()
+        (client) => client.userId.toString() === e.userId.toString()
       );
       // if user is connected to ws server and not join ws room
       if (connectedClient && !clientsInRoom.has(e.userId.toString())) {
-        this.logger.log("client should be in room but isnt.... joining...");
         this.wsServer.sockets
           .get(connectedClient.socketId)
           .join(chatRes.roomId.toString());
