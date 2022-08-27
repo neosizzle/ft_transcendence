@@ -108,6 +108,14 @@ function Button(props: ButtonProps) {
 						{pos_other >= 0 ?
 							"Unvailable" :
 							<>
+							{pos_this >= 0 ?
+								<>
+								No. {pos_this} in Queue
+								<br></br>
+								</>
+								:
+								""
+							}
 							Click to {pos_this >= 0 ? "un" : ""}join.
 							</>
 						}
