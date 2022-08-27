@@ -151,9 +151,7 @@ class Game extends React.Component <authProps, ReactGameState> {
 	joinQuitClick(n: number): void {
 		if (this.state.queue.position[n] == -1) {
 			// if not in queue, let client join queue
-			this.socket?.emit("join_queue", n, (n: number) => {
-				// console.log(`I am no. ${n + 1} in the queue`);
-			});
+			this.socket?.emit("join_queue", n);
 		} else {
 			// if not the current player, let client quit queue
 			this.socket?.emit("unjoin_queue", n);
