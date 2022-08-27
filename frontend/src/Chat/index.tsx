@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { API_ROOT } from '../constants';
-import { useAuth } from '../context/authContext';
+import { useAuth, User } from '../context/authContext';
 import { auth_net_get } from '../utils';
 import { ERR, INCOMING_BAN, INCOMING_KICK, INCOMING_MSG } from "../constants";
-import { Message, Room } from "./classes";
+import { Member, Message, Room } from "./classes";
 import { NavLink } from 'react-router-dom';
 
-const chatEndpoint = `${API_ROOT}/chat`;
 const roomEndpoint = `${API_ROOT}/rooms`;
+const chatEndpoint = `${API_ROOT}/chat`;
+const memberEndpoint = `${API_ROOT}/members`;
 
 function Chat() {
 	const auth = useAuth();
@@ -17,6 +18,7 @@ function Chat() {
 	const setActiveRoomRef = (data: Room) => activeRoomRef.current = data;
 	const [currentMessage, setCurrentMessage] = useState('');
 	const [messages, setMessages] = useState<Message[] | null>(null); // The chat
+	const [memberUsers, setMemberUsers] = useState<User[] | null>(null);
 
 	const refreshPage = () => {
 		auth_net_get(
@@ -114,6 +116,16 @@ function Chat() {
 				});
 				setMessages(msgsArr);
 			});
+			auth_net_get(
+				`${memberEndpoint}?page=1&pageSize=50&filterOn=roomId&filterBy=${activeRoom.id}`
+			).then((data) => {
+				const member = data.data;
+				const userArr: User[] = [];
+				member.forEach((member: Member) => {
+					userArr.push(member.user);
+				});
+				setMemberUsers(userArr);
+			});
 		}
 	}, [activeRoom]);
 
@@ -122,7 +134,6 @@ function Chat() {
 		if (currentMessage !== "") {
 			const dto = {
 				userId: auth?.user?.id,
-				//How to get the current room?
 				roomId: 1,
 				message: currentMessage,
 			};
@@ -155,20 +166,36 @@ function Chat() {
 					key={room.id}>{room.roomName}</div>)}</div>
 				<div className='h-96'>
 					<div className='flex flex-row'>
-						<p className='text-lg border-2'>{activeRoom?.roomName}</p> {/* Should be dynamic, based on the user or room you're messaging */}
+						{
+							activeRoom?.type === "DM" ? <p className='text-lg border-2'>other users name </p> : <p className='text-lg border-2'>{activeRoom?.roomName}</p>
+						}
+						{/* Should be dynamic, based on the user or room you're messaging */}
 						<NavLink to="/users/profile/1" className='border-2'>View Profile</NavLink>
 						{/* <a href="users/profile/1" className='border-2'>View Profile</a> Problem is this doesn't work cause just links back to start */}
 						<p className='border-2'>Spectate</p>
 						<p className='border-2'>Unfriend</p>
 						<p className='border-2'>Block</p>
 					</div>
-					{messages?.map(message => <div key={message.id}>{`${message.message}`} <div className='text-sm text-grey'>{new Date(message.createdAt).toString()}</div></div>)}
+					{messages?.map(message =>
+						<div key={message.id}>
+							{
+								message.userId === auth?.user?.id ? <div><div className="text-lg text-right">{message.message}</div>
+								<div className='text-xs text-grey text-right'>{new Date(message.createdAt).toLocaleString("en-gb", { hour12: true })}</div></div>
+								: <div><div className="text-lg">{message.message}</div><div className='text-xs text-grey'>{new Date(message.createdAt).toLocaleString("en-gb", { hour12: true })}</div></div>
+							}
+						</div>
+					)}
 					<form onSubmit={(sendMessage)} className="Chat">
 						<input type="text" className="w-fit mt-10 border-2" placeholder="Say something..." id="message" onChange={handleChange} value={currentMessage} />
 					</form>
 					{/* </div> */}
 				</div>
-				<div>Members</div>
+				<div>
+					Members
+					<div>
+						{memberUsers?.map(user => <div key={user.id}>{`${user.username}`}</div>)}
+					</div>
+				</div>
 			</div>
 		</>
 	);
