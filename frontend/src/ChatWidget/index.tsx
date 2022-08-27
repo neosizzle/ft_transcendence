@@ -1,6 +1,6 @@
 import { cloneDeep } from "lodash";
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Ban, BaseWSResponse, Member, Message, Room } from "../Chat/classes";
 import { ERR, INCOMING_BAN, INCOMING_KICK, INCOMING_MSG } from "../constants";
 import { useAuth } from "../context/authContext";
@@ -34,6 +34,7 @@ const ChatWidget: FunctionComponent = () => {
   const auth = useAuth();
   const widget = useChatWidget();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // handle chat window close
   const handleClose = (e: MouseEvent) => {
@@ -196,7 +197,7 @@ const ChatWidget: FunctionComponent = () => {
     };
   }, [auth]);
 
-  return !auth?.user ? null : (
+  return !auth?.user || location.pathname === "/chat" ? null : (
     <div
       className={`fixed border border-slate-600 z-10 right-10 bottom-10 h-10 w-10 flex justify-center items-center bg-black rounded-full lg:right-5 lg:bottom-0 lg:rounded-none lg:h-10 lg:w-80 lg:justify-start`}
     >

@@ -1,1 +1,1 @@
-export const WS_ROOT = "http://localhost:3001"
+export const WS_ROOT = "http://10.14.4.1:3001"

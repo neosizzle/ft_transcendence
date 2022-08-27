@@ -4,6 +4,7 @@ import { useAuth } from '../context/authContext';
 import { auth_net_get } from '../utils';
 import { ERR, INCOMING_BAN, INCOMING_KICK, INCOMING_MSG } from "../constants";
 import { Message, Room } from "./classes";
+import { NavLink } from 'react-router-dom';
 
 const chatEndpoint = `${API_ROOT}/chat`;
 const roomEndpoint = `${API_ROOT}/rooms`;
@@ -116,16 +117,17 @@ function Chat() {
 				{/* <div className='flex flex-row'> */}
 				{/* Need to figure out how to get user avatar. If DM, get user.avatar as src string. Else if GC, use default? (Alternatively
 						can use owner picture) */}
-				<div >{rooms?.map(room => <p className='border-2' key={room.id}>{room.roomName}</p>)}</div>
+				<div >{rooms?.map(room => <p className='text-xl border-2' key={room.id}>{room.roomName}</p>)}</div>
 				<div className='h-96'>
 					<div className='flex flex-row'>
-						<p className='border-2'>Username</p> {/* Should be dynamic, based on the user you're messaging */}
-						<p className='border-2'>View Profile</p>
+						<p className='text-lg border-2'>Username</p> {/* Should be dynamic, based on the user you're messaging */}
+						<NavLink to="/users/profile/1" className='border-2'>View Profile</NavLink>
+						{/* <a href="users/profile/1" className='border-2'>View Profile</a> Problem is this doesn't work cause just links back to start */}
 						<p className='border-2'>Spectate</p>
 						<p className='border-2'>Unfriend</p>
 						<p className='border-2'>Block</p>
 					</div>
-					{messages?.map(message => <p key={message.id}>{message.message}</p>)}
+					{messages?.map(message => <div key={message.id}>{`${message.message}`} <div className='text-sm text-grey'>{new Date(message.createdAt).toString()}</div></div>)}
 					<form onSubmit={(sendMessage)} className="Chat">
 						<input type="text" className="w-fit mt-10 border-2" placeholder="Say something..." id="message" onChange={handleChange} value={currentMessage} />
 					</form>
