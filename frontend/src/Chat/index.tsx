@@ -10,13 +10,13 @@ const chatEndpoint = `${API_ROOT}/chat`;
 const roomEndpoint = `${API_ROOT}/rooms`;
 
 function Chat() {
-	const [currentMessage, setCurrentMessage] = useState('');
-	const [messages, setMessages] = useState<Message[] | null>(null); // The chat
+	const auth = useAuth();
 	const [rooms, setRooms] = useState<Room[] | null>(null); // total chat elemnts
 	const [activeRoom, setActiveRoom] = useState<Room | null>(null);
 	const activeRoomRef = useRef(activeRoom);
-	const setActiveRoomRef = (data : Room) => activeRoomRef.current = data;
-	const auth = useAuth();
+	const setActiveRoomRef = (data: Room) => activeRoomRef.current = data;
+	const [currentMessage, setCurrentMessage] = useState('');
+	const [messages, setMessages] = useState<Message[] | null>(null); // The chat
 
 	const refreshPage = () => {
 		auth_net_get(
@@ -42,8 +42,8 @@ function Chat() {
 			setMessages(msgsArr);
 		});
 		console.log("Refreshing page");
-		console.log("state " , activeRoom?.id);
-		console.log("ref " , activeRoomRef.current?.id);
+		console.log("state ", activeRoom?.id);
+		console.log("ref ", activeRoomRef.current?.id);
 		//Also doesn't work?
 	};
 
@@ -83,10 +83,9 @@ function Chat() {
 
 	}, [auth]);
 
-	useEffect(()=>{
-	//For setting messages 
-	if (rooms != null)
-		{
+	useEffect(() => {
+		//For setting messages 
+		if (rooms != null) {
 			setActiveRoom(rooms[0]);
 			setActiveRoomRef(rooms[0]);
 			auth_net_get(
@@ -102,22 +101,21 @@ function Chat() {
 		}
 	}, [rooms]);
 
-	useEffect(()=>{
+	useEffect(() => {
 		//For setting messages 
-		if (activeRoom != null)
-			{
-				auth_net_get(
-					`${chatEndpoint}?page=1&pageSize=50&filterOn=roomId&filterBy=${activeRoom.id}&sortBy=Ascending&sortOn=createdAt`
-				).then((data) => {
-					const chats = data.data;
-					const msgsArr: Message[] = [];
-					chats.forEach((chat: Message) => {
-						msgsArr.push(chat);
-					});
-					setMessages(msgsArr);
+		if (activeRoom != null) {
+			auth_net_get(
+				`${chatEndpoint}?page=1&pageSize=50&filterOn=roomId&filterBy=${activeRoom.id}&sortBy=Ascending&sortOn=createdAt`
+			).then((data) => {
+				const chats = data.data;
+				const msgsArr: Message[] = [];
+				chats.forEach((chat: Message) => {
+					msgsArr.push(chat);
 				});
-			}
-		}, [activeRoom]);
+				setMessages(msgsArr);
+			});
+		}
+	}, [activeRoom]);
 
 	const sendMessage = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -148,16 +146,16 @@ function Chat() {
 				{/* <div className='flex flex-row'> */}
 				{/* Need to figure out how to get user avatar. If DM, get user.avatar as src string. Else if GC, use default? (Alternatively
 						can use owner picture) */}
-				<div>{rooms?.map(room => <div className='text-xl border-2 cursor-pointer' 
-				// If dm, display name instead of roomname
-				onClick={() => {
-					setActiveRoom(room);
-					setActiveRoomRef(room);
-				}}
-				key={room.id}>{room.roomName}</div>)}</div>
+				<div>{rooms?.map(room => <div className='text-xl border-2 cursor-pointer'
+					// If dm, display name instead of roomname
+					onClick={() => {
+						setActiveRoom(room);
+						setActiveRoomRef(room);
+					}}
+					key={room.id}>{room.roomName}</div>)}</div>
 				<div className='h-96'>
 					<div className='flex flex-row'>
-						<p className='text-lg border-2'>{activeRoom?.roomName}</p> {/* Should be dynamic, based on the user you're messaging */}
+						<p className='text-lg border-2'>{activeRoom?.roomName}</p> {/* Should be dynamic, based on the user or room you're messaging */}
 						<NavLink to="/users/profile/1" className='border-2'>View Profile</NavLink>
 						{/* <a href="users/profile/1" className='border-2'>View Profile</a> Problem is this doesn't work cause just links back to start */}
 						<p className='border-2'>Spectate</p>
