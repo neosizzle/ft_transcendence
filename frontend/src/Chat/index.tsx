@@ -149,6 +149,7 @@ function Chat() {
 				{/* Need to figure out how to get user avatar. If DM, get user.avatar as src string. Else if GC, use default? (Alternatively
 						can use owner picture) */}
 				<div>{rooms?.map(room => <div className='text-xl border-2 cursor-pointer' 
+				// If dm, display name instead of roomname
 				onClick={() => {
 					setActiveRoom(room);
 					setActiveRoomRef(room);
@@ -156,10 +157,10 @@ function Chat() {
 				key={room.id}>{room.roomName}</div>)}</div>
 				<div className='h-96'>
 					<div className='flex flex-row'>
-						<p className='text-lg border-2'>Username</p> {/* Should be dynamic, based on the user you're messaging */}
+						<p className='text-lg border-2'>{activeRoom?.roomName}</p> {/* Should be dynamic, based on the user you're messaging */}
 						<NavLink to="/users/profile/1" className='border-2'>View Profile</NavLink>
 						{/* <a href="users/profile/1" className='border-2'>View Profile</a> Problem is this doesn't work cause just links back to start */}
-						<p className='border-2' onClick={() => {Test()}}>Spectate</p>
+						<p className='border-2'>Spectate</p>
 						<p className='border-2'>Unfriend</p>
 						<p className='border-2'>Block</p>
 					</div>
