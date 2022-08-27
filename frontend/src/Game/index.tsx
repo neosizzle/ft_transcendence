@@ -27,6 +27,7 @@ interface ReactGameState {
 	queue: QueueInfo
 	gameType: boolean
 	gameState: GameState
+	winner: string
 }
 
 /*
@@ -55,6 +56,7 @@ class Game extends React.Component <authProps, ReactGameState> {
 				score: [],
 				entity: [],
 			},
+			winner: "",
 		};
 		
 		this.game = new Pong(400, 300);
@@ -104,6 +106,11 @@ class Game extends React.Component <authProps, ReactGameState> {
 		this.socket?.on('game_type', (type: boolean) => {
 			this.game.set_type(type);
 			this.setState({gameType: type});
+		})
+		
+		this.socket?.on('winner', (winner: string) => {
+			console.log('Winner is', winner);
+			this.setState({winner: winner});
 		})
 		
 		this.socket?.on('exception', this.handleError.bind(this));
@@ -185,6 +192,11 @@ class Game extends React.Component <authProps, ReactGameState> {
 		});
 	}
 	
+	// clear winner from the state
+	clearWinner() {
+		this.setState({winner: ""});
+	}
+	
 	render() {
 		return <Canvas
 			width={400}
@@ -196,6 +208,8 @@ class Game extends React.Component <authProps, ReactGameState> {
 			setGameType={this.setGameType.bind(this)}
 			gameType={this.state.gameType}
 			gameState={this.state.gameState}
+			winner={this.state.winner}
+			clearWinner={this.clearWinner.bind(this)}
 			/>;
 	}
 }

@@ -12,7 +12,7 @@ export type QueueInfo =  {
 
 type PlayerProps = {
 	style: object,
-	index: number
+	index: number,
 	queue: QueueInfo,
 }
 
@@ -35,6 +35,51 @@ function PlayerName(props: PlayerProps) {
 			}
 		</button>
 		);
+}
+
+type WinnerProps = {
+	style: object
+	winner: string,
+	clearWinner: () => void;
+}
+
+type WinnerState = {
+	winner: string,
+}
+
+class WinnerMessage extends React.Component<WinnerProps, WinnerState> {
+	constructor(props: WinnerProps) {
+		super(props);
+		this.state = {
+			winner: props.winner,
+		};
+	}
+	
+	componentDidUpdate() {
+		// if winner has been updated, update the state but clears it after
+		// 5 seconds
+		if (this.props.winner != this.state.winner) {
+			this.setState({winner: this.props.winner});
+			setTimeout(() => {
+				this.setState({winner: ''});
+				this.props.clearWinner();
+			}, 5000);
+		}
+	}
+	
+	render() {
+		const winner: string = this.state.winner;
+		return (
+			<button
+				className="msg_button"
+				style={this.props.style}
+			>
+				<>
+				{winner ? winner + " wins!" : ""}
+				</>
+			</button>
+		);
+	}
 }
 
 type ButtonProps = {
@@ -113,6 +158,8 @@ interface CanvasProps {
 	setGameType: (type: boolean) => void;
 	gameType: boolean;
 	gameState: GameState;
+	winner: string;
+	clearWinner: () => void;
 }
 
 
@@ -181,6 +228,12 @@ export default class Canvas extends React.Component<CanvasProps> {
 						style={{float: "left"}}
 						index={0}
 						queue={this.props.queue}
+					/>
+					
+					<WinnerMessage
+						style={{float: "left"}}
+						winner={this.props.winner}
+						clearWinner={this.props.clearWinner}
 					/>
 					
 					<PlayerName

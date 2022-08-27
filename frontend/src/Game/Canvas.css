@@ -41,6 +41,17 @@
 	color: #2c5777;
 }
 
+.msg_button {
+  background-color: white;
+  font-family: "Haas Grot Text R Web", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 20px;
+  list-style: none;
+  margin: 0;
+  padding: 10px 12px;
+}
+
 .user_button {
   background-color: rgba(51, 51, 51, 0.05);
   border-radius: 8px;
