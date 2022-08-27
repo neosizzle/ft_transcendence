@@ -213,9 +213,13 @@ const MatchHistoryTable: FunctionComponent<MatchHistoryTableProps> = ({
                     </thead>
                     <tbody>
                       {loading ? (
-                        <div>Laoding lah </div>
+                        <tr>
+                          <td>Loading lah</td>
+                        </tr>
                       ) : matches && matches.length === 0 ? (
-                        <div>u have to much life di, go play some game</div>
+                        <tr>
+                          <td>u have to much life di, go play some game</td>
+                        </tr>
                       ) : (
                         matches?.map((match) => (
                           <TableRow user={user} match={match} key={match.id} />
