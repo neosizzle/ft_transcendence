@@ -154,24 +154,27 @@ function Chat() {
 			{/* Header */}
 			<h1 className='text-5xl'>Chat</h1>
 			<div className='grid grid-cols-3'>
-				{/* <div className='flex flex-row'> */}
 				{/* Need to figure out how to get user avatar. If DM, get user.avatar as src string. Else if GC, use default? (Alternatively
 						can use owner picture) */}
 				<div>{rooms?.map(room => <div className='text-xl border-2 cursor-pointer'
-					// If dm, display name instead of roomname
 					onClick={() => {
 						setActiveRoom(room);
 						setActiveRoomRef(room);
 					}}
-					key={room.id}>{room.roomName}</div>)}</div>
+					key={room.id}>
+					{
+						room.type === "DM" ? <img src="/assets/default-pp.webp" width="100" height="100"/> : <img src="/assets/default-gc-harambe.png" width="100" height="100" /> // Can't pass in value to src for some reason?
+					}
+					{
+						room.type === "DM" ? "Is a DM (Should display other user's name)" : room.roomName // But how to get specific room's users
+					}
+				</div>)}</div>
 				<div className='h-96'>
 					<div className='flex flex-row'>
 						{
-							activeRoom?.type === "DM" ? <p className='text-lg border-2'>other users name </p> : <p className='text-lg border-2'>{activeRoom?.roomName}</p>
+							activeRoom?.type === "DM" && memberUsers != null ? auth?.user?.id === memberUsers[0].id ? <p className='text-lg border-2'>{memberUsers[1].username} </p> : <p className='text-lg border-2'>{memberUsers[0].username} </p> : <p className='text-lg border-2'>{activeRoom?.roomName}</p>
 						}
-						{/* Should be dynamic, based on the user or room you're messaging */}
 						<NavLink to="/users/profile/1" className='border-2'>View Profile</NavLink>
-						{/* <a href="users/profile/1" className='border-2'>View Profile</a> Problem is this doesn't work cause just links back to start */}
 						<p className='border-2'>Spectate</p>
 						<p className='border-2'>Unfriend</p>
 						<p className='border-2'>Block</p>
@@ -180,8 +183,8 @@ function Chat() {
 						<div key={message.id}>
 							{
 								message.userId === auth?.user?.id ? <div><div className="text-lg text-right">{message.message}</div>
-								<div className='text-xs text-grey text-right'>{new Date(message.createdAt).toLocaleString("en-gb", { hour12: true })}</div></div>
-								: <div><div className="text-lg">{message.message}</div><div className='text-xs text-grey'>{new Date(message.createdAt).toLocaleString("en-gb", { hour12: true })}</div></div>
+									<div className='text-xs text-grey text-right'>{new Date(message.createdAt).toLocaleString("en-gb", { hour12: true })}</div></div>
+									: <div><div className="text-lg">{message.message}</div><div className='text-xs text-grey'>{new Date(message.createdAt).toLocaleString("en-gb", { hour12: true })}</div></div>
 							}
 						</div>
 					)}
