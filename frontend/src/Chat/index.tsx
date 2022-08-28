@@ -144,7 +144,6 @@ function Chat() {
 	return (
 		<>
 			{/* Header */}
-			<h1 className='text-5xl'>Chat</h1>
 			<div className='grid grid-cols-3'>
 				{/* Need to figure out how to get user avatar. If DM, get user.avatar as src string. Else if GC, use default? (Alternatively
 						can use owner picture) */}
@@ -164,12 +163,12 @@ function Chat() {
 				<div className='h-96'>
 					<div className='flex flex-row'>
 						{
-							activeRoom?.type === "DM" && memberUsers != null ? auth?.user?.id === memberUsers[0].id ? <p className='text-lg border-2'>{memberUsers[1].username} </p> : <p className='text-lg border-2'>{memberUsers[0].username} </p> : <p className='text-lg border-2'>{activeRoom?.roomName}</p>
+							activeRoom?.type === "DM" && memberUsers != null ? auth?.user?.id === memberUsers[0].id ? <p className='text-3xl border-2'>{memberUsers[1].username} </p> : <p className='text-3xl border-2'>{memberUsers[0].username} </p> : <p className='text-3xl border-2'>{activeRoom?.roomName}</p>
 						}
-						<NavLink to="/users/profile/1" className='border-2'>View Profile</NavLink>
-						<p className='border-2'>Spectate</p>
-						<p className='border-2'>Unfriend</p>
-						<p className='border-2'>Block</p>
+						<NavLink to="/users/profile/1" className='text-3xl border-2'>View Profile</NavLink>
+						<p className='text-3xl border-2'>Spectate</p>
+						<p className='text-3xl border-2'>Unfriend</p>
+						<p className='text-3xl border-2'>Block</p>
 					</div>
 					{messages?.map(message =>
 						<div key={message.id}>
@@ -186,9 +185,9 @@ function Chat() {
 					{/* </div> */}
 				</div>
 				<div>
-					Members
+					<div className='border-2 text-center text-5xl'>Members</div>
 					<div>
-						{memberUsers?.map(user => <div key={user.id}>{`${user.username}`}</div>)}
+						{memberUsers?.map(user => <div key={user.id} className='border-2 text-center text-xl'>{`${user.username}`}</div>)}
 					</div>
 				</div>
 			</div>
