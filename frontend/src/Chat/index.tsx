@@ -78,15 +78,10 @@ function Chat() {
 			auth?.chatWidgetSocket?.off(INCOMING_KICK, Test);
 			auth?.chatWidgetSocket?.off(INCOMING_BAN, Test);
 		};
-		//One problem I realised is, this is running very fast. Sometimes api crashes.
-		// if (!auth?.chatSocket) return;
-		// auth?.chatSocket.on("NewMessage", ClearInput);
-		// auth?.chatSocket.on("message", ClearInput);
-
 	}, [auth]);
 
 	useEffect(() => {
-		//For setting messages 
+		//For first time setting messages 
 		if (rooms != null) {
 			setActiveRoom(rooms[0]);
 			setActiveRoomRef(rooms[0]);
@@ -116,6 +111,7 @@ function Chat() {
 				});
 				setMessages(msgsArr);
 			});
+			//Gets the members for display on the right
 			auth_net_get(
 				`${memberEndpoint}?page=1&pageSize=50&filterOn=roomId&filterBy=${activeRoom.id}`
 			).then((data) => {
@@ -163,7 +159,7 @@ function Chat() {
 					}}
 					key={room.id}>
 					{
-						room.type === "DM" ? <img src="/assets/default-pp.webp" width="100" height="100"/> : <img src="/assets/default-gc-harambe.png" width="100" height="100" /> // Can't pass in value to src for some reason?
+						room.type === "DM" ? <img src="/assets/default-pp.webp" width="100" height="100" /> : <img src="/assets/default-gc-harambe.png" width="100" height="100" /> // Can't pass in value to src for some reason?
 					}
 					{
 						room.type === "DM" ? "Is a DM (Should display other user's name)" : room.roomName // But how to get specific room's users
