@@ -46,7 +46,6 @@ function Chat() {
 		console.log("Refreshing page");
 		console.log("state ", activeRoom?.id);
 		console.log("ref ", activeRoomRef.current?.id);
-		//Also doesn't work?
 	};
 
 	const Test = () => {
@@ -134,15 +133,12 @@ function Chat() {
 				message: currentMessage,
 			};
 			auth?.chatSocket?.emit("message", JSON.stringify(dto));
-			ClearInput();
+			setCurrentMessage('');
 		}
 	};
+
 	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setCurrentMessage(event.target.value);
-	};
-	const ClearInput = () => {
-		// 👇️ clear input value
-		setCurrentMessage('');
 	};
 
 	return (
