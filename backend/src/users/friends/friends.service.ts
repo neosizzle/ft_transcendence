@@ -8,8 +8,6 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { ListObject, ListQuery, validateListquery } from "src/utils";
 import { FriendsDto, FriendsPatchDto } from "./dto";
 
-// TODO handle bad user status enum
-
 const CURR_USER = 1;
 const FRIEND_USER = 0;
 
@@ -257,7 +255,7 @@ export class FriendsService {
       },
     });
     if (existingFriendship)
-      throw new BadRequestException("Already added friend");
+      throw new BadRequestException("Already added friend or already has pending request");
 
     // create entry in friendship database
     const res = this.prisma.friendship.create({
