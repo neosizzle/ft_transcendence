@@ -160,8 +160,7 @@ function Chat() {
         ).then((data) => {
           if (data.error && data.error == "Forbidden")
             return navigate("/logout");
-          if (!data.total_elements)
-            setUserFriendShipState(NOT_FRIENDS);
+          if (!data.total_elements) setUserFriendShipState(NOT_FRIENDS);
           else setUserFriendShipState(ALREADY_FRIENDS);
         });
       });
@@ -225,22 +224,22 @@ function Chat() {
           <div className="flex flex-row">
             {activeRoom?.type === "DM" && memberUsers != null ? (
               auth?.user?.id === memberUsers[0].id ? (
-                <p className="text-lg border-2">{memberUsers[1].username} </p>
+                <p className="text-3xl border-2">{memberUsers[1].username} </p>
               ) : (
-                <p className="text-lg border-2">{memberUsers[0].username} </p>
+                <p className="text-3xl border-2">{memberUsers[0].username} </p>
               )
             ) : (
-              <p className="text-lg border-2">{activeRoom?.roomName}</p>
+              <p className="text-3xl border-2">{activeRoom?.roomName}</p>
             )}
-            <NavLink to="/users/profile/1" className="border-2">
+            <NavLink to="/users/profile/1" className="text-3xl border-2">
               View Profile
             </NavLink>
-            <p className="border-2">Spectate</p>
+            <p className="text-3xl border-2">Spectate</p>
 
             {/* Unfriend Btn */}
             {activeRoom?.type === "DM" ? (
               <button
-                className={`border-2 ${
+                className={`text-3xl border-2 ${
                   userFriendShipState === PENDING_FRIENDS ? "disabled" : ""
                 }`}
                 onClick={() => {
@@ -250,12 +249,9 @@ function Chat() {
 
                   // if user is not friend, add friend
                   if (userFriendShipState === NOT_FRIENDS)
-                    auth_net_post(
-                      `${friendsEndpoint}`,
-                      {
-                        id: otherDmUser.id,
-                      }
-                    ).then((data) => {
+                    auth_net_post(`${friendsEndpoint}`, {
+                      id: otherDmUser.id,
+                    }).then((data) => {
                       if (data.error && data.error == "Forbidden")
                         return navigate("/logout");
 
@@ -263,7 +259,9 @@ function Chat() {
                     });
                   // else, delete friend
                   else
-                    auth_net_delete(`${friendsEndpoint}/${otherDmUser.id}`).then((data) => {
+                    auth_net_delete(
+                      `${friendsEndpoint}/${otherDmUser.id}`
+                    ).then((data) => {
                       if (data.error && data.error == "Forbidden")
                         return navigate("/logout");
                       if (data.error) return alert("remove friend error");
@@ -280,7 +278,7 @@ function Chat() {
             {/* Block Btn */}
             {activeRoom?.type === "DM" ? (
               <button
-                className="border-2 block"
+                className="text-3xl border-2 block"
                 onClick={() => {
                   // return if active room is a GC
                   if (activeRoom.type === "GC" || !memberUsers || !otherDmUser)
@@ -348,10 +346,13 @@ function Chat() {
           {/* </div> */}
         </div>
         <div>
-          Members
+          <div className="border-2 text-center text-5xl">Members</div>
           <div>
             {memberUsers?.map((user) => (
-              <div key={user.id}>{`${user.username}`}</div>
+              <div
+                key={user.id}
+                className="border-2 text-center text-xl"
+              >{`${user.username}`}</div>
             ))}
           </div>
         </div>
