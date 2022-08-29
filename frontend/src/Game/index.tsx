@@ -7,6 +7,13 @@ import KeyPressMonitor from './KeyPressMonitor';
 import { useAuth, AuthCtx } from '../context/authContext';
 
 
+let DISP_SCALE: number;
+if (typeof window == 'undefined')
+	DISP_SCALE = 1;
+else
+	DISP_SCALE = Math.min(window.innerWidth, window.innerHeight) / 400;
+
+
 // this code is needed so as to get useAuth Hook to work with Game class
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const useAuthHOC = (Component: any) => {
@@ -59,7 +66,7 @@ class Game extends React.Component <authProps, ReactGameState> {
 			winner: "",
 		};
 		
-		this.game = new Pong(400, 300);
+		this.game = new Pong(400 * DISP_SCALE, 300 * DISP_SCALE);
 		this.socket = props.auth?.gameSocket;
 		this.socket_handlers();	// initialise socket message handlers
 		this.getQueue();
@@ -199,8 +206,8 @@ class Game extends React.Component <authProps, ReactGameState> {
 	
 	render() {
 		return <Canvas
-			width={400}
-			height={300}
+			width={400 * DISP_SCALE}
+			height={300 * DISP_SCALE}
 			style={{border: "1px solid black"}}
 			game={this.game}
 			queue={this.state.queue}
