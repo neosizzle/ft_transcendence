@@ -63,7 +63,7 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
         <NavLink to="/users/profile/1" className="text-3xl border-2">
           View Profile
         </NavLink>
-        <p className="text-3xl border-2">Spectate</p>
+        <p className="text-3xl border-2">Invite to game</p>
 
         {/* Unfriend Btn */}
         {chat?.activeRoom?.type === "DM" ? (
