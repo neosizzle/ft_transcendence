@@ -36,7 +36,7 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
     if (currentMessage !== "") {
       const dto = {
         userId: auth?.user?.id,
-        roomId: 1,
+        roomId: chat?.activeRoom?.id,
         message: currentMessage,
       };
       auth?.chatSocket?.emit("message", JSON.stringify(dto));
