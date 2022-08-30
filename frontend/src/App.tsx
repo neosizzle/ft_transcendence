@@ -11,6 +11,7 @@ import Navbar from "./commonComponents/navbar";
 import Home from "./Home";
 import ChatWidget from "./ChatWidget";
 import { ChatWidgetProvider } from "./context/chatWidgetContext";
+import { ChatProvider } from "./context/chatContext";
 
 function App() {
   const [initLoad, setInitLoad] = useState<number>(0);
@@ -35,7 +36,7 @@ function App() {
               path="/chat"
               element={
                 <Protected>
-                  <Chat />
+                  <ChatProvider><Chat/></ChatProvider>
                 </Protected>
               }
             />

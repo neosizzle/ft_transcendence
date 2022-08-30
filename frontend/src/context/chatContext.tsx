@@ -6,10 +6,10 @@ interface Props {
   children: React.ReactNode;
 }
 
-export interface ChatWidgetCtx {
-  currActiveRoom: Room | null;
-  currActiveRoomRef : MutableRefObject<Room | null>;
-  setCurrActiveRoom: (data : Room | null) => void;
+export interface ChatCtx {
+  activeRoom: Room | null;
+  activeRoomRef : MutableRefObject<Room | null>;
+  setActiveRoom: (data : Room | null) => void;
 
   activeRoomMessages: Message[] | null;
   activeRoomMessagesRef : MutableRefObject <Message[] | null>;
@@ -19,14 +19,6 @@ export interface ChatWidgetCtx {
   roomsRef : MutableRefObject <Room[] | null>;
   setRooms: (data : Room[] | null) => void;
 
-  notify: number[] | null;
-  notifyRef : MutableRefObject<number[] | null>;
-  setNotify: (data : number[] | null) => void;
-
-  lastMessages: Message[] | null;
-  lastMessagesRef : MutableRefObject <Message[] | null>;
-  setLastMessages: (data : Message[] | null) => void;
-
   openAlert: AlertType;
   setOpenAlert: React.Dispatch<React.SetStateAction<AlertType>>;
 
@@ -34,14 +26,14 @@ export interface ChatWidgetCtx {
   setAlertMessage : React.Dispatch<React.SetStateAction<string>>;
 }
 
-const ChatContext = createContext<ChatWidgetCtx | null>(null);
+const ChatContext = createContext<ChatCtx | null>(null);
 
 export const ChatProvider = (props: Props) => {
-  const [currActiveRoom, _setCurrActiveRoom] = useState<Room | null>(null); // active viewing room
-  const currActiveRoomRef = useRef(currActiveRoom);
-  const setCurrActiveRoom = (data : Room | null) => {
+  const [activeRoom, _setCurrActiveRoom] = useState<Room | null>(null); // active viewing room
+  const activeRoomRef = useRef(activeRoom);
+  const setActiveRoom = (data : Room | null) => {
     _setCurrActiveRoom(data);
-    currActiveRoomRef.current = data;
+    activeRoomRef.current = data;
   }
 
   const [activeRoomMessages, _setActiveRoomMessages] = useState<
@@ -61,22 +53,6 @@ export const ChatProvider = (props: Props) => {
     roomsRef.current = data;
   }
 
-  const [notify, _setNotify] = useState<number[] | null>(null); // notified rooms
-  const notifyRef = useRef(notify);
-  const setNotify = (data : number[] | null) => 
-  {
-    _setNotify(data);
-    notifyRef.current = data;
-  }
-
-  const [lastMessages, _setLastMessages] = useState<Message[] | null>(null); // last messages for all rooms
-  const lastMessagesRef = useRef(lastMessages);
-  const setLastMessages = (data : Message[] | null) =>
-  {
-    _setLastMessages(data);
-    lastMessagesRef.current = data;
-  }
-
   const [openAlert, setOpenAlert] = useState<AlertType>({
     type: "",
     isOpen: false,
@@ -86,21 +62,15 @@ export const ChatProvider = (props: Props) => {
   return (
     <ChatContext.Provider
       value={{
-        currActiveRoom,
-        setCurrActiveRoom,
-        currActiveRoomRef,
+        activeRoom,
+        setActiveRoom,
+        activeRoomRef,
         activeRoomMessages,
         setActiveRoomMessages,
         activeRoomMessagesRef,
         rooms,
         setRooms,
         roomsRef,
-        notify,
-        setNotify,
-        notifyRef,
-        lastMessages,
-        setLastMessages,
-        lastMessagesRef,
         openAlert,
         setOpenAlert,
         alertMessage,
