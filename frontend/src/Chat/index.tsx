@@ -3,12 +3,13 @@ import { ALREADY_FRIENDS, API_ROOT, NOT_FRIENDS } from "../constants";
 import { useAuth, User } from "../context/authContext";
 import { auth_net_get } from "../utils";
 import { ERR, INCOMING_BAN, INCOMING_KICK, INCOMING_MSG } from "../constants";
-import { Member, Message, Room } from "./classes";
+import { BaseWSResponse, Member, Message, Room } from "./classes";
 import { useNavigate } from "react-router-dom";
 import { useChat } from "../context/chatContext";
 import RoomList from "./components/RoomList";
 import ChatArea from "./components/ChatArea";
 import MemberList from "./components/MemberList";
+import Alert from "../commonComponents/Alert";
 
 const roomEndpoint = `${API_ROOT}/rooms`;
 const chatEndpoint = `${API_ROOT}/chat`;
@@ -28,35 +29,22 @@ function Chat() {
     useState<number>(NOT_FRIENDS);
   const [otherDmUser, setOtherDmUser] = useState<User | null>(null);
 
-  const refreshPage = () => {
-    auth_net_get(`${roomEndpoint}?page=1&pageSize=50`).then((data) => {
-      const myRooms = data.data;
-      const roomsArr: Room[] = [];
-      myRooms.forEach((random: Room) => {
-        roomsArr.push(random);
-      });
-      chat?.setRooms(roomsArr);
-    });
+  const handleNewMessage = (data: Message) => {
+    const activeRoomMessagesClone = [
+      ...(chat?.activeRoomMessagesRef.current as Message[]),
+    ];
+    activeRoomMessagesClone.push(data);
 
-    //For setting activeRoomMessages
-    auth_net_get(
-      `${chatEndpoint}?page=1&pageSize=50&filterOn=roomId&filterBy=1&sortBy=Ascending&sortOn=createdAt`
-    ).then((data) => {
-      const chats = data.data;
-      const msgsArr: Message[] = [];
-      chats.forEach((chat: Message) => {
-        msgsArr.push(chat);
-      });
-      chat?.setActiveRoomMessages(msgsArr);
-    });
-    console.log("Refreshing page");
-    console.log("state ", chat?.activeRoom?.id);
-    console.log("ref ", chat?.activeRoomRef.current?.id);
+    chat?.setActiveRoomMessages(activeRoomMessagesClone);
   };
 
-  const Test = () => {
-    console.log("Hi I do nothing currently, am test");
-    console.log(chat?.activeRoom?.id);
+  const handleError = (data: BaseWSResponse) => {
+    if (data.message === "Forbidden") navigate("/logout");
+    else {
+      if (data.message) chat?.setAlertMessage(data.message);
+      else chat?.setAlertMessage("Unexpected error");
+      chat?.setOpenAlert({ type: "error", isOpen: true });
+    }
   };
 
   useEffect(() => {
@@ -69,17 +57,17 @@ function Chat() {
       chat?.setRooms(roomsArr);
     });
     if (!auth?.chatSocket) return;
-    auth.chatSocket.on(INCOMING_MSG, refreshPage);
-    auth.chatSocket.on(ERR, Test);
-    auth.chatSocket.on(INCOMING_KICK, Test);
-    auth.chatSocket.on(INCOMING_BAN, Test);
+    auth.chatSocket.on(INCOMING_MSG, handleNewMessage);
+    auth.chatSocket.on(ERR, handleError);
+    // auth.chatSocket.on(INCOMING_KICK, Test);
+    // auth.chatSocket.on(INCOMING_BAN, Test);
 
     return () => {
       // remove socket listeners
-      auth?.chatWidgetSocket?.off(INCOMING_MSG, refreshPage);
-      auth?.chatWidgetSocket?.off(ERR, Test);
-      auth?.chatWidgetSocket?.off(INCOMING_KICK, Test);
-      auth?.chatWidgetSocket?.off(INCOMING_BAN, Test);
+      auth?.chatWidgetSocket?.off(INCOMING_MSG, handleNewMessage);
+      auth?.chatWidgetSocket?.off(ERR, handleError);
+      // auth?.chatWidgetSocket?.off(INCOMING_KICK, Test);
+      // auth?.chatWidgetSocket?.off(INCOMING_BAN, Test);
     };
   }, [auth]);
 
@@ -87,16 +75,6 @@ function Chat() {
     //For first time setting activeRoomMessages
     if (chat?.rooms != null) {
       chat.setActiveRoom(chat.rooms[0]);
-      auth_net_get(
-        `${chatEndpoint}?page=1&pageSize=50&filterOn=roomId&filterBy=${chat.rooms[0].id}&sortBy=Ascending&sortOn=createdAt`
-      ).then((data) => {
-        const chats = data.data;
-        const msgsArr: Message[] = [];
-        chats.forEach((chat: Message) => {
-          msgsArr.push(chat);
-        });
-        chat?.setActiveRoomMessages(msgsArr);
-      });
     }
   }, [chat?.rooms]);
 
@@ -183,7 +161,16 @@ function Chat() {
         />
 
         {/* Members list */}
-        <MemberList memberUsers={memberUsers}/>
+        <MemberList memberUsers={memberUsers} />
+
+        {/* Alert Box */}
+        {chat?.openAlert.isOpen ? (
+          <Alert
+            setOpenAlert={chat.setOpenAlert}
+            message={chat.alertMessage}
+            alert={chat.openAlert}
+          />
+        ) : null}
       </div>
     </>
   );

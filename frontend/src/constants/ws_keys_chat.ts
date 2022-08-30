@@ -11,3 +11,4 @@ export const INCOMING_DEMOTION = "demotion";
 // outgoing events
 export const OUTGOING_MSG = "message";
 export const OUTGOING_INV = "invite";
+export const OUTGOING_JOIN = "join";

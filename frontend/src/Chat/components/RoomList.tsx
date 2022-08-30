@@ -1,16 +1,31 @@
-import React, { FunctionComponent } from "react";
+import React, { FunctionComponent, useState } from "react";
 import { useChat } from "../../context/chatContext";
+import JoinModal from "./JoinModal";
 
 const RoomList: FunctionComponent = () => {
   const chat = useChat();
+  const [openJoinRoomModal, setOpenJoinRoomModal] = useState<boolean>(false);
 
   return (
     <div>
+
+      {/* Join / create room */}
+      <div>
+        <button className="px-4 py-2 border-2 " onClick={()=>setOpenJoinRoomModal(true)}>
+          Join room
+        </button>
+        <button className="px-4 py-2 border-2 ">
+          Create room
+        </button>
+      </div>
+
+      {/* Room list */}
       {chat?.rooms?.map((room) => (
         <div
           className="text-xl border-2 cursor-pointer"
           onClick={() => {
             chat.setActiveRoom(room);
+            console.log("setted active room romlsit ", room.id)
           }}
           key={room.id}
         >
@@ -32,6 +47,12 @@ const RoomList: FunctionComponent = () => {
           }
         </div>
       ))}
+
+      {/* Join modal */}
+      {
+        openJoinRoomModal ? 
+        <JoinModal setOpenJoinRoomModal={setOpenJoinRoomModal}/> : null
+      }
     </div>
   );
 };

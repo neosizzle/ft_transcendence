@@ -9,6 +9,7 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 import { Admin, Ban, Chat, Member, Room } from "@prisma/client";
+import { errorMonitor } from "events";
 import { Socket, Namespace } from "socket.io";
 import { PrismaService } from "src/prisma/prisma.service";
 import { AuthGuard } from "src/users/auth/guard";
@@ -352,7 +353,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       chatRes = await this.chat.insertChat(dto);
     } catch (error) {
-      client.emit("exception", error);
+      if (!error.message)
+        throw new InternalServerErrorException(error);
+      else client.emit("exception", error);
       return;
     }
 
