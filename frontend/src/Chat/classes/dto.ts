@@ -57,3 +57,11 @@ export interface Ban {
   roomId: number;
   expiresAt: Date;
 }
+
+export interface Admin {
+  id: number;
+  userId: number;
+  roomId: number;
+  user: User;
+  room: Room;
+}

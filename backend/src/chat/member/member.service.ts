@@ -153,7 +153,7 @@ export class MemberService {
     // check for bans
     if (roomToJoin.type === "GC") {
       const banRes = await this.prisma.ban.findFirst({
-        where: {userId : user.id, roomId : roomToJoin.id}
+        where: {userId : user.id, roomId : roomToJoin.id, expiresAt: { gt: new Date() },}
       })
 
       if (banRes) throw new BadRequestException("You are banned from this room until " + banRes.expiresAt);

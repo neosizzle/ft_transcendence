@@ -9,8 +9,7 @@ const transformFilterBan = (
   filterBy: string,
   filterOn: string
 ): string | number | boolean | Date => {
-  if (filterOn === "expiresAt")
-    return new Date(filterBy);
+  if (filterOn === "expiresAt") return new Date(filterBy);
   if (filterOn === "id" || filterOn === "userId" || filterOn === "roomId")
     return parseInt(filterBy, 10);
   else return filterBy;
@@ -53,7 +52,7 @@ const generateBanWhere = (listObj: ListObject): Prisma.RoomWhereInput => {
     }
   }
   return res;
-}
+};
 
 const generateBanPayload = (listObj: ListObject): Prisma.BanFindManyArgs => {
   const res: Prisma.BanFindManyArgs = {};
@@ -72,8 +71,10 @@ const generateBanPayload = (listObj: ListObject): Prisma.BanFindManyArgs => {
 
 @Injectable()
 export class BanService {
-  constructor(private readonly prismaService: PrismaService,
-    private readonly memberService: MemberService) { }
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly memberService: MemberService
+  ) {}
 
   private sampleBan: Ban = {
     id: 0,
@@ -105,10 +106,15 @@ export class BanService {
       where: {
         userId: { equals: dto.userId },
         roomId: { equals: dto.roomId },
-      }
-    })
-    if (!userMember)
-      throw new BadRequestException("User is not in the room.");
+      },
+    });
+    if (!userMember) throw new BadRequestException("User is not in the room.");
+
+    const checkRoom = await this.prismaService.room.findUnique({
+      where: { id: dto.roomId },
+    });
+    if (userMember.userId === checkRoom.ownerId)
+      throw new BadRequestException("You cant ban the owner");
     await this.memberService.removeMember(user, userMember.id);
     return await this.prismaService.ban.create({
       data: dto,

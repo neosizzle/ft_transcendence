@@ -1,41 +1,25 @@
 import React, { FunctionComponent, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
-  API_ROOT,
-  NOT_FRIENDS,
   OUTGOING_LEAVE,
-  PENDING_FRIENDS,
 } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
-import { auth_net_delete, auth_net_post } from "../../utils";
 import { Member } from "../classes";
-
-const blocksEndpoint = `${API_ROOT}/blocks`;
-const friendsEndpoint = `${API_ROOT}/friends`;
 
 interface ChatAreaProps {
   members: Member[] | null;
   memberUsers: User[] | null;
   otherDmUser: User | null;
-  isUserBlockedByYou: boolean;
-  setIsUserBlockedByYou: React.Dispatch<React.SetStateAction<boolean>>;
-  userFriendShipState: number;
-  setUserFriendshipState: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const ChatArea: FunctionComponent<ChatAreaProps> = ({
   members,
   memberUsers,
   otherDmUser,
-  isUserBlockedByYou,
-  setIsUserBlockedByYou,
-  userFriendShipState,
-  setUserFriendshipState,
 }) => {
   const chat = useChat();
   const auth = useAuth();
-  const navigate = useNavigate();
 
   const [currentMessage, setCurrentMessage] = useState("");
 
@@ -80,87 +64,6 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
           >
             View Profile
           </NavLink>
-        ) : null}
-
-        {/* Spectate btn */}
-        {chat?.activeRoom?.type === "DM" ? (
-          <p className="block rounded px-4 py-2 bg-gray-400">Invite to game</p>
-        ) : null}
-
-        {/* Unfriend Btn */}
-        {chat?.activeRoom?.type === "DM" ? (
-          <button
-            className={`block rounded px-4 py-2 bg-gray-400 ${
-              userFriendShipState === PENDING_FRIENDS ? "disabled" : ""
-            }`}
-            onClick={() => {
-              // return if user req is pending
-              if (!otherDmUser || userFriendShipState === PENDING_FRIENDS)
-                return;
-
-              // if user is not friend, add friend
-              if (userFriendShipState === NOT_FRIENDS)
-                auth_net_post(`${friendsEndpoint}`, {
-                  id: otherDmUser.id,
-                }).then((data) => {
-                  if (data.error && data.error == "Forbidden")
-                    return navigate("/logout");
-
-                  if (data.error) return alert("add friend error");
-                });
-              // else, delete friend
-              else
-                auth_net_delete(`${friendsEndpoint}/${otherDmUser.id}`).then(
-                  (data) => {
-                    if (data.error && data.error == "Forbidden")
-                      return navigate("/logout");
-                    if (data.error) return alert("remove friend error");
-                    setUserFriendshipState(NOT_FRIENDS);
-                  }
-                );
-            }}
-          >
-            {userFriendShipState === NOT_FRIENDS ? "Add friend" : "Unfriend"}
-          </button>
-        ) : null}
-
-        {/* Block Btn */}
-        {chat?.activeRoom?.type === "DM" ? (
-          <button
-            className="block rounded px-4 py-2 bg-gray-400"
-            onClick={() => {
-              // return if active room is a GC
-              if (
-                chat?.activeRoom?.type === "GC" ||
-                !memberUsers ||
-                !otherDmUser
-              )
-                return;
-
-              // user is already blocked by you, unblock is enabled
-              if (isUserBlockedByYou)
-                auth_net_delete(`${blocksEndpoint}/${otherDmUser.id}`).then(
-                  (data) => {
-                    if (data.error && data.error == "Forbidden")
-                      return navigate("/logout");
-                    if (data.error) return alert("unblock err");
-                    setIsUserBlockedByYou(false);
-                  }
-                );
-              // else, block user
-              else
-                auth_net_post(`${blocksEndpoint}`, {
-                  id: otherDmUser.id,
-                }).then((data) => {
-                  if (data.error && data.error == "Forbidden")
-                    return navigate("/logout");
-                  if (data.error) return alert("block err");
-                  setIsUserBlockedByYou(true);
-                });
-            }}
-          >
-            {isUserBlockedByYou ? "Unblock" : "Block"}
-          </button>
         ) : null}
 
         {/* Leave room Btn */}

@@ -12,7 +12,6 @@ import MemberList from "./components/MemberList";
 import Alert from "../commonComponents/Alert";
 import { cloneDeep } from "lodash";
 
-const roomEndpoint = `${API_ROOT}/rooms`;
 const chatEndpoint = `${API_ROOT}/chat`;
 const memberEndpoint = `${API_ROOT}/members`;
 const blocksEndpoint = `${API_ROOT}/blocks`;
@@ -202,7 +201,7 @@ function Chat() {
         />
 
         {/* Members list */}
-        <MemberList memberUsers={memberUsers} members = {members}/>
+        <MemberList memberUsers={memberUsers} />
 
         {/* Alert Box */}
         {chat?.openAlert.isOpen ? (
