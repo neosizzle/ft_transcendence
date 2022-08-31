@@ -1,10 +1,12 @@
 import React, { FunctionComponent, useState } from "react";
 import { useChat } from "../../context/chatContext";
+import CreateRoomModal from "./CreateRoomModal";
 import JoinModal from "./JoinModal";
 
 const RoomList: FunctionComponent = () => {
   const chat = useChat();
   const [openJoinRoomModal, setOpenJoinRoomModal] = useState<boolean>(false);
+  const [openCreateRoomModal, setOpenCreateRoomModal] = useState<boolean>(false);
 
   return (
     <div>
@@ -14,7 +16,7 @@ const RoomList: FunctionComponent = () => {
         <button className="px-4 py-2 border-2 " onClick={()=>setOpenJoinRoomModal(true)}>
           Join room
         </button>
-        <button className="px-4 py-2 border-2 ">
+        <button className="px-4 py-2 border-2 " onClick={()=>setOpenCreateRoomModal(true)}>
           Create room
         </button>
       </div>
@@ -52,6 +54,12 @@ const RoomList: FunctionComponent = () => {
       {
         openJoinRoomModal ? 
         <JoinModal setOpenJoinRoomModal={setOpenJoinRoomModal}/> : null
+      }
+
+      {/* Create room modal */}
+      {
+        openCreateRoomModal ?
+        <CreateRoomModal setOpenCreateRoomModal={setOpenCreateRoomModal} /> : null
       }
     </div>
   );

@@ -10,6 +10,7 @@ import RoomList from "./components/RoomList";
 import ChatArea from "./components/ChatArea";
 import MemberList from "./components/MemberList";
 import Alert from "../commonComponents/Alert";
+import { cloneDeep } from "lodash";
 
 const roomEndpoint = `${API_ROOT}/rooms`;
 const chatEndpoint = `${API_ROOT}/chat`;
@@ -30,12 +31,25 @@ function Chat() {
   const [otherDmUser, setOtherDmUser] = useState<User | null>(null);
 
   const handleNewMessage = (data: Message) => {
-    const activeRoomMessagesClone = [
-      ...(chat?.activeRoomMessagesRef.current as Message[]),
-    ];
-    activeRoomMessagesClone.push(data);
+    // add message into active room data if room id is active room id
+    if (data.roomId === chat?.activeRoomRef.current?.id) {
+      const activeRoomMessagesClone = cloneDeep(
+        chat?.activeRoomMessagesRef.current as Message[]
+      );
+      activeRoomMessagesClone.push(data);
 
-    chat?.setActiveRoomMessages(activeRoomMessagesClone);
+      chat?.setActiveRoomMessages(activeRoomMessagesClone);
+    }
+
+    // add room if data room is not in active room (need to work with edison for scrolling)
+    const roomIds: number[] | undefined = chat?.roomsRef.current?.map(
+      (room) => room.id
+    );
+    if (!roomIds || !roomIds.includes(data.roomId)) {
+      const roomClone = cloneDeep(chat?.roomsRef.current || []);
+      roomClone.push(data.room);
+      chat?.setRooms(roomClone);
+    }
   };
 
   const handleError = (data: BaseWSResponse) => {
@@ -48,12 +62,10 @@ function Chat() {
   };
 
   useEffect(() => {
-    auth_net_get(`${roomEndpoint}?page=1&pageSize=50`).then((data) => {
-      const myRooms = data.data;
-      const roomsArr: Room[] = [];
-      myRooms.forEach((room: Room) => {
-        roomsArr.push(room);
-      });
+    auth_net_get(
+      `${memberEndpoint}?page=1&pageSize=50&filterOn=userId&filterBy=${auth?.user?.id}`
+    ).then((data) => {
+      const roomsArr: Room[] = data.data.map((e: Member) => e.room);
       chat?.setRooms(roomsArr);
     });
     if (!auth?.chatSocket) return;

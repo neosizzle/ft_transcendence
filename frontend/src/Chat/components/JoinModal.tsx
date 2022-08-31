@@ -83,12 +83,18 @@ const JoinModal: FunctionComponent<JoinModalProps> = ({
 
             <button
               onClick={() => {
-				// set loading state to true
+                // set loading state to true
 
-				// emit ws join room event
-				auth?.chatSocket?.emit(OUTGOING_JOIN, JSON.stringify({roomId : parseInt(roomIdInput, 10), password : passwordInput}))
+                // emit ws join room event
+                auth?.chatSocket?.emit(
+                  OUTGOING_JOIN,
+                  JSON.stringify({
+                    roomId: parseInt(roomIdInput, 10),
+                    password: passwordInput,
+                  })
+                );
 
-				// close window
+                // close window
                 setOpenJoinRoomModal(false);
               }}
               type="button"

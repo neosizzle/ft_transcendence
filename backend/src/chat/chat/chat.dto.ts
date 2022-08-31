@@ -1,3 +1,4 @@
+import { Chat, Room } from "@prisma/client";
 import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class chatDto {
@@ -33,4 +34,8 @@ export class BaseWSResponse {
   userId: number | null;
   roomId: number;
   message: string;
+}
+
+export interface SysMsg extends Chat{
+  room : Room;
 }
