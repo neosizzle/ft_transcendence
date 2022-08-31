@@ -1,14 +1,21 @@
 import React, { FunctionComponent, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { API_ROOT, NOT_FRIENDS, PENDING_FRIENDS } from "../../constants";
+import {
+  API_ROOT,
+  NOT_FRIENDS,
+  OUTGOING_LEAVE,
+  PENDING_FRIENDS,
+} from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
 import { auth_net_delete, auth_net_post } from "../../utils";
+import { Member } from "../classes";
 
 const blocksEndpoint = `${API_ROOT}/blocks`;
 const friendsEndpoint = `${API_ROOT}/friends`;
 
 interface ChatAreaProps {
+  members: Member[] | null;
   memberUsers: User[] | null;
   otherDmUser: User | null;
   isUserBlockedByYou: boolean;
@@ -18,6 +25,7 @@ interface ChatAreaProps {
 }
 
 const ChatArea: FunctionComponent<ChatAreaProps> = ({
+  members,
   memberUsers,
   otherDmUser,
   isUserBlockedByYou,
@@ -55,24 +63,38 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
   return (
     <div className="h-96 overflow-auto" onScroll={Test}>
       <div className="flex flex-row">
-        {chat?.activeRoom?.type === "DM" && memberUsers != null ? (
+        {chat?.activeRoom?.type === "DM" && memberUsers != null && memberUsers[1] != null && memberUsers[0] != null? (
           auth?.user?.id === memberUsers[0].id ? (
-            <p className="text-3xl border-2">{memberUsers[1].username} </p>
+            <p className="text-3xl">{memberUsers[1].username} </p>
           ) : (
-            <p className="text-3xl border-2">{memberUsers[0].username} </p>
+            <p className="text-3xl ">{memberUsers[0].username} </p>
           )
         ) : (
-          <p className="text-3xl border-2">{chat?.activeRoom?.roomName}</p>
+          <p className="text-3xl ">
+            {chat?.activeRoom?.roomName} - {chat?.activeRoom?.id}
+          </p>
         )}
-        <NavLink to="/users/profile/1" className="text-3xl border-2">
-          View Profile
-        </NavLink>
-        <p className="text-3xl border-2">Invite to game</p>
+      </div>
+      <div className="flex flex-row justify-around">
+        {/* Profile btn */}
+        {chat?.activeRoom?.type === "DM" ? (
+          <NavLink
+            to={`/users/profile/${otherDmUser?.id}`}
+            className="block rounded px-4 py-2 bg-gray-400"
+          >
+            View Profile
+          </NavLink>
+        ) : null}
+
+        {/* Spectate btn */}
+        {chat?.activeRoom?.type === "DM" ? (
+          <p className="block rounded px-4 py-2 bg-gray-400">Invite to game</p>
+        ) : null}
 
         {/* Unfriend Btn */}
         {chat?.activeRoom?.type === "DM" ? (
           <button
-            className={`text-3xl border-2 ${
+            className={`block rounded px-4 py-2 bg-gray-400 ${
               userFriendShipState === PENDING_FRIENDS ? "disabled" : ""
             }`}
             onClick={() => {
@@ -109,7 +131,7 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
         {/* Block Btn */}
         {chat?.activeRoom?.type === "DM" ? (
           <button
-            className="text-3xl border-2 block"
+            className="block rounded px-4 py-2 bg-gray-400"
             onClick={() => {
               // return if active room is a GC
               if (
@@ -142,6 +164,25 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
             }}
           >
             {isUserBlockedByYou ? "Unblock" : "Block"}
+          </button>
+        ) : null}
+
+        {/* Leave room Btn */}
+        {chat?.activeRoom?.type === "GC" ? (
+          <button
+            onClick={() => {
+              // get member id
+              const memberId = members?.find(
+                (member) => member.userId === auth?.user?.id
+              )?.id;
+              if (!memberId) return;
+
+              // emit leave room dto
+              auth?.chatSocket?.emit(OUTGOING_LEAVE, memberId.toString());
+            }}
+            className="block rounded px-4 py-2 bg-gray-400"
+          >
+            Leave
           </button>
         ) : null}
       </div>

@@ -189,6 +189,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       updatedAt: new Date(),
     };
     client.leave(res.roomId.toString());
+    console.log("emitting userkicked")
+    client.emit("userKicked", res);
     this.wsServer.to(res.roomId.toString()).emit("newMessage", sysMsg);
   }
 
