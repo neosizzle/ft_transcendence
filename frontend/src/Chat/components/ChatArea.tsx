@@ -48,8 +48,12 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
     setCurrentMessage(event.target.value);
   };
 
+  const Test = () => {
+    console.log("Hi");
+  }
+
   return (
-    <div className="h-96">
+    <div className="h-96 overflow-auto" onScroll={Test}>
       <div className="flex flex-row">
         {chat?.activeRoom?.type === "DM" && memberUsers != null ? (
           auth?.user?.id === memberUsers[0].id ? (

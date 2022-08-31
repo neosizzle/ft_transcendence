@@ -94,6 +94,7 @@ function Chat() {
     //For setting activeRoomMessages
     if (chat?.activeRoom != null) {
       auth_net_get(
+        //Page should be dynamic based on scroll,, onscroll
         `${chatEndpoint}?page=1&pageSize=50&filterOn=roomId&filterBy=${chat.activeRoom.id}&sortBy=Ascending&sortOn=createdAt`
       ).then((data) => {
         // token expired
