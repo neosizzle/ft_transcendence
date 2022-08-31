@@ -23,12 +23,39 @@ function Chat() {
   const navigate = useNavigate();
   const chat = useChat();
   const [memberUsers, setMemberUsers] = useState<User[] | null>(null); // user objects for members
+  const [members, setMembers] = useState<Member[] | null>(null); // member objects for active room
 
   // DM STATES
   const [isUserBlockedByYou, setIsUserBlockedByYou] = useState<boolean>(false);
   const [userFriendShipState, setUserFriendShipState] =
     useState<number>(NOT_FRIENDS);
   const [otherDmUser, setOtherDmUser] = useState<User | null>(null);
+
+  const handleKick = (data: Member) => {
+    if (data.userId !== auth?.user?.id) return;
+
+    // if kicked user is me and im in active room, set active room to next room and remove current room from rooms
+    if (data.roomId === chat?.activeRoomRef?.current?.id) {
+      let roomsClone = cloneDeep(chat.roomsRef.current as Room[]);
+      roomsClone = roomsClone.filter((room) => room.id !== data.roomId);
+
+      chat.setActiveRoom(roomsClone[0]);
+      chat.setRooms(roomsClone);
+      return;
+    }
+
+    // if kicked user is me and im on one of non active rooms, remove room from rooms
+    if (
+      chat?.roomsRef &&
+      chat?.roomsRef?.current?.findIndex((room) => room.id === data.roomId)
+    ) {
+      let roomsClone = cloneDeep(chat.roomsRef.current as Room[]);
+      roomsClone = roomsClone.filter((room) => room.id !== data.roomId);
+
+      chat.setRooms(roomsClone);
+      return;
+    }
+  };
 
   const handleNewMessage = (data: Message) => {
     // add message into active room data if room id is active room id
@@ -71,14 +98,14 @@ function Chat() {
     if (!auth?.chatSocket) return;
     auth.chatSocket.on(INCOMING_MSG, handleNewMessage);
     auth.chatSocket.on(ERR, handleError);
-    // auth.chatSocket.on(INCOMING_KICK, Test);
+    auth.chatSocket.on(INCOMING_KICK, handleKick);
     // auth.chatSocket.on(INCOMING_BAN, Test);
 
     return () => {
       // remove socket listeners
       auth?.chatWidgetSocket?.off(INCOMING_MSG, handleNewMessage);
       auth?.chatWidgetSocket?.off(ERR, handleError);
-      // auth?.chatWidgetSocket?.off(INCOMING_KICK, Test);
+      auth?.chatWidgetSocket?.off(INCOMING_KICK, handleKick);
       // auth?.chatWidgetSocket?.off(INCOMING_BAN, Test);
     };
   }, [auth]);
@@ -119,6 +146,7 @@ function Chat() {
         member.forEach((member: Member) => {
           userArr.push(member.user);
         });
+        setMembers(member);
         setMemberUsers(userArr);
 
         // set dm states
@@ -164,6 +192,7 @@ function Chat() {
 
         {/* Chat area */}
         <ChatArea
+          members={members}
           memberUsers={memberUsers}
           otherDmUser={otherDmUser}
           isUserBlockedByYou={isUserBlockedByYou}
@@ -173,7 +202,7 @@ function Chat() {
         />
 
         {/* Members list */}
-        <MemberList memberUsers={memberUsers} />
+        <MemberList memberUsers={memberUsers} members = {members}/>
 
         {/* Alert Box */}
         {chat?.openAlert.isOpen ? (
