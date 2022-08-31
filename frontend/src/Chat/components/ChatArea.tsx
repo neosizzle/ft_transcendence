@@ -84,7 +84,7 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
 
         {/* Spectate btn */}
         {chat?.activeRoom?.type === "DM" ? (
-          <p className="block rounded px-4 py-2 bg-gray-400">Spectate</p>
+          <p className="block rounded px-4 py-2 bg-gray-400">Invite to game</p>
         ) : null}
 
         {/* Unfriend Btn */}
