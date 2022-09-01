@@ -62,6 +62,7 @@ function Chat() {
       activeRoomMessagesClone.push(data);
 
       chat?.setActiveRoomMessages(activeRoomMessagesClone);
+      chat.setActiveRoomMessagesCount(chat.activeRoomMessagesCount + 1)
     }
 
     // add room if data room is not in active room (need to work with edison for scrolling)
@@ -135,6 +136,7 @@ function Chat() {
           msgsArr.unshift(chat);
         });
         chat?.setActiveRoomMessages(msgsArr);
+        chat.setActiveRoomMessagesCount(data.total_elements);
       });
       //Gets the members for display on the right
       auth_net_get(

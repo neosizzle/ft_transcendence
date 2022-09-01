@@ -27,6 +27,8 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
   const navigate = useNavigate();
 
   const [currentMessage, setCurrentMessage] = useState("");
+  const [currChatPage, setCurrChatPage] = useState<number>(1);
+  const [hitBtm, setHitBtm] = useState<boolean>(false);
 
   const sendMessage = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -46,9 +48,15 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
   };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!chat) return;
     if (e.currentTarget.scrollTop === 0) {
+      setHitBtm(false)
+      if (chat.activeRoomMessagesCount / 15 < 1 || currChatPage >= chat.activeRoomMessagesCount / 15)
+        return;
+      setCurrChatPage(currChatPage + 1);
+      console.log(currChatPage + 1);
       auth_net_get(
-        `${chatEndpoint}?page=2&pageSize=15&filterOn=roomId&filterBy=${chat?.activeRoom?.id}&sortBy=Descending&sortOn=createdAt`
+        `${chatEndpoint}?page=${currChatPage + 1}&pageSize=15&filterOn=roomId&filterBy=${chat?.activeRoom?.id}&sortBy=Descending&sortOn=createdAt`
       ).then((data) => {
         // token expired
         if (data.error && data.error == "Forbidden") return navigate("/logout");
@@ -60,16 +68,44 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
         });
         chat?.setActiveRoomMessages(msgsArr);
       });
-      const test = document.getElementById("dummy");
-      test?.scrollIntoView();
     }
-    console.log(e.currentTarget.scrollTop);
+    else if (e.currentTarget.scrollHeight - e.currentTarget.scrollTop === e.currentTarget.clientHeight) {
+      if (currChatPage === 1) return;
+      setHitBtm(true)
+      setCurrChatPage(currChatPage - 1);
+      auth_net_get(
+        `${chatEndpoint}?page=${currChatPage - 1}&pageSize=15&filterOn=roomId&filterBy=${chat?.activeRoom?.id}&sortBy=Descending&sortOn=createdAt`
+      ).then((data) => {
+        // token expired
+        if (data.error && data.error == "Forbidden") return navigate("/logout");
+
+        const chats = data.data;
+        const msgsArr: Message[] = [];
+        chats.forEach((chat: Message) => {
+          msgsArr.unshift(chat);
+        });
+        chat?.setActiveRoomMessages(msgsArr);
+      });
+    }
   }
 
   useEffect(() => {
-    const test = document.getElementById("dummy");
-    test?.scrollIntoView();
+    if (!chat?.activeRoomMessages) return;
+    if (hitBtm){
+      const test = document.getElementById("top");
+      test?.scrollIntoView();
+    }
+    else {
+      const test = document.getElementById("bottom");
+      test?.scrollIntoView({block: "end"});
+    }
   }, [chat?.activeRoomMessages]);
+
+  //reset hitbtm once room changes
+  useEffect(()=> {
+    setHitBtm(false)
+    setCurrChatPage(1);
+  }, [chat?.activeRoom])
 
   return (
     <div className="">
@@ -116,33 +152,32 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
           </button>
         ) : null}
       </div>
-      <div className="">
-        <div className="h-96 overflow-scroll" onScroll={handleScroll}>
-          {chat?.activeRoomMessages?.map((message) => (
-            <div key={message.id}>
-              {message.userId === auth?.user?.id ? (
-                <div>
-                  <div className="text-lg text-right">{message.message}</div>
-                  <div className="text-xs text-grey text-right">
-                    {new Date(message.createdAt).toLocaleString("en-gb", {
-                      hour12: true,
-                    })}
-                  </div>
+      <div className="h-96 overflow-scroll" onScroll={handleScroll}>
+        <div className="my-5 py-5" id="top"></div>
+        {chat?.activeRoomMessages?.map((message) => (
+          <div key={message.id}>
+            {message.userId === auth?.user?.id ? (
+              <div>
+                <div className="text-lg text-right">{message.message}</div>
+                <div className="text-xs text-grey text-right">
+                  {new Date(message.createdAt).toLocaleString("en-gb", {
+                    hour12: true,
+                  })}
                 </div>
-              ) : (
-                <div>
-                  <div className="text-lg">{message.message}</div>
-                  <div className="text-xs text-grey">
-                    {new Date(message.createdAt).toLocaleString("en-gb", {
-                      hour12: true,
-                    })}
-                  </div>
+              </div>
+            ) : (
+              <div>
+                <div className="text-lg">{message.message}</div>
+                <div className="text-xs text-grey">
+                  {new Date(message.createdAt).toLocaleString("en-gb", {
+                    hour12: true,
+                  })}
                 </div>
-              )}
-            </div>
-          ))}
-          <div id="dummy"></div>
-        </div>
+              </div>
+            )}
+          </div>
+        ))}
+        <div className="my-5 py-5" id="bottom"></div>
       </div>
       <form onSubmit={sendMessage} className="Chat">
         <input
