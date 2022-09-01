@@ -218,7 +218,7 @@ const MatchHistoryTable: FunctionComponent<MatchHistoryTableProps> = ({
                         </tr>
                       ) : matches && matches.length === 0 ? (
                         <tr>
-                          <td>u have to much life di, go play some game</td>
+                          <td>No games</td>
                         </tr>
                       ) : (
                         matches?.map((match) => (

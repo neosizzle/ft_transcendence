@@ -1,11 +1,13 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth, User } from "../../../../context/authContext";
 import { FriendShip } from "../Friends";
 import { IngameBadge, OfflineBadge, OnlineBadge } from "../../../common/Badges";
-import { BaseWSResponse } from "../../../../Chat/classes";
+import { BaseWSResponse, Room } from "../../../../Chat/classes";
 import { ERR, INCOMING_STATUS_UPDATE } from "../../../../constants";
+import { createNewDm, getCommonDmRoom } from "../../../utils";
 
+// TODO : integrate the rest of the features
 interface FriendCardProps {
   friendship?: FriendShip;
   currUser?: User | null;
@@ -20,14 +22,37 @@ const FriendCard: FunctionComponent<FriendCardProps> = ({
 }) => {
   const [userToDisplay, setUserToDisplay] = useState<User | null>(null);
   const auth = useAuth();
+  const navigate = useNavigate();
 
   // update user status
   const handleUserUpdate = (data: User) => {
     if (data.id === userToDisplay?.id) setUserToDisplay(data);
   };
 
+  // handle error
   const handleErr = (data: BaseWSResponse) => {
     alert(data.message);
+  };
+
+  //messages a user
+  const messageUser = async () => {
+    if (!auth || !auth.user || !userToDisplay) return;
+
+    // try to get common dm room
+    let commonDmRoom: Room | undefined = await getCommonDmRoom(
+      auth,
+      auth?.user,
+      userToDisplay
+    );
+
+    if (!commonDmRoom) {
+      const newRoomData = await createNewDm(auth, userToDisplay);
+      if (newRoomData.id) commonDmRoom = newRoomData;
+    }
+
+    if (!commonDmRoom) {
+      alert("Cannot message user");
+    } else navigate(`/chat?room=${commonDmRoom?.id}`);
   };
 
   useEffect(() => {
@@ -99,6 +124,7 @@ const FriendCard: FunctionComponent<FriendCardProps> = ({
           <div className="col-span-3 h-full flex justify-end items-end">
             <button
               type="button"
+              onClick={messageUser}
               className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-full text-sm p-2 text-center inline-flex items-center mr-2"
             >
               <svg

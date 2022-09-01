@@ -16,7 +16,6 @@ interface MemberListProps {
 }
 
 const MemberList: FunctionComponent<MemberListProps> = ({ memberUsers }) => {
-  // TODO, make these useref
   const [admins, setAdmins] = useState<Admin[]>([]);
   const chat = useChat();
   const auth = useAuth();
