@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { FunctionComponent, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   API_ROOT,
@@ -8,11 +8,12 @@ import {
 } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
-import { auth_net_delete, auth_net_post } from "../../utils";
-import { Member } from "../classes";
+import { auth_net_delete, auth_net_get, auth_net_post } from "../../utils";
+import { Member, Message } from "../classes";
 
 const blocksEndpoint = `${API_ROOT}/blocks`;
 const friendsEndpoint = `${API_ROOT}/friends`;
+const chatEndpoint = `${API_ROOT}/chat`;
 
 interface ChatAreaProps {
   members: Member[] | null;
@@ -56,14 +57,36 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
     setCurrentMessage(event.target.value);
   };
 
-  const Test = () => {
-    console.log("Hi");
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (e.currentTarget.scrollTop === 0) {
+      auth_net_get(
+        `${chatEndpoint}?page=2&pageSize=15&filterOn=roomId&filterBy=${chat?.activeRoom?.id}&sortBy=Descending&sortOn=createdAt`
+      ).then((data) => {
+        // token expired
+        if (data.error && data.error == "Forbidden") return navigate("/logout");
+
+        const chats = data.data;
+        const msgsArr: Message[] = [];
+        chats.forEach((chat: Message) => {
+          msgsArr.unshift(chat);
+        });
+        chat?.setActiveRoomMessages(msgsArr);
+      });
+      const test = document.getElementById("dummy");
+      test?.scrollIntoView();
+    }
+    console.log(e.currentTarget.scrollTop);
   }
 
+  useEffect(() => {
+    const test = document.getElementById("dummy");
+    test?.scrollIntoView();
+  }, [chat?.activeRoomMessages]);
+
   return (
-    <div className="h-96 overflow-auto" onScroll={Test}>
+    <div className="">
       <div className="flex flex-row">
-        {chat?.activeRoom?.type === "DM" && memberUsers != null && memberUsers[1] != null && memberUsers[0] != null? (
+        {chat?.activeRoom?.type === "DM" && memberUsers != null && memberUsers[1] != null && memberUsers[0] != null ? (
           auth?.user?.id === memberUsers[0].id ? (
             <p className="text-3xl">{memberUsers[1].username} </p>
           ) : (
@@ -94,9 +117,8 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
         {/* Unfriend Btn */}
         {chat?.activeRoom?.type === "DM" ? (
           <button
-            className={`block rounded px-4 py-2 bg-gray-400 ${
-              userFriendShipState === PENDING_FRIENDS ? "disabled" : ""
-            }`}
+            className={`block rounded px-4 py-2 bg-gray-400 ${userFriendShipState === PENDING_FRIENDS ? "disabled" : ""
+              }`}
             onClick={() => {
               // return if user req is pending
               if (!otherDmUser || userFriendShipState === PENDING_FRIENDS)
@@ -186,29 +208,34 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
           </button>
         ) : null}
       </div>
-      {chat?.activeRoomMessages?.map((message) => (
-        <div key={message.id}>
-          {message.userId === auth?.user?.id ? (
-            <div>
-              <div className="text-lg text-right">{message.message}</div>
-              <div className="text-xs text-grey text-right">
-                {new Date(message.createdAt).toLocaleString("en-gb", {
-                  hour12: true,
-                })}
-              </div>
+      <div className="">
+        <div className="h-96 overflow-scroll" onScroll={handleScroll}>
+          {chat?.activeRoomMessages?.map((message) => (
+            <div key={message.id}>
+              {message.userId === auth?.user?.id ? (
+                <div>
+                  <div className="text-lg text-right">{message.message}</div>
+                  <div className="text-xs text-grey text-right">
+                    {new Date(message.createdAt).toLocaleString("en-gb", {
+                      hour12: true,
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="text-lg">{message.message}</div>
+                  <div className="text-xs text-grey">
+                    {new Date(message.createdAt).toLocaleString("en-gb", {
+                      hour12: true,
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
-          ) : (
-            <div>
-              <div className="text-lg">{message.message}</div>
-              <div className="text-xs text-grey">
-                {new Date(message.createdAt).toLocaleString("en-gb", {
-                  hour12: true,
-                })}
-              </div>
-            </div>
-          )}
+          ))}
+          <div id="dummy"></div>
         </div>
-      ))}
+      </div>
       <form onSubmit={sendMessage} className="Chat">
         <input
           type="text"

@@ -121,8 +121,7 @@ function Chat() {
     //For setting activeRoomMessages
     if (chat?.activeRoom != null) {
       auth_net_get(
-        //Page should be dynamic based on scroll,, onscroll
-        `${chatEndpoint}?page=1&pageSize=50&filterOn=roomId&filterBy=${chat.activeRoom.id}&sortBy=Ascending&sortOn=createdAt`
+        `${chatEndpoint}?page=1&pageSize=15&filterOn=roomId&filterBy=${chat.activeRoom.id}&sortBy=Descending&sortOn=createdAt`
       ).then((data) => {
         // token expired
         if (data.error && data.error == "Forbidden") return navigate("/logout");
@@ -130,7 +129,7 @@ function Chat() {
         const chats = data.data;
         const msgsArr: Message[] = [];
         chats.forEach((chat: Message) => {
-          msgsArr.push(chat);
+          msgsArr.unshift(chat);
         });
         chat?.setActiveRoomMessages(msgsArr);
       });
