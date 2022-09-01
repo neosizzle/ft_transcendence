@@ -1,6 +1,14 @@
-import React, { createContext, MutableRefObject, useContext, useRef, useState } from "react";
+import React, {
+  createContext,
+  MutableRefObject,
+  useContext,
+  useRef,
+  useState,
+} from "react";
 import { Message, Room } from "../Chat/classes";
 import { AlertType } from "../commonComponents/Alert";
+import { Block } from "../User/pages/blocks/Blocks";
+import { FriendShip } from "../User/pages/friends/Friends";
 
 interface Props {
   children: React.ReactNode;
@@ -8,22 +16,38 @@ interface Props {
 
 export interface ChatCtx {
   activeRoom: Room | null;
-  activeRoomRef : MutableRefObject<Room | null>;
-  setActiveRoom: (data : Room | null) => void;
+  activeRoomRef: MutableRefObject<Room | null>;
+  setActiveRoom: (data: Room | null) => void;
 
   activeRoomMessages: Message[] | null;
-  activeRoomMessagesRef : MutableRefObject <Message[] | null>;
-  setActiveRoomMessages: (data : Message[] | null) => void;
+  activeRoomMessagesRef: MutableRefObject<Message[] | null>;
+  setActiveRoomMessages: (data: Message[] | null) => void;
+
+  activeRoomBlocks: Block[];
+  activeRoomBlocksRef: MutableRefObject<Block[]>;
+  setActiveRoomBlocks: (data: Block[]) => void;
+
+  activeRoomFriends: FriendShip[];
+  activeRoomFriendsRef: MutableRefObject<FriendShip[]>;
+  setActiveRoomFriends: (data: FriendShip[]) => void;
+
+  openTimeModal: boolean;
+  openTimeModalRef: MutableRefObject<boolean>;
+  setOpenTimeModal: (data: boolean) => void;
+
+  openConfirmationModal: boolean;
+  openConfirmationModalRef: MutableRefObject<boolean>;
+  setOpenConfirmationModal: (data: boolean) => void;
 
   rooms: Room[] | null;
-  roomsRef : MutableRefObject <Room[] | null>;
-  setRooms: (data : Room[] | null) => void;
+  roomsRef: MutableRefObject<Room[] | null>;
+  setRooms: (data: Room[] | null) => void;
 
   openAlert: AlertType;
   setOpenAlert: React.Dispatch<React.SetStateAction<AlertType>>;
 
-  alertMessage : string;
-  setAlertMessage : React.Dispatch<React.SetStateAction<string>>;
+  alertMessage: string;
+  setAlertMessage: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const ChatContext = createContext<ChatCtx | null>(null);
@@ -31,27 +55,60 @@ const ChatContext = createContext<ChatCtx | null>(null);
 export const ChatProvider = (props: Props) => {
   const [activeRoom, _setCurrActiveRoom] = useState<Room | null>(null); // active viewing room
   const activeRoomRef = useRef(activeRoom);
-  const setActiveRoom = (data : Room | null) => {
+  const setActiveRoom = (data: Room | null) => {
     _setCurrActiveRoom(data);
     activeRoomRef.current = data;
-  }
+  };
 
   const [activeRoomMessages, _setActiveRoomMessages] = useState<
     Message[] | null
   >([]); // active room messages list
   const activeRoomMessagesRef = useRef(activeRoomMessages);
-  const setActiveRoomMessages = (data : Message[] | null) =>
-  {
+  const setActiveRoomMessages = (data: Message[] | null) => {
     _setActiveRoomMessages(data);
     activeRoomMessagesRef.current = data;
-  }
+  };
+
+  const [activeRoomBlocks, _setActiveRoomBlocks] = useState<Block[]>([]); // active room blockss list
+  const activeRoomBlocksRef = useRef(activeRoomBlocks);
+  const setActiveRoomBlocks = (data: Block[]) => {
+    _setActiveRoomBlocks(data);
+    activeRoomBlocksRef.current = data;
+  };
+
+  const [openTimeModal, _setOpenTimeModal] = useState<
+    boolean
+  >(false); // open time selection modal
+  const openTimeModalRef = useRef(openTimeModal);
+  const setOpenTimeModal = (data: boolean) => {
+    _setOpenTimeModal(data);
+    openTimeModalRef.current = data;
+  };
+
+  const [openConfirmationModal, _setOpenConfirmationModal] = useState<
+    boolean
+  >(false); // open time selection modal
+  const openConfirmationModalRef = useRef(openConfirmationModal);
+  const setOpenConfirmationModal = (data: boolean) => {
+    _setOpenConfirmationModal(data);
+    openConfirmationModalRef.current = data;
+  };
+
+const [activeRoomFriends, _setActiveRoomFriends] = useState<
+    FriendShip[]
+  >([]); // active room friendss list
+  const activeRoomFriendsRef = useRef(activeRoomFriends);
+  const setActiveRoomFriends = (data: FriendShip[]) => {
+    _setActiveRoomFriends(data);
+    activeRoomFriendsRef.current = data;
+  };
 
   const [rooms, _setRooms] = useState<Room[] | null>(null); // all avail rooms
   const roomsRef = useRef(rooms);
-  const setRooms = (data : Room[] | null) => {
+  const setRooms = (data: Room[] | null) => {
     _setRooms(data);
     roomsRef.current = data;
-  }
+  };
 
   const [openAlert, setOpenAlert] = useState<AlertType>({
     type: "",
@@ -68,6 +125,18 @@ export const ChatProvider = (props: Props) => {
         activeRoomMessages,
         setActiveRoomMessages,
         activeRoomMessagesRef,
+        activeRoomBlocks,
+        activeRoomBlocksRef,
+        setActiveRoomBlocks,
+        activeRoomFriends,
+        activeRoomFriendsRef,
+        setActiveRoomFriends,
+        openConfirmationModal,
+        openConfirmationModalRef,
+        setOpenConfirmationModal,
+        openTimeModal,
+        openTimeModalRef,
+        setOpenTimeModal,
         rooms,
         setRooms,
         roomsRef,

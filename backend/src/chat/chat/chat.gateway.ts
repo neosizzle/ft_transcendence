@@ -116,7 +116,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       roomCreateRes = await this.room.addRoom(client.handshake.auth.user, dto);
     } catch (error) {
       client.emit("exception", error);
-      return;
+      return error;
     }
 
     // add curr user to room
@@ -127,8 +127,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // add initial users to room as well if they are online (connected to ws server)
     const namespace = this.wsServer;
     let initUsers: string[] = [];
-    if (dto.initialUsers)
-      initUsers = dto.initialUsers.split(",");
+    if (dto.initialUsers) initUsers = dto.initialUsers.split(",");
     if (!initUsers.includes(user.id.toString()))
       initUsers.push(user.id.toString());
     for (const userId of initUsers) {
@@ -150,10 +149,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-        console.log("emmiting inituser message to ", clientSocket.id)
+        console.log("emmiting inituser message to ", clientSocket.id);
         clientSocket.emit("newMessage", sysMsg);
       }
     }
+
+    return roomCreateRes;
   }
 
   /**
@@ -189,7 +190,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       updatedAt: new Date(),
     };
     client.leave(res.roomId.toString());
-    console.log("emitting userkicked")
+    console.log("emitting userkicked");
     client.emit("userKicked", res);
     this.wsServer.to(res.roomId.toString()).emit("newMessage", sysMsg);
   }

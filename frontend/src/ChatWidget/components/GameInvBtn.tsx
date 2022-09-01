@@ -37,12 +37,10 @@ const GameInvBtn: FunctionComponent<GameInvBtnProps> = ({ user, room }) => {
             }
 
             //determines if invited to queue 0 or queue 1
-            console.log(queue.position)
             let queuePosition : number;
             if (queue.position[0] > -1 ) queuePosition = 1;
             else queuePosition = 0
             
-            console.log("qtojoin ", queuePosition)
             auth?.chatWidgetSocket?.emit(
               OUTGOING_INV,
               JSON.stringify({ userId: user.id, roomId: room.id, queuePosition })
