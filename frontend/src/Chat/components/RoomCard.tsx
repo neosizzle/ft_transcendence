@@ -34,6 +34,12 @@ const RoomCard: FunctionComponent<RoomCardProps> = ({ room }) => {
     }
   }, []);
 
+  useEffect (() => {
+    if (otherDmUser !== null)
+      if (!otherDmUser.avatar)
+        otherDmUser.avatar = '/assets/default-pp.webp';
+  }, [otherDmUser]);
+
   return (
     <div
       className="text-xl border-2 cursor-pointer"
