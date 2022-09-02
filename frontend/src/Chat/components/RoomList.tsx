@@ -32,7 +32,8 @@ const RoomList: FunctionComponent = () => {
       ).then((data) => {
         // token expired
         if (data.error && data.error == "Forbidden") return navigate("/logout");
-
+        const roomsArr: Room[] = data.data.map((e: Member) => e.room);
+        chat?.setRooms(roomsArr);
       });
     }
     else if (Math.floor(e.currentTarget.scrollHeight - e.currentTarget.scrollTop) === e.currentTarget.clientHeight) {
@@ -53,16 +54,14 @@ const RoomList: FunctionComponent = () => {
 
   useEffect(() => {
     if (hitBtm){
-      console.log("Going top-room")
       const ref = document.getElementById("top-room");
       ref?.scrollIntoView();
     }
     else {
-      console.log("Going bottom")
       const ref = document.getElementById("bottom-room");
       ref?.scrollIntoView({block: "end"});
     }
-  }, [hitBtm]);
+  }, [chat?.rooms]);
 
   return (
     <div>
