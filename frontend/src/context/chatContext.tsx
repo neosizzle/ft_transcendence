@@ -20,6 +20,10 @@ export interface ChatCtx {
   activeRoomRef: MutableRefObject<Room | null>;
   setActiveRoom: (data: Room | null) => void;
 
+  activeRoomCount: number;
+  activeRoomCountRef: MutableRefObject<number>;
+  setActiveRoomCount: (data: number) => void;
+
   activeRoomMessages: Message[] | null;
   activeRoomMessagesRef: MutableRefObject<Message[] | null>;
   setActiveRoomMessages: (data: Message[] | null) => void;
@@ -71,6 +75,14 @@ export const ChatProvider = (props: Props) => {
   const setActiveRoom = (data: Room | null) => {
     _setCurrActiveRoom(data);
     activeRoomRef.current = data;
+  };
+
+  const [activeRoomCount, _setActiveRoomCount] = useState<number
+  >(0);
+  const activeRoomCountRef = useRef(activeRoomCount);
+  const setActiveRoomCount = (data: number) => {
+    _setActiveRoomCount(data);
+    activeRoomCountRef.current = data;
   };
 
   const [activeRoomMessages, _setActiveRoomMessages] = useState<
@@ -161,6 +173,9 @@ const [activeRoomFriends, _setActiveRoomFriends] = useState<
         activeRoom,
         setActiveRoom,
         activeRoomRef,
+        activeRoomCount,
+        setActiveRoomCount,
+        activeRoomCountRef,
         activeRoomMessages,
         setActiveRoomMessages,
         activeRoomMessagesRef,
