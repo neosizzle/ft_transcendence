@@ -9,9 +9,8 @@ import Protected from "./commonComponents/Protected";
 import Logout from "./Logout";
 import Navbar from "./commonComponents/navbar";
 import Home from "./Home";
-import ChatWidget from "./ChatWidget";
-import { ChatWidgetProvider } from "./context/chatWidgetContext";
 import { ChatProvider } from "./context/chatContext";
+import ChatWidgetWrapper from "./ChatWidget";
 
 function App() {
   const [initLoad, setInitLoad] = useState<number>(0);
@@ -66,17 +65,11 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Home />} />
           </Routes>
-          <ChatWidgetProvider>
-            <ChatWidget />
-          </ChatWidgetProvider>
+          <ChatWidgetWrapper />
         </div>
       </Router>
     </AuthProvider>
   );
 }
-
-// function Home() {
-//   return <h2>Home</h2>;
-// }
 
 export default App;

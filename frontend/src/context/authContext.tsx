@@ -119,7 +119,7 @@ export const AuthProvider = (props: Props) => {
     setChatSocket(chatIo)
 
     // init chat widget socket
-    const chatWidgetIo = io(chatWsEndpoint, {
+     const chatWidgetIo = io(chatWsEndpoint, {
       extraHeaders: {
         Authorization: `Bearer ${data.data.token}`,
       },
