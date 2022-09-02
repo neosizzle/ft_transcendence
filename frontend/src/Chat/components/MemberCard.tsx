@@ -7,10 +7,15 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   ALREADY_FRIENDS,
   API_ROOT,
+  BAN_ACTION,
+  DEMOTE_ACTION,
+  MUTE_ACTION,
   NOT_FRIENDS,
   OUTGOING_GET_QUEUE,
   OUTGOING_INV,
+  OWNER_TRANSFER_ACTION,
   PENDING_FRIENDS,
+  PROMOTE_ACTION,
 } from "../../constants";
 import { QueueInfo } from "../../Game/Canvas";
 import { FriendShip } from "../../User/pages/friends/Friends";
@@ -18,42 +23,50 @@ import { auth_net_delete, auth_net_post } from "../../utils";
 
 interface MemberCardProps {
   user: User;
+  isGc: boolean;
   isAdmin: boolean;
   isOwner: boolean;
   isSelf: boolean;
+  isSelfOwner: boolean;
+  isSelfAdmin: boolean;
   userBlocked: boolean;
   friendship?: FriendShip;
 }
 
 const MemberCard: FunctionComponent<MemberCardProps> = ({
   user,
+  isGc,
   isAdmin,
   isOwner,
   isSelf,
+  isSelfOwner,
+  isSelfAdmin,
   userBlocked,
   friendship,
 }) => {
   const [menuProps, toggleMenu] = useMenuState();
   const [anchorPoint, setAnchorPoint] = useState({ x: 0, y: 0 });
-  const [userBlockedLocal, setUserBlockedLocal] = useState<boolean>(userBlocked);
+  const [userBlockedLocal, setUserBlockedLocal] =
+    useState<boolean>(userBlocked);
   const [friendshipStatus, setFriendshipStatus] = useState<number>(-1);
   const chat = useChat();
   const auth = useAuth();
   const navigate = useNavigate();
 
-useEffect(() => {
-  setFriendshipStatus(friendship
-    ? friendship.reqStatus === "APPROVED"
-      ? ALREADY_FRIENDS
-      : friendship.reqStatus === "PENDING"
-      ? PENDING_FRIENDS
-      : NOT_FRIENDS
-    : NOT_FRIENDS)
-}, [friendship])
+  useEffect(() => {
+    setFriendshipStatus(
+      friendship
+        ? friendship.reqStatus === "APPROVED"
+          ? ALREADY_FRIENDS
+          : friendship.reqStatus === "PENDING"
+          ? PENDING_FRIENDS
+          : NOT_FRIENDS
+        : NOT_FRIENDS
+    );
+  }, [friendship]);
 
-  
-const blocksEndpoint = `${API_ROOT}/blocks`;
-const friendsEndpoint = `${API_ROOT}/friends`;
+  const blocksEndpoint = `${API_ROOT}/blocks`;
+  const friendsEndpoint = `${API_ROOT}/friends`;
   return (
     // Member card
     <div
@@ -79,7 +92,7 @@ const friendsEndpoint = `${API_ROOT}/friends`;
         </MenuItem>
 
         {/* Invite to queue */}
-        {chat?.activeRoom?.type === "DM" && !isSelf ? (
+        {!isGc && !isSelf ? (
           <MenuItem
             onClick={() => {
               // If user is not in queue, reject action
@@ -99,7 +112,7 @@ const friendsEndpoint = `${API_ROOT}/friends`;
                   OUTGOING_INV,
                   JSON.stringify({
                     userId: user.id,
-                    roomId: chat.activeRoom?.id,
+                    roomId: chat?.activeRoom?.id,
                     queuePosition,
                   })
                 );
@@ -112,75 +125,167 @@ const friendsEndpoint = `${API_ROOT}/friends`;
 
         {/* Block user */}
         {!isSelf ? (
-          <MenuItem onClick={()=>{
-            // user is already blocked by you, unblock is enabled
-            if (userBlockedLocal)
-            auth_net_delete(`${blocksEndpoint}/${user.id}`).then(
-              (data) => {
-                if (data.error && data.error == "Forbidden")
-                  return navigate("/logout");
-                if (data.error) return alert("unblock err");
-                setUserBlockedLocal(false);
-              }
-            );
-          // else, block user
-          else
-            auth_net_post(`${blocksEndpoint}`, {
-              id: user.id,
-            }).then((data) => {
-              if (data.error && data.error == "Forbidden")
-                return navigate("/logout");
-              if (data.error) return alert("block err");
-              setUserBlockedLocal(true);
-            });
-          }}>{userBlockedLocal ? "Unblock" : "Block"}</MenuItem>
+          <MenuItem
+            onClick={() => {
+              // user is already blocked by you, unblock is enabled
+              if (userBlockedLocal)
+                auth_net_delete(`${blocksEndpoint}/${user.id}`).then((data) => {
+                  if (data.error && data.error == "Forbidden")
+                    return navigate("/logout");
+                  if (data.error) return alert("unblock err");
+                  setUserBlockedLocal(false);
+                });
+              // else, block user
+              else
+                auth_net_post(`${blocksEndpoint}`, {
+                  id: user.id,
+                }).then((data) => {
+                  if (data.error && data.error == "Forbidden")
+                    return navigate("/logout");
+                  if (data.error) return alert("block err");
+                  setUserBlockedLocal(true);
+                });
+            }}
+          >
+            {userBlockedLocal ? "Unblock" : "Block"}
+          </MenuItem>
         ) : null}
 
         {/* Friend / unfriend */}
         {!isSelf ? (
           <MenuItem
-          onClick={()=>{
-            // do nothing if user friend request is pending
-            if (friendshipStatus === PENDING_FRIENDS) return ;
+            onClick={() => {
+              // do nothing if user friend request is pending
+              if (friendshipStatus === PENDING_FRIENDS) return;
 
-             // if user is not friend, add friend
-             if (friendshipStatus === NOT_FRIENDS)
-             auth_net_post(`${friendsEndpoint}`, {
-               id: user.id,
-             }).then((data) => {
-               if (data.error && data.error == "Forbidden")
-                 return navigate("/logout");
+              // if user is not friend, add friend
+              if (friendshipStatus === NOT_FRIENDS)
+                auth_net_post(`${friendsEndpoint}`, {
+                  id: user.id,
+                }).then((data) => {
+                  if (data.error && data.error == "Forbidden")
+                    return navigate("/logout");
 
-                setFriendshipStatus(PENDING_FRIENDS)
-               if (data.error) return alert("add friend error");
-             });
-           // else, delete friend
-           else
-             auth_net_delete(`${friendsEndpoint}/${user.id}`).then(
-               (data) => {
-                 if (data.error && data.error == "Forbidden")
-                   return navigate("/logout");
-                 if (data.error) return alert("remove friend error");
-                 setFriendshipStatus(NOT_FRIENDS);
-               }
-             );
-          }}
+                  setFriendshipStatus(PENDING_FRIENDS);
+                  if (data.error) return alert("add friend error");
+                });
+              // else, delete friend
+              else
+                auth_net_delete(`${friendsEndpoint}/${user.id}`).then(
+                  (data) => {
+                    if (data.error && data.error == "Forbidden")
+                      return navigate("/logout");
+                    if (data.error) return alert("remove friend error");
+                    setFriendshipStatus(NOT_FRIENDS);
+                  }
+                );
+            }}
           >
-            {friendshipStatus === NOT_FRIENDS ? "Add friend" : friendshipStatus === ALREADY_FRIENDS ? "Unfriend" : "Pending request"}
+            {friendshipStatus === NOT_FRIENDS
+              ? "Add friend"
+              : friendshipStatus === ALREADY_FRIENDS
+              ? "Unfriend"
+              : "Pending request"}
           </MenuItem>
         ) : null}
 
         {/* Mute */}
-        {
-          !isSelf 
-        }
+        {!isSelf &&
+        isGc &&
+        (isSelfAdmin || isSelfOwner) &&
+        !isAdmin &&
+        !isOwner ? (
+          <MenuItem
+            onClick={() => {
+              // set user to mute
+              chat?.setUserToAdminAction(user);
+
+              // set action to mute
+              chat?.setAdminAction(MUTE_ACTION);
+
+              // open mute modal
+              chat?.setOpenTimeModal(true);
+            }}
+          >
+            Mute
+          </MenuItem>
+        ) : null}
 
         {/* Ban */}
+        {!isSelf &&
+        isGc &&
+        (isSelfAdmin || isSelfOwner) &&
+        !isAdmin &&
+        !isOwner ? (
+          <MenuItem
+            onClick={() => {
+              // set user to mute
+              chat?.setUserToAdminAction(user);
+
+              // set action to mute
+              chat?.setAdminAction(BAN_ACTION);
+
+              // open mute modal
+              chat?.setOpenTimeModal(true);
+            }}
+          >
+            Ban
+          </MenuItem>
+        ) : null}
 
         {/* Transfer ownership */}
+        {!isSelf && isGc && isSelfOwner ? (
+          <MenuItem
+            onClick={() => {
+              // set user to mute
+              chat?.setUserToAdminAction(user);
 
-        {/* promote / demote */}
+              // set action to mute
+              chat?.setAdminAction(OWNER_TRANSFER_ACTION);
 
+              // open mute modal
+              chat?.setOpenConfirmationModal(true);
+            }}
+          >
+            Give owner
+          </MenuItem>
+        ) : null}
+
+        {/* promote */}
+        {!isSelf && isGc && isSelfOwner && !isAdmin ? (
+          <MenuItem
+            onClick={() => {
+              // set user to mute
+              chat?.setUserToAdminAction(user);
+
+              // set action to mute
+              chat?.setAdminAction(PROMOTE_ACTION);
+
+              // open mute modal
+              chat?.setOpenConfirmationModal(true);
+            }}
+          >
+            Promote to admin
+          </MenuItem>
+        ) : null}
+
+        {/* demote */}
+        {!isSelf && isGc && isSelfOwner && isAdmin ? (
+          <MenuItem
+            onClick={() => {
+              // set user to mute
+              chat?.setUserToAdminAction(user);
+
+              // set action to mute
+              chat?.setAdminAction(DEMOTE_ACTION);
+
+              // open mute modal
+              chat?.setOpenConfirmationModal(true);
+            }}
+          >
+            Demote from admin
+          </MenuItem>
+        ) : null}
       </ControlledMenu>
     </div>
   );

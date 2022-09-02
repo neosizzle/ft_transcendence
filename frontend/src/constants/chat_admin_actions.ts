@@ -1,0 +1,5 @@
+export const MUTE_ACTION = 'mute'
+export const BAN_ACTION = 'ban'
+export const PROMOTE_ACTION = 'promote'
+export const DEMOTE_ACTION = 'demote'
+export const OWNER_TRANSFER_ACTION = 'transfer'
