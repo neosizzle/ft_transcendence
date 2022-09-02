@@ -54,7 +54,6 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
       if (chat.activeRoomMessagesCount / 15 < 1 || currChatPage >= chat.activeRoomMessagesCount / 15)
         return;
       setCurrChatPage(currChatPage + 1);
-      console.log(currChatPage + 1);
       auth_net_get(
         `${chatEndpoint}?page=${currChatPage + 1}&pageSize=15&filterOn=roomId&filterBy=${chat?.activeRoom?.id}&sortBy=Descending&sortOn=createdAt`
       ).then((data) => {

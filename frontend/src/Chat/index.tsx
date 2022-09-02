@@ -14,6 +14,7 @@ import { cloneDeep } from "lodash";
 
 const chatEndpoint = `${API_ROOT}/chat`;
 const memberEndpoint = `${API_ROOT}/members`;
+const ROOM_PAGE_SIZE = 5;
 
 function Chat() {
   const auth = useAuth();
@@ -87,10 +88,11 @@ function Chat() {
 
   useEffect(() => {
     auth_net_get(
-      `${memberEndpoint}?page=1&pageSize=50&filterOn=userId&filterBy=${auth?.user?.id}`
+      `${memberEndpoint}?page=1&pageSize=${ROOM_PAGE_SIZE}&filterOn=userId&filterBy=${auth?.user?.id}`
     ).then((data) => {
       const roomsArr: Room[] = data.data.map((e: Member) => e.room);
       chat?.setRooms(roomsArr);
+      chat?.setActiveRoomCount(data.total_elements);
     });
     if (!auth?.chatSocket) return;
     auth.chatSocket.on(INCOMING_MSG, handleNewMessage);
