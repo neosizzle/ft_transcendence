@@ -9,6 +9,7 @@ import { Message, Room } from "../Chat/classes";
 import { AlertType } from "../commonComponents/Alert";
 import { Block } from "../User/pages/blocks/Blocks";
 import { FriendShip } from "../User/pages/friends/Friends";
+import { User } from "./authContext";
 
 interface Props {
   children: React.ReactNode;
@@ -46,6 +47,14 @@ export interface ChatCtx {
   openConfirmationModal: boolean;
   openConfirmationModalRef: MutableRefObject<boolean>;
   setOpenConfirmationModal: (data: boolean) => void;
+
+  userToAdminAction: User | null;
+  userToAdminActionRef: MutableRefObject<User | null>;
+  setUserToAdminAction: (data: User | null) => void;
+
+  adminAction: string;
+  adminActionRef: MutableRefObject<string>;
+  setAdminAction: (data: string) => void;
 
   rooms: Room[] | null;
   roomsRef: MutableRefObject<Room[] | null>;
@@ -118,6 +127,24 @@ export const ChatProvider = (props: Props) => {
     openConfirmationModalRef.current = data;
   };
 
+  const [userToAdminAction, _setUserToAdminAction] = useState<
+    User | null
+  >(null); // user to take admin action against
+  const userToAdminActionRef = useRef(userToAdminAction);
+  const setUserToAdminAction = (data: User | null) => {
+    _setUserToAdminAction(data);
+    userToAdminActionRef.current = data;
+  };
+
+  const [adminAction, _setAdminAction] = useState<
+    string
+  >(""); // current admin action to execute
+  const adminActionRef = useRef(adminAction);
+  const setAdminAction = (data: string) => {
+    _setAdminAction(data);
+    adminActionRef.current = data;
+  };
+
 const [activeRoomFriends, _setActiveRoomFriends] = useState<
     FriendShip[]
   >([]); // active room friendss list
@@ -164,6 +191,12 @@ const [activeRoomFriends, _setActiveRoomFriends] = useState<
         openConfirmationModal,
         openConfirmationModalRef,
         setOpenConfirmationModal,
+        userToAdminAction,
+        userToAdminActionRef,
+        setUserToAdminAction,
+        adminAction,
+        adminActionRef,
+        setAdminAction,
         openTimeModal,
         openTimeModalRef,
         setOpenTimeModal,

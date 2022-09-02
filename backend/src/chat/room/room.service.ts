@@ -312,7 +312,17 @@ export class RoomService {
 
       if (!inMember) throw new NotFoundException("Member not found");
 
-      // make changes in admin table if ownerid changes (?)
+      // remove current admin status for user
+      await this.prisma.admin.deleteMany({where : {userId : user.id, roomId : inMember.roomId}})
+
+      // add admin status to new owner
+      await this.prisma.admin.create({
+        data : {
+          userId : inMember.userId,
+          roomId : inMember.roomId
+        }
+      })
+
     }
 
     // update changes in db

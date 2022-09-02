@@ -4,8 +4,10 @@ import { API_ROOT } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
 import { auth_net_get } from "../../utils";
-import { Admin, Member } from "../classes";
+import { Admin } from "../classes";
+import ConfirmationModal from "./ConfirmationModal";
 import MemberCard from "./MemberCard";
+import TimeSelectionModal from "./TimeSelectionModal";
 
 const adminEndpoint = `${API_ROOT}/admins`;
 const blocksEndpoint = `${API_ROOT}/blocks`;
@@ -92,13 +94,34 @@ const MemberList: FunctionComponent<MemberListProps> = ({ memberUsers }) => {
             isAdmin={admins.findIndex((admin) => admin.userId === user.id) >= 0}
             isOwner={chat?.activeRoom?.ownerId === user.id}
             isSelf={user.id === auth?.user?.id}
+            isSelfAdmin = {admins.findIndex((admin) => admin.userId === auth?.user?.id) >= 0}
+            isSelfOwner = {chat?.activeRoom?.ownerId === auth?.user?.id}
+            isGc = {chat?.activeRoom?.type === "GC"}
           />
         ))}
       </div>
 
       {/* Time selection modal for mute / ban */}
+      {
+        chat?.openTimeModal && chat.userToAdminAction && chat.adminAction.length > 0? 
+        <TimeSelectionModal
+        action={chat.adminAction}
+        user = {chat.userToAdminAction}
+        setOpenModal = {chat.setOpenTimeModal}
+        /> :
+        null
+      }
 
       {/* Confirmation modal for owner transfer */}
+      {
+        chat?.openConfirmationModal && chat.userToAdminAction && chat.adminAction.length > 0? 
+        <ConfirmationModal
+        action={chat.adminAction}
+        user = {chat.userToAdminAction}
+        setOpenModal = {chat.setOpenConfirmationModal}
+        /> :
+        null
+      }
     </div>
   );
 };
