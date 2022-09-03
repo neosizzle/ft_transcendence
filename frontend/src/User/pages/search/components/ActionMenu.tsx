@@ -1,9 +1,11 @@
 import React, { FunctionComponent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Room } from "../../../../Chat/classes";
 import { AlertType } from "../../../../commonComponents/Alert";
 import { API_ROOT } from "../../../../constants";
 import { useAuth, User } from "../../../../context/authContext";
 import { auth_net_delete, auth_net_post } from "../../../../utils";
+import { createNewDm, getCommonDmRoom } from "../../../utils";
 
 const friendsEndpoint = `${API_ROOT}/friends`;
 const blocksEndpoint = `${API_ROOT}/blocks`;
@@ -29,8 +31,25 @@ const ActionMenu: FunctionComponent<ActionMenuProps> = ({
     navigate(`/users/profile/${user.id}`);
   };
 
-  const joinGame = () => {
-    alert(`Joining ${user.id}s game`);
+  const messageUser = async () => {
+    if (!auth || !auth.user) return;
+
+    // try to get common dm room
+    let commonDmRoom: Room | undefined = await getCommonDmRoom(
+      auth,
+      auth?.user,
+      user
+    );
+
+    if (!commonDmRoom) {
+      const newRoomData = await createNewDm(auth, user);
+      if (newRoomData.id) commonDmRoom = newRoomData;
+    }
+
+    if (!commonDmRoom) {
+      setOpenAlert({ type: "error", isOpen: true });
+      setAlertMsg(`Cant message ${user.username}`);
+    } else navigate(`/chat?room=${commonDmRoom?.id}`);
     setCurrUser(null);
   };
 
@@ -50,10 +69,6 @@ const ActionMenu: FunctionComponent<ActionMenuProps> = ({
       }
     );
 
-    setCurrUser(null);
-  };
-  const messageUser = () => {
-    alert(`Messaging ${user.id}`);
     setCurrUser(null);
   };
 
@@ -85,7 +100,7 @@ const ActionMenu: FunctionComponent<ActionMenuProps> = ({
   };
 
   return (
-    <div className="z-10 py-2 drop-shadow-md bg-white rounded border border-gray-200">
+    <div className="z-10 py-2 drop-shadow-md bg-white rounded border border-gray-200 w-[30rem]">
       {/* View profile */}
       <button
         className="block text-left hover:bg-gray-300 py-3 w-full px-4"
@@ -98,15 +113,6 @@ const ActionMenu: FunctionComponent<ActionMenuProps> = ({
 
       {auth?.user?.id !== user.id ? (
         <div>
-          {/* Join game */}
-          <button
-            className="block text-left hover:bg-gray-300 py-3 w-full px-4"
-            disabled={loading}
-            onClick={joinGame}
-          >
-            {" "}
-            Join game{" "}
-          </button>
           {/* Add friend */}
           <button
             className="block text-left hover:bg-gray-300 py-3 w-full px-4"

@@ -245,7 +245,7 @@ const Profile: FunctionComponent = () => {
         <LevelBar percent={levelPercent} />
       </div>
 
-      <MatchHistoryTable />
+      <MatchHistoryTable user={user} />
     </div>
   ) : (
     <div>user not found</div>

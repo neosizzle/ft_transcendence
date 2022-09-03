@@ -34,7 +34,7 @@ const EditEmail: FunctionComponent<EditEmailProps> = ({
         placeholder={currEmail || ""}
         value={currEmail || ""}
       />
-      <button className="block" onClick={() => setOpenEditEmailModal(true)}>
+      <button className="block underline font-semibold" onClick={() => setOpenEditEmailModal(true)}>
         Change email
       </button>
       {openEditEmailModal ? (

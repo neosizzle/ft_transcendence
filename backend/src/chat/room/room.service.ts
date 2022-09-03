@@ -11,6 +11,7 @@ import { ListObject, ListQuery, validateListquery } from "src/utils";
 import { roomDto } from "./dto/room.dto";
 import * as CryptoJS from "crypto-js";
 import { roomPatchDto } from "./dto";
+import { intersectionBy } from "lodash";
 
 /**
  * Transforms string values into values of their specific type
@@ -181,27 +182,25 @@ export class RoomService {
     if (dto.type === RoomType.DM && !initUsers)
       throw new BadRequestException("DM Must be created with an initialuser");
     if (dto.type === RoomType.DM) {
-      const commonDMRooms = await this.prisma.member.findMany({
+      const myDms = await this.prisma.member.findMany({
         where: {
-          AND: [
-            {
-              OR: [
-                {
-                  userId: user.id,
-                },
-                {
-                  userId: parseInt(initUsers[0]),
-                },
-              ],
-            },
-            {
-              room: {
-                type: RoomType.DM,
-              },
-            },
-          ],
+          room: {
+            type: "DM",
+          },
+          userId: user.id,
         },
       });
+
+      const theirDms = await this.prisma.member.findMany({
+        where: {
+          room: {
+            type: "DM",
+          },
+          userId: parseInt(initUsers[0], 10),
+        },
+      });
+
+      const commonDMRooms = intersectionBy(theirDms, myDms, "roomId");
 
       if (commonDMRooms.length > 1)
         throw new BadRequestException("DM already exist");
@@ -313,7 +312,17 @@ export class RoomService {
 
       if (!inMember) throw new NotFoundException("Member not found");
 
-      // make changes in admin table if ownerid changes (?)
+      // remove current admin status for user
+      await this.prisma.admin.deleteMany({where : {userId : user.id, roomId : inMember.roomId}})
+
+      // add admin status to new owner
+      await this.prisma.admin.create({
+        data : {
+          userId : inMember.userId,
+          roomId : inMember.roomId
+        }
+      })
+
     }
 
     // update changes in db

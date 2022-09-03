@@ -94,7 +94,22 @@ const generateMemberPayload = (
 
   res.take = listObj.pageSize;
   res.skip = (listObj.page - 1) * listObj.pageSize;
-  res.include = { user: true, room: { select : {id : true, roomName : true, ownerId : true, type : true, isProtected : true, createdAt : true, updatedAt : true, owner : true, password : false} } };
+  res.include = {
+    user: true,
+    room: {
+      select: {
+        id: true,
+        roomName: true,
+        ownerId: true,
+        type: true,
+        isProtected: true,
+        createdAt: true,
+        updatedAt: true,
+        owner: true,
+        password: false,
+      },
+    },
+  };
   if (listObj.filterBys) res.where = generateMemberWhere(listObj);
   if (listObj.sortBy) {
     res.orderBy = [{}];
@@ -106,7 +121,7 @@ const generateMemberPayload = (
 
 @Injectable()
 export class MemberService {
-  constructor(private prisma: PrismaService, private admin : AdminService) {}
+  constructor(private prisma: PrismaService, private admin: AdminService) {}
 
   private sampleMember: Member = {
     id: -1,
@@ -153,10 +168,17 @@ export class MemberService {
     // check for bans
     if (roomToJoin.type === "GC") {
       const banRes = await this.prisma.ban.findFirst({
-        where: {userId : user.id, roomId : roomToJoin.id}
-      })
+        where: {
+          userId: user.id,
+          roomId: roomToJoin.id,
+          expiresAt: { gt: new Date() },
+        },
+      });
 
-      if (banRes) throw new BadRequestException("You are banned from this room until " + banRes.expiresAt);
+      if (banRes)
+        throw new BadRequestException(
+          "You are banned from this room until " + banRes.expiresAt
+        );
     }
 
     // check for blocks
@@ -209,16 +231,18 @@ export class MemberService {
     if (memberToDelete.userId !== user.id) {
       // find that user.id is an admin on current room
       const isUserAdmin = await this.admin.getAdmins({
-        page : "1",
-        pageSize : "1",
-        filterOn : "userId,roomId",
-        filterBy : `${user.id},${memberToDelete.roomId}`
+        page: "1",
+        pageSize: "1",
+        filterOn: "userId,roomId",
+        filterBy: `${user.id},${memberToDelete.roomId}`,
       });
 
-      if (!isUserAdmin.total_elements) throw new UnauthorizedException("Not eligible to perform action");
+      if (!isUserAdmin.total_elements)
+        throw new UnauthorizedException("Not eligible to perform action");
 
       // find that memberToDelete is not room owner
-      if (memberToDelete.room.ownerId === memberToDelete.userId) throw new BadRequestException("Cannot remove owner");
+      if (memberToDelete.room.ownerId === memberToDelete.userId)
+        throw new BadRequestException("Cannot remove owner");
     }
 
     // user self leaving
@@ -229,6 +253,14 @@ export class MemberService {
       throw new BadRequestException(
         "Ownership must be transfered before leaving"
       );
+
+    // if user is admin in current room, delete the admin as well
+    await this.prisma.admin.deleteMany({
+      where: {
+        userId: memberToDelete.userId,
+        roomId: memberToDelete.roomId,
+      },
+    });
 
     const res = await this.prisma.member.delete({
       where: {

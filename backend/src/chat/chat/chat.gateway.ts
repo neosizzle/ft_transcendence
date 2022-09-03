@@ -1,4 +1,9 @@
-import { BadRequestException, InternalServerErrorException, Logger, UseGuards } from "@nestjs/common";
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  Logger,
+  UseGuards,
+} from "@nestjs/common";
 import {
   ConnectedSocket,
   MessageBody,
@@ -20,7 +25,7 @@ import { MemberDto } from "../member/dto";
 import { MemberService } from "../member/member.service";
 import { roomDto, roomPatchDto } from "../room/dto";
 import { RoomService } from "../room/room.service";
-import { chatDto, GameinvDto } from "./chat.dto";
+import { chatDto, GameinvDto, SysMsg } from "./chat.dto";
 import { ChatService } from "./chat.service";
 
 const INV_STRING = "/invite/";
@@ -111,7 +116,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       roomCreateRes = await this.room.addRoom(client.handshake.auth.user, dto);
     } catch (error) {
       client.emit("exception", error);
-      return;
+      return error;
     }
 
     // add curr user to room
@@ -122,7 +127,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // add initial users to room as well if they are online (connected to ws server)
     const namespace = this.wsServer;
     let initUsers: string[] = [];
-    initUsers = dto.initialUsers.split(",");
+    if (dto.initialUsers) initUsers = dto.initialUsers.split(",");
     if (!initUsers.includes(user.id.toString()))
       initUsers.push(user.id.toString());
     for (const userId of initUsers) {
@@ -134,18 +139,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clientSocket.join(roomId);
 
       // inform initial users that group is created
-      const sysMsg: Chat = {
-        id: -1,
-        roomId: parseInt(roomId, 10),
-        userId: null,
-        message: `You have been invited to room ${roomId}`,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
       if (roomCreateRes.type === "GC") {
+        const sysMsg: SysMsg = {
+          id: -1,
+          roomId: parseInt(roomId, 10),
+          room: roomCreateRes,
+          userId: null,
+          message: `You have been invited to room ${roomId}`,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        console.log("emmiting inituser message to ", clientSocket.id);
         clientSocket.emit("newMessage", sysMsg);
       }
     }
+
+    return roomCreateRes;
   }
 
   /**
@@ -171,15 +180,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // emmit brodcast and notification to roomid that this user left
-    const sysMsg: Chat = {
+    const sysMsg: SysMsg = {
       id: -1,
       roomId: res.roomId,
+      room: await this.prisma.room.findUnique({ where: { id: res.roomId } }),
       userId: null,
       message: `${client.handshake.auth.user.username} has left`,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
     client.leave(res.roomId.toString());
+    console.log("emitting userkicked");
+    client.emit("userKicked", res);
     this.wsServer.to(res.roomId.toString()).emit("newMessage", sysMsg);
   }
 
@@ -207,7 +219,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // join room in ws
-    client.join(member.id.toString());
+    client.join(member.roomId.toString());
 
     // if its a gc, emmit brodcast and notification to roomid that this user joined
     const room = await this.prisma.room.findUnique({
@@ -215,9 +227,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     if (room.type === "GC") {
-      const sysMsg: Chat = {
+      const sysMsg: SysMsg = {
         id: -1,
         roomId: room.id,
+        room: room,
         userId: null,
         message: `${client.handshake.auth.user.username} has joined`,
         createdAt: new Date(),
@@ -267,13 +280,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // emmit broadcast message and notification that admin had been tranferred
-    this.wsServer.to(patchRes.id.toString()).emit("ownerChange", {
-      userId: patchRes.ownerId,
-      roomId: patchRes.id,
-      message: `${patchRes.ownerId} has become owner`,
-      createdAt: patchRes.createdAt,
-      updatedAt: patchRes.updatedAt,
-    });
+    this.wsServer.to(patchRes.id.toString()).emit("ownerChange", patchRes);
+    return patchRes;
   }
 
   /**
@@ -294,16 +302,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       adminRes = await this.admin.addAdmin(client.handshake.auth.user, dto);
     } catch (error) {
+      // console.log(error)
       client.emit("exception", error);
       return;
     }
 
     // emmit broadcast message and notification that admin had been promoted
-    this.wsServer.to(dto.roomId.toString()).emit("promotion", {
-      userId: adminRes.userId,
-      roomId: adminRes.roomId,
-      message: `${adminRes.userId} has became admin`,
-    });
+    this.wsServer.to(dto.roomId.toString()).emit("promotion", adminRes);
+    return adminRes;
   }
 
   /**
@@ -328,11 +334,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
     // emmit broadcast message and notification that admin had been demoted
-    this.wsServer.to(deleteRes.roomId.toString()).emit("demotion", {
-      userId: deleteRes.userId,
-      roomId: deleteRes.roomId,
-      message: `${deleteRes.userId} has became admin`,
-    });
+    this.wsServer.to(deleteRes.roomId.toString()).emit("demotion", deleteRes);
+    return deleteRes;
   }
   /**
    * Handles new message
@@ -352,7 +355,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       chatRes = await this.chat.insertChat(dto);
     } catch (error) {
-      client.emit("exception", error);
+      if (!error.message) throw new InternalServerErrorException(error);
+      else client.emit("exception", error);
       return;
     }
 
@@ -369,11 +373,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
     members.forEach((e) => {
       const connectedClient = this.clients.find(
-        (client) => client.userId === e.userId.toString()
+        (client) => client.userId.toString() === e.userId.toString()
       );
       // if user is connected to ws server and not join ws room
       if (connectedClient && !clientsInRoom.has(e.userId.toString())) {
-        this.logger.log("client should be in room but isnt.... joining...");
         this.wsServer.sockets
           .get(connectedClient.socketId)
           .join(chatRes.roomId.toString());
@@ -440,6 +443,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       banRes = await this.ban.giveBan(client.handshake.auth.user, dto);
     } catch (error) {
+      console.log("ban err ", error);
       client.emit("exception", error);
       return;
     }
@@ -454,6 +458,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // broadcast ban event into roomId
     this.wsServer.to(dto.roomId.toString()).emit("userBanned", banRes);
+    return banRes;
   }
 
   /**
@@ -524,15 +529,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // add message to chat
-    let msgRes : Chat;
+    let msgRes: Chat;
     try {
       msgRes = await this.prisma.chat.create({
-        data : {
-          userId : null,
-          roomId : room.id,
-          message : `${INV_STRING}${dto.queuePosition}/${userIdToInv}`
-        }
-      })
+        data: {
+          userId: null,
+          roomId: room.id,
+          message: `${INV_STRING}${dto.queuePosition}/${userIdToInv}`,
+        },
+      });
     } catch (error) {
       client.emit("exception", new InternalServerErrorException(error.message));
       return;

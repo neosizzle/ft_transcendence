@@ -5,3 +5,5 @@ export * from './ws_root'
 export * from "./ws_keys_chat"
 export * from "./ws_keys_users"
 export * from "./ws_keys_game"
+export * from './chat_friend_status'
+export * from './chat_admin_actions'

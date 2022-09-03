@@ -36,6 +36,7 @@ interface Props {
 export interface AuthCtx {
   // user : User | string | null,
   user: User | null;
+  chatSocket: Socket | null;
   chatWidgetSocket: Socket | null;
   gameSocket: Socket | null;
   userSocket: Socket | null;
@@ -48,6 +49,7 @@ const AuthContext = createContext<AuthCtx | null>(null);
 
 export const AuthProvider = (props: Props) => {
   const [user, setUser] = useState<User | null>(null);
+  const [chatSocket, setChatSocket] = useState<Socket | null>(null);
   const [chatWidgetSocket, setChatWidgetSocket] = useState<Socket | null>(null);
   const [gameSocket, setGameSocket] = useState<Socket | null>(null);
   const [userSocket, setUserSocket] = useState<Socket | null>(null);
@@ -57,6 +59,17 @@ export const AuthProvider = (props: Props) => {
     if (!code) {
       /* CODE DUPLICATION. TO DO: REFACTOR */
       const user = await auth_net_get(userEndpoint);
+
+      //Init chat socket
+      const chatSocketIo = io(chatWsEndpoint, {
+        extraHeaders: {
+          Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
+      });
+      chatSocketIo.on("connection accepted", () => {
+        chatSocketIo.emit("authHandshake");
+      });
+      setChatSocket(chatSocketIo);
 
       // Init chat widget socket
       const chatWidgetSocketIo = io(chatWsEndpoint, {
@@ -94,8 +107,19 @@ export const AuthProvider = (props: Props) => {
     }
     const data = await net_get(`${authEndpoint}/?code=${code}`);
 
+    //Init chat socket
+    const chatIo = io(chatWsEndpoint, {
+      extraHeaders: {
+        Authorization: `Bearer ${data.data.token}`,
+      },
+    });
+    chatIo.on("connection accepted", () => {
+      chatIo.emit("authHandshake");
+    });
+    setChatSocket(chatIo)
+
     // init chat widget socket
-    const chatWidgetIo = io(chatWsEndpoint, {
+     const chatWidgetIo = io(chatWsEndpoint, {
       extraHeaders: {
         Authorization: `Bearer ${data.data.token}`,
       },
@@ -132,6 +156,10 @@ export const AuthProvider = (props: Props) => {
   const logout = async () => {
     setUser(null);
 
+    // Disconnect chat socket
+    chatSocket?.disconnect();
+    setChatSocket(null);
+    
     // Disconnect chat widget socket
     chatWidgetSocket?.disconnect();
     setChatWidgetSocket(null);
@@ -156,6 +184,7 @@ export const AuthProvider = (props: Props) => {
         login,
         logout,
         reset,
+        chatSocket,
         chatWidgetSocket,
         gameSocket,
         userSocket,

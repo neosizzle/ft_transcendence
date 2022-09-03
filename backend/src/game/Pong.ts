@@ -1,5 +1,10 @@
 import { ControlKeys, EntityState, Entity, Wall, Paddle, Ball } from "./Entity"
 
+let DISP_SCALE: number;
+if (typeof window == 'undefined')
+	DISP_SCALE = 1;
+else
+	DISP_SCALE = Math.min(window.innerWidth, window.innerHeight) / 400;
 
 export type GameState = {
 	isRunning: boolean[];	// true if game is running, false otherwise
@@ -102,11 +107,11 @@ export default class Pong implements GameInterface {
 	
 	// set a state of the whole game
 	set_state(latency: number, state: GameState) {
-		console.log('setting game state');
+		// console.log('setting game state');
 		this.isRunning = state.isRunning;
 		this.scoreboard.set_state(state.score);
 		for (const i in state.entity)
-			this.entity[i]?.set_state(latency, state.entity[i]);
+			this.entity[i]?.set_state(latency, state.entity[i], DISP_SCALE);
 	}
 	
 	get_state(): GameState {
@@ -196,7 +201,7 @@ export default class Pong implements GameInterface {
 			this.player.forEach((n) => { this.isRunning[n] = true; });
 		else {
 			this.isRunning[n] = true;
-			console.log(`Player ${n} is ready`);
+			// console.log(`Player ${n} is ready`);
 		}
 	}
 	
@@ -300,7 +305,7 @@ export default class Pong implements GameInterface {
 			return ;
 		
 		this.scoreboard.add(loser);	// update the score
-		console.log(`Player ${loser + 1} lost!`);
+		// console.log(`Player ${loser + 1} lost!`);
 		// stop the current round
 		this.reset(false);
 	}
@@ -338,7 +343,7 @@ class ScoreBoard{
 		// Do something if there's a winner
 		const winner = this.get_winner();
 		if (winner != -1) {
-			console.log("Player " + (winner + 1).toString() + " has won!");
+			// console.log("Player " + (winner + 1).toString() + " has won!");
 			if (this.onGameEnd !== undefined)
 				this.onGameEnd(winner);
 			this.reset();

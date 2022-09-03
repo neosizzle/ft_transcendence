@@ -10,16 +10,76 @@ export type QueueInfo =  {
 	player: string[],
 }
 
-function PlayerName(props: any) {
+type PlayerProps = {
+	style: object,
+	index: number,
+	queue: QueueInfo,
+}
+
+function PlayerName(props: PlayerProps) {
 	const id: string = props.queue.player[props.index];
+	const size: number = props.queue.size[props.index];
+	
 	return (
 		<button
 			className="user_button"
 			style={props.style}
 		>
-			{id ? id: "awating player"}
+			{size == 0 ?
+				"awaiting player" :
+				id
+				+ ((size > 1) ?
+					" and " + (size - 1).toString() + " others" :
+					""
+				)
+			}
 		</button>
 		);
+}
+
+type WinnerProps = {
+	style: object
+	winner: string,
+	clearWinner: () => void;
+}
+
+type WinnerState = {
+	winner: string,
+}
+
+class WinnerMessage extends React.Component<WinnerProps, WinnerState> {
+	constructor(props: WinnerProps) {
+		super(props);
+		this.state = {
+			winner: props.winner,
+		};
+	}
+	
+	componentDidUpdate() {
+		// if winner has been updated, update the state but clears it after
+		// 5 seconds
+		if (this.props.winner != this.state.winner) {
+			this.setState({winner: this.props.winner});
+			setTimeout(() => {
+				this.setState({winner: ''});
+				this.props.clearWinner();
+			}, 5000);
+		}
+	}
+	
+	render() {
+		const winner: string = this.state.winner;
+		return (
+			<button
+				className="msg_button"
+				style={this.props.style}
+			>
+				<>
+				{winner ? winner + " wins!" : ""}
+				</>
+			</button>
+		);
+	}
 }
 
 type ButtonProps = {
@@ -32,7 +92,6 @@ type ButtonProps = {
 // Button for joining or quiting game queue
 function Button(props: ButtonProps) {
 	const pos_this = props.queue.position[props.queue_no];
-	const size = props.queue.size[props.queue_no];
 	const pos_other = props.queue.position[(props.queue_no + 1) % 2];
 	const disabled = pos_this == 0 || pos_other >= 0;
 	
@@ -43,16 +102,23 @@ function Button(props: ButtonProps) {
 			style={props.style}
 			disabled={disabled}
 			onClick={props.onClick}>
-				{pos_this >= 0 ? pos_this + 1 + " of " : ""}
-				{size} in Queue.
-				{pos_this == 0 ? "" :
+				{pos_this == 0 ?
+					"Playing" :
 					<>
-					<br></br>
-					{disabled ? "" :
-						<>
-						Click to {pos_this >= 0 ? "un" : ""}join.
-						</>
-					}
+						{pos_other >= 0 ?
+							"Unvailable" :
+							<>
+							{pos_this >= 0 ?
+								<>
+								No. {pos_this} in Queue
+								<br></br>
+								</>
+								:
+								""
+							}
+							Click to {pos_this >= 0 ? "un" : ""}join.
+							</>
+						}
 					</>
 				}
 		</button>
@@ -84,7 +150,7 @@ function ToggleButton(props: ToggleButtonProps) {
 			disabled={disabled}
 			onClick={props.onClick}
 		>
-			{props.gameType ? "Customised" : "Original"}
+			Type: {props.gameType ? "Customised" : "Original"}
 		</button>
 	)
 }
@@ -100,6 +166,8 @@ interface CanvasProps {
 	setGameType: (type: boolean) => void;
 	gameType: boolean;
 	gameState: GameState;
+	winner: string;
+	clearWinner: () => void;
 }
 
 
@@ -168,6 +236,12 @@ export default class Canvas extends React.Component<CanvasProps> {
 						style={{float: "left"}}
 						index={0}
 						queue={this.props.queue}
+					/>
+					
+					<WinnerMessage
+						style={{float: "left"}}
+						winner={this.props.winner}
+						clearWinner={this.props.clearWinner}
 					/>
 					
 					<PlayerName
