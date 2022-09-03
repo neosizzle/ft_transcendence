@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useState } from "react";
-import { OUTGOING_CREATE, OUTGOING_JOIN } from "../../constants";
+import { OUTGOING_CREATE } from "../../constants";
 import { useAuth } from "../../context/authContext";
 import { roomDto } from "../classes";
 

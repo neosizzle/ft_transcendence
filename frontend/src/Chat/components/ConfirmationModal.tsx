@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { FunctionComponent } from "react";
 import { DEMOTE_ACTION, OUTGOING_DEMOTE, OUTGOING_OWNER_TRANSFER, OUTGOING_PROMOTE, OWNER_TRANSFER_ACTION, PROMOTE_ACTION } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
@@ -32,8 +32,6 @@ const ConfirmationModal: FunctionComponent<ConfirmationModalProps> = ({
   action,
   user,
 }) => {
-  const [roomIdInput, setRoomIdInput] = useState<string>("");
-  const [passwordInput, setPasswordInput] = useState<string>("");
   const auth = useAuth();
   const chat = useChat();
 
