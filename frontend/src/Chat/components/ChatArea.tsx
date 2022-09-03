@@ -6,10 +6,11 @@ import {
 } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
-import { auth_net_get } from "../../utils";
-import { Member, Message } from "../classes";
+import { auth_net_get, auth_net_patch, auth_net_post } from "../../utils";
+import { Member, Message, roomPatchDto } from "../classes";
 
 const chatEndpoint = `${API_ROOT}/chat`;
+const roomEndpoint = `${API_ROOT}/rooms`
 
 interface ChatAreaProps {
   members: Member[] | null;
@@ -156,9 +157,34 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
           <button
             onClick={() => {
               const newRoomName = prompt("enter new room name (leave blank if change not wanted)")
-              const newPassword = prompt("enter new room password (leave blank if change not wanted)")
+              const newPassword = prompt("enter new room password (leave blank if want to remove password)")
 
-              alert("i will save changes where room name is  " + newRoomName + " and password is " + newPassword)
+              const payload : roomPatchDto = {};
+              if (newRoomName && newRoomName.length > 0) 
+                payload.roomName = newRoomName;
+              if (!newPassword)
+                payload.isProtected = false;
+              else if (newPassword.length < 7)
+              {
+                alert("Password must be more than 7 characters in length");
+                return ;
+              }
+              else
+                payload.password = newPassword;
+              auth_net_patch(`${roomEndpoint}/${chat?.activeRoom?.id}`, payload)
+              .then((data) => {
+                 // token expired
+                  if (data.error && data.error == "Forbidden") return navigate("/logout");
+
+                  if (data.error)
+                  {
+                    chat?.setAlertMessage(data.error)
+                    chat?.setOpenAlert({type : "error", isOpen : true})
+                    return;
+                  }
+                  chat?.setAlertMessage("Room details changes successfully");
+                  chat?.setOpenAlert({type : "success", isOpen : true})
+              })
             }}
             className="block rounded px-4 py-2 bg-gray-400"
           >

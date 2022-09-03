@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { API_ROOT, INCOMING_BAN, INCOMING_DEMOTION, INCOMING_OWNER_TRANSFER, INCOMING_PROMOTION, NOT_FRIENDS } from "../constants";
+import {
+  API_ROOT,
+  INCOMING_BAN,
+  INCOMING_DEMOTION,
+  INCOMING_OWNER_TRANSFER,
+  INCOMING_PROMOTION,
+  NOT_FRIENDS,
+} from "../constants";
 import { useAuth, User } from "../context/authContext";
 import { auth_net_get } from "../utils";
 import { ERR, INCOMING_KICK, INCOMING_MSG } from "../constants";
@@ -63,7 +70,7 @@ function Chat() {
       activeRoomMessagesClone.push(data);
 
       chat?.setActiveRoomMessages(activeRoomMessagesClone);
-      chat.setActiveRoomMessagesCount(chat.activeRoomMessagesCount + 1)
+      chat.setActiveRoomMessagesCount(chat.activeRoomMessagesCount + 1);
     }
 
     // add room if data room is not in active room (need to work with edison for scrolling)
@@ -90,68 +97,72 @@ function Chat() {
   // handle han event
   const handleBan = (data: Ban) => {
     // if banned user is not self, check for active room and update members and member users
-    if (data.userId !== auth?.user?.id && chat?.activeRoomRef.current?.id === data.roomId)
-    {
-      let membersClone = cloneDeep(chat.membersRef.current as Member[])
-      let memberUsersClone = cloneDeep(chat.memberUsersRef.current as User[])
+    if (
+      data.userId !== auth?.user?.id &&
+      chat?.activeRoomRef.current?.id === data.roomId
+    ) {
+      let membersClone = cloneDeep(chat.membersRef.current as Member[]);
+      let memberUsersClone = cloneDeep(chat.memberUsersRef.current as User[]);
 
-      memberUsersClone = memberUsersClone.filter((user) => user.id !== data.userId)
-      membersClone = membersClone.filter((member) => member.userId !== data.userId)
+      memberUsersClone = memberUsersClone.filter(
+        (user) => user.id !== data.userId
+      );
+      membersClone = membersClone.filter(
+        (member) => member.userId !== data.userId
+      );
       chat.setMembers(membersClone);
       chat.setMemberUsers(memberUsersClone);
     }
 
     // if banned user is self, filter rooms and set active room to filtered first room
-    if (data.userId === auth?.user?.id)
-    {
-      const memberToRemove : Member = {
-        id : -1,
-        userId : data.userId,
-        roomId : data.roomId,
-        room : data.room,
-        user : data.user,
-      }
-      handleKick(memberToRemove)
+    if (data.userId === auth?.user?.id) {
+      const memberToRemove: Member = {
+        id: -1,
+        userId: data.userId,
+        roomId: data.roomId,
+        room: data.room,
+        user: data.user,
+      };
+      handleKick(memberToRemove);
     }
-  }
+  };
 
   //handle admin promotion
-  const handlePromotion = (data : Admin) => {
+  const handlePromotion = (data: Admin) => {
     // if active room is data room, update current room admins
     if (chat?.activeRoomRef.current?.id !== data.roomId) return;
-    
-    const adminsClone = cloneDeep(chat.adminsRef.current as Admin[])
+
+    const adminsClone = cloneDeep(chat.adminsRef.current as Admin[]);
     adminsClone.push(data);
     chat.setAdmins(adminsClone);
-  }
+  };
 
   // handle admin demotion
-  const handleDemotion = (data : Admin) => {
+  const handleDemotion = (data: Admin) => {
     // if active room is data room, update current room admins
     if (chat?.activeRoomRef.current?.id !== data.roomId) return;
-    
-    let adminsClone = cloneDeep(chat.adminsRef.current as Admin[])
-    adminsClone = adminsClone.filter((admin) => admin.userId !== data.userId)
+
+    let adminsClone = cloneDeep(chat.adminsRef.current as Admin[]);
+    adminsClone = adminsClone.filter((admin) => admin.userId !== data.userId);
     chat.setAdmins(adminsClone);
-  }
+  };
 
   // handle owner change
-  const handleOwnerChange = (data : Room) => 
-  {
+  const handleOwnerChange = (data: Room) => {
     // update curr room owner if data room is same as active room
-    if (data.id !== chat?.activeRoomRef.current?.id) return ;
+    if (data.id !== chat?.activeRoomRef.current?.id) return;
 
-    const roomCpy : Room = {
-      id : chat.activeRoomRef.current.id,
-      roomName : chat.activeRoomRef.current.roomName,
-      ownerId : data.ownerId,
-      type : chat.activeRoomRef.current.type,
-      isProtected : chat.activeRoomRef.current.isProtected,
-      createdAt : chat.activeRoomRef.current.createdAt,
-      updatedAt : chat.activeRoomRef.current.updatedAt,
-    }
-    chat.setActiveRoom(roomCpy)
-  }
+    const roomCpy: Room = {
+      id: chat.activeRoomRef.current.id,
+      roomName: chat.activeRoomRef.current.roomName,
+      ownerId: data.ownerId,
+      type: chat.activeRoomRef.current.type,
+      isProtected: chat.activeRoomRef.current.isProtected,
+      createdAt: chat.activeRoomRef.current.createdAt,
+      updatedAt: chat.activeRoomRef.current.updatedAt,
+    };
+    chat.setActiveRoom(roomCpy);
+  };
 
   useEffect(() => {
     auth_net_get(
@@ -179,7 +190,6 @@ function Chat() {
       auth?.chatSocket?.off(INCOMING_PROMOTION, handlePromotion);
       auth?.chatSocket?.off(INCOMING_DEMOTION, handleDemotion);
       auth?.chatSocket?.off(INCOMING_OWNER_TRANSFER, handleOwnerChange);
-
     };
   }, [auth]);
 
@@ -187,13 +197,13 @@ function Chat() {
     //For first time setting activeRoomMessages
     if (chat?.rooms != null) {
       const initRoomIdSelect = searchParams.get("room");
-      if (initRoomIdSelect)
-      {
-        const initRoom = chat.rooms.find((room) => room.id === parseInt(initRoomIdSelect, 10))
-        if (initRoom) chat.setActiveRoom(initRoom)
+      if (initRoomIdSelect) {
+        const initRoom = chat.rooms.find(
+          (room) => room.id === parseInt(initRoomIdSelect, 10)
+        );
+        if (initRoom) chat.setActiveRoom(initRoom);
         else chat.setActiveRoom(chat.rooms[0]);
-      }
-      else chat.setActiveRoom(chat.rooms[0]);
+      } else chat.setActiveRoom(chat.rooms[0]);
     }
   }, [chat?.rooms]);
 

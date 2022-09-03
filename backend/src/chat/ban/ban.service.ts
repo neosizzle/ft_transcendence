@@ -118,7 +118,7 @@ export class BanService {
     await this.memberService.removeMember(user, userMember.id);
     return await this.prismaService.ban.create({
       data: dto,
-      include : { room : true, user : true }
+      include: { room: true, user: true },
     });
   }
 }

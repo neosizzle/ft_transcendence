@@ -1,5 +1,12 @@
 import React, { FunctionComponent } from "react";
-import { DEMOTE_ACTION, OUTGOING_DEMOTE, OUTGOING_OWNER_TRANSFER, OUTGOING_PROMOTE, OWNER_TRANSFER_ACTION, PROMOTE_ACTION } from "../../constants";
+import {
+  DEMOTE_ACTION,
+  OUTGOING_DEMOTE,
+  OUTGOING_OWNER_TRANSFER,
+  OUTGOING_PROMOTE,
+  OWNER_TRANSFER_ACTION,
+  PROMOTE_ACTION,
+} from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
 import { StringFunctionDict } from "../../utils";
@@ -8,23 +15,33 @@ const promptMessages: StringFunctionDict = {};
 promptMessages[PROMOTE_ACTION] = (user: unknown) =>
   `You are about to promote ${(user as User).username} to admin`;
 promptMessages[DEMOTE_ACTION] = (user: unknown) =>
-`You are about to demote ${(user as User).username} from admin`;
+  `You are about to demote ${(user as User).username} from admin`;
 promptMessages[OWNER_TRANSFER_ACTION] = (user: unknown) =>
-`You are about to transfer ownership to ${(user as User).username}`;
+  `You are about to transfer ownership to ${(user as User).username}`;
 
 const UsersIcon: FunctionComponent = () => {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="mx-auto mb-4 text-gray-400 w-14 h-14 dark:text-gray-200">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-  </svg>
-  
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className="mx-auto mb-4 text-gray-400 w-14 h-14 dark:text-gray-200"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+      />
+    </svg>
   );
 };
 
 interface ConfirmationModalProps {
   action: string;
   user: User;
-  setOpenModal: (val : boolean) => void;
+  setOpenModal: (val: boolean) => void;
 }
 
 const ConfirmationModal: FunctionComponent<ConfirmationModalProps> = ({
@@ -61,31 +78,63 @@ const ConfirmationModal: FunctionComponent<ConfirmationModalProps> = ({
             </svg>
           </button>
           <div className="p-6 text-center">
-            {
-				<UsersIcon />
-			}
+            {<UsersIcon />}
             <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
               {promptMessages[action](user)}
             </h3>
 
             <button
               onClick={() => {
-                if (action === OWNER_TRANSFER_ACTION)
-                {
+                if (action === OWNER_TRANSFER_ACTION) {
                   // call ws transfer event
-                  auth?.chatSocket?.emit(OUTGOING_OWNER_TRANSFER, JSON.stringify({dto : {ownerId : chat?.userToAdminAction?.id}, roomId : chat?.activeRoom?.id}))
-                }
-                else if (action === PROMOTE_ACTION)
-                {
+                  auth?.chatSocket?.emit(
+                    OUTGOING_OWNER_TRANSFER,
+                    JSON.stringify(
+                      {
+                        dto: { ownerId: chat?.userToAdminAction?.id },
+                        roomId: chat?.activeRoom?.id,
+                      }
+                    ),
+										(data : unknown) => {
+											if (data) {
+												chat?.setAlertMessage(
+													"owner transfered successfully"
+												);
+												chat?.setOpenAlert({ type: "success", isOpen: true });
+											}
+										}
+                  );
+                } else if (action === PROMOTE_ACTION) {
                   // call ws promtote event
-                  auth?.chatSocket?.emit(OUTGOING_PROMOTE, JSON.stringify({roomId : chat?.activeRoom?.id, userId : chat?.userToAdminAction?.id}))
-                }
-                else if (action === DEMOTE_ACTION)
-                {
+                  auth?.chatSocket?.emit(
+                    OUTGOING_PROMOTE,
+                    JSON.stringify({
+                      roomId: chat?.activeRoom?.id,
+                      userId: chat?.userToAdminAction?.id,
+                    }),
+										(data : unknown) => {
+											if (data) {
+												chat?.setAlertMessage(
+													"promoted successfully"
+												);
+												chat?.setOpenAlert({ type: "success", isOpen: true });
+											}
+										}
+                  );
+                } else if (action === DEMOTE_ACTION) {
                   // call ws demote event
-                  const adminToDemote = chat?.admins.find(admin => admin.userId === chat.userToAdminAction?.id)
+                  const adminToDemote = chat?.admins.find(
+                    (admin) => admin.userId === chat.userToAdminAction?.id
+                  );
                   if (adminToDemote)
-                    auth?.chatSocket?.emit(OUTGOING_DEMOTE, adminToDemote.id)
+                    auth?.chatSocket?.emit(OUTGOING_DEMOTE, adminToDemote.id, (data: unknown) => {
+											if (data) {
+												chat?.setAlertMessage(
+													"demoted successfully"
+												);
+												chat?.setOpenAlert({ type: "success", isOpen: true });
+											}
+										});
                 }
 
                 // close window

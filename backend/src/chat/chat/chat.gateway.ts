@@ -281,6 +281,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // emmit broadcast message and notification that admin had been tranferred
     this.wsServer.to(patchRes.id.toString()).emit("ownerChange", patchRes);
+    return patchRes;
   }
 
   /**
@@ -301,12 +302,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       adminRes = await this.admin.addAdmin(client.handshake.auth.user, dto);
     } catch (error) {
+      // console.log(error)
       client.emit("exception", error);
       return;
     }
 
     // emmit broadcast message and notification that admin had been promoted
     this.wsServer.to(dto.roomId.toString()).emit("promotion", adminRes);
+    return adminRes;
   }
 
   /**
@@ -332,6 +335,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     // emmit broadcast message and notification that admin had been demoted
     this.wsServer.to(deleteRes.roomId.toString()).emit("demotion", deleteRes);
+    return deleteRes;
   }
   /**
    * Handles new message
@@ -439,7 +443,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       banRes = await this.ban.giveBan(client.handshake.auth.user, dto);
     } catch (error) {
-      console.log('ban err ', error)
+      console.log("ban err ", error);
       client.emit("exception", error);
       return;
     }

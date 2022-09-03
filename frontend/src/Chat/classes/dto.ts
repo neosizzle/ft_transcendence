@@ -13,6 +13,16 @@ export interface memberDto {
   password?: string;
 }
 
+export class roomPatchDto {
+  roomName?: string;
+
+  password?: string;
+
+  ownerId?: number;
+
+  isProtected?: boolean;
+}
+
 // incoming data received from server
 export interface BaseWSResponse {
   userId: number | null;

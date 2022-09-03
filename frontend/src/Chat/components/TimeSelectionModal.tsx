@@ -186,11 +186,10 @@ const TimeSelectionModal: FunctionComponent<TimeSelectionModalProps> = ({
                     // token expired
                     if (data.error && data.error == "Forbidden")
                       return navigate("/logout");
-                    if (data.error)
-                    {
+                    if (data.error) {
                       chat.setAlertMessage(data.message);
                       chat.setOpenAlert({ type: "error", isOpen: true });
-                      return ;
+                      return;
                     }
                     chat.setAlertMessage("User has been muted");
                     chat.setOpenAlert({ type: "success", isOpen: true });
