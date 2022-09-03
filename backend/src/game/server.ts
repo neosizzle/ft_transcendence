@@ -193,7 +193,13 @@ export default class GameServer {
 		// console.log("Game has ended!");
 		
 		// record match history if required
-		this.record_result(winner);
+		if (winner != null) {
+			this.record_result(winner);
+			const winner_name: string =
+				this.queues[winner].front()?.second.handshake.auth.user.intraName;
+			if (winner_name != null)
+				this.server.emit('winner', winner_name);
+		}
 		
 		for (let n = 0; n < this.queues.length; ++n) {
 			const queue: UniqueKeyValueQueue<number, Socket> = this.queues[n];

@@ -52,11 +52,11 @@ export abstract class Entity {
 	/* eslint-enable @typescript-eslint/no-empty-function */
 	
 	// set the x, y, vx, vy of the entity
-	set_state(latency: number, state: EntityState): void {
-		this.x = state.x;
-		this.y = state.y
-		this.vx = state.vx;
-		this.vy = state.vy;
+	set_state(latency: number, state: EntityState, scale=1): void {
+		this.x = state.x * scale;
+		this.y = state.y * scale
+		this.vx = state.vx * scale;
+		this.vy = state.vy * scale;
 		
 		// compensate for the server-to-client latency
 		const n = latency / (1000 / 60);	// assume 60 Hz

@@ -1,5 +1,10 @@
 import { ControlKeys, EntityState, Entity, Wall, Paddle, Ball } from "./Entity"
 
+let DISP_SCALE: number;
+if (typeof window == 'undefined')
+	DISP_SCALE = 1;
+else
+	DISP_SCALE = Math.min(window.innerWidth, window.innerHeight) / 400;
 
 export type GameState = {
 	isRunning: boolean[];	// true if game is running, false otherwise
@@ -106,7 +111,7 @@ export default class Pong implements GameInterface {
 		this.isRunning = state.isRunning;
 		this.scoreboard.set_state(state.score);
 		for (const i in state.entity)
-			this.entity[i]?.set_state(latency, state.entity[i]);
+			this.entity[i]?.set_state(latency, state.entity[i], DISP_SCALE);
 	}
 	
 	get_state(): GameState {

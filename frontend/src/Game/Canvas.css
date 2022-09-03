@@ -1,5 +1,5 @@
 .game_div {
-	width: 400px;
+	display: inline-block
 }
 
 
@@ -39,6 +39,17 @@
 	background-color: #cecece;
 	box-shadow: none;
 	color: #2c5777;
+}
+
+.msg_button {
+  background-color: white;
+  font-family: "Haas Grot Text R Web", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 20px;
+  list-style: none;
+  margin: 0;
+  padding: 10px 12px;
 }
 
 .user_button {
