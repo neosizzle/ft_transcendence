@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useState } from "react";
-import { DEMOTE_ACTION, OWNER_TRANSFER_ACTION, PROMOTE_ACTION } from "../../constants";
+import { DEMOTE_ACTION, OUTGOING_DEMOTE, OUTGOING_OWNER_TRANSFER, OUTGOING_PROMOTE, OWNER_TRANSFER_ACTION, PROMOTE_ACTION } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
 import { StringFunctionDict } from "../../utils";
@@ -12,41 +12,12 @@ promptMessages[DEMOTE_ACTION] = (user: unknown) =>
 promptMessages[OWNER_TRANSFER_ACTION] = (user: unknown) =>
 `You are about to transfer ownership to ${(user as User).username}`;
 
-const MuteIcon: FunctionComponent = () => {
+const UsersIcon: FunctionComponent = () => {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      className="mx-auto mb-4 text-gray-400 w-14 h-14 dark:text-gray-200"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.531V19.94a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.506-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.395C2.806 8.757 3.63 8.25 4.51 8.25H6.75z"
-      />
-    </svg>
-  );
-};
-
-const BanIcon: FunctionComponent = () => {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      className="mx-auto mb-4 text-gray-400 w-14 h-14 dark:text-gray-200"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
-      />
-    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="mx-auto mb-4 text-gray-400 w-14 h-14 dark:text-gray-200">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+  </svg>
+  
   );
 };
 
@@ -93,16 +64,31 @@ const ConfirmationModal: FunctionComponent<ConfirmationModalProps> = ({
           </button>
           <div className="p-6 text-center">
             {
-				<BanIcon />
+				<UsersIcon />
 			}
             <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
               {promptMessages[action](user)}
             </h3>
 
-            {/* Inputs*/}
-
             <button
               onClick={() => {
+                if (action === OWNER_TRANSFER_ACTION)
+                {
+                  // call ws transfer event
+                  auth?.chatSocket?.emit(OUTGOING_OWNER_TRANSFER, JSON.stringify({dto : {ownerId : chat?.userToAdminAction?.id}, roomId : chat?.activeRoom?.id}))
+                }
+                else if (action === PROMOTE_ACTION)
+                {
+                  // call ws promtote event
+                  auth?.chatSocket?.emit(OUTGOING_PROMOTE, JSON.stringify({roomId : chat?.activeRoom?.id, userId : chat?.userToAdminAction?.id}))
+                }
+                else if (action === DEMOTE_ACTION)
+                {
+                  // call ws demote event
+                  const adminToDemote = chat?.admins.find(admin => admin.userId === chat.userToAdminAction?.id)
+                  if (adminToDemote)
+                    auth?.chatSocket?.emit(OUTGOING_DEMOTE, adminToDemote.id)
+                }
 
                 // close window
                 setOpenModal(false);

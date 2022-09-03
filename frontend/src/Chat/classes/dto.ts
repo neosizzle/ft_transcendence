@@ -55,6 +55,8 @@ export interface Ban {
   id: number;
   userId: number;
   roomId: number;
+  room : Room;
+  user : User;
   expiresAt: Date;
 }
 

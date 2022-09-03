@@ -1,14 +1,30 @@
+import moment from "moment";
 import React, { FunctionComponent, useState } from "react";
-import { BAN_ACTION, MUTE_ACTION, OUTGOING_JOIN } from "../../constants";
+import { useNavigate } from "react-router-dom";
+import {
+  API_ROOT,
+  BAN_ACTION,
+  MUTE_ACTION,
+  OUTGOING_BAN,
+} from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
-import { StringFunctionDict } from "../../utils";
+import { auth_net_post, StringFunctionDict } from "../../utils";
 
 const promptMessages: StringFunctionDict = {};
 promptMessages[MUTE_ACTION] = (user: unknown) =>
-  `Select mute time for ${(user as User).username} (THIS ACTION IS NOT REVERSIBLE) `;
+  `Select mute time for ${
+    (user as User).username
+  } (THIS ACTION IS NOT REVERSIBLE) `;
 promptMessages[BAN_ACTION] = (user: unknown) =>
-  `Select ban time for ${(user as User).username} (THIS ACTION IS NOT REVERSIBLE) `;
+  `Select ban time for ${
+    (user as User).username
+  } (THIS ACTION IS NOT REVERSIBLE) `;
+const THREE_MINS = 0;
+const NICE_MINS = 1;
+const NICE_HOURS = 2;
+const NICE_DAYS = 3;
+const muteEndpoint = `${API_ROOT}/mute`;
 
 const MuteIcon: FunctionComponent = () => {
   return (
@@ -51,7 +67,7 @@ const BanIcon: FunctionComponent = () => {
 interface TimeSelectionModalProps {
   action: string;
   user: User;
-  setOpenModal: (val : boolean) => void;
+  setOpenModal: (val: boolean) => void;
 }
 
 const TimeSelectionModal: FunctionComponent<TimeSelectionModalProps> = ({
@@ -59,10 +75,10 @@ const TimeSelectionModal: FunctionComponent<TimeSelectionModalProps> = ({
   action,
   user,
 }) => {
-  const [roomIdInput, setRoomIdInput] = useState<string>("");
-  const [passwordInput, setPasswordInput] = useState<string>("");
-  const auth = useAuth();
+  const [selectedValue, setSelectedValue] = useState<number>(THREE_MINS);
   const chat = useChat();
+  const auth = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 h-full overflow-x-hidden overflow-y-auto md:inset-0  bg-gray-300/50">
@@ -90,34 +106,96 @@ const TimeSelectionModal: FunctionComponent<TimeSelectionModalProps> = ({
             </svg>
           </button>
           <div className="p-6 text-center">
-            {
-				action == MUTE_ACTION ? 
-				<MuteIcon /> :
-				<BanIcon />
-			}
+            {action == MUTE_ACTION ? <MuteIcon /> : <BanIcon />}
             <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
               {promptMessages[action](user)}
             </h3>
 
             {/* Inputs*/}
-            {/* <input
-              type="number"
-              value={roomIdInput}
-              onChange={(e) => setRoomIdInput(e.target.value)}
-              className="mb-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-              placeholder="Room id"
-            />
-
-            <input
-              type="password"
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-              className="mb-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
-              placeholder="Room password (Optional)"
-            /> */}
+            <div className="grid grid-cols-2 gap-4 grid-flow-row my-4">
+              <button
+                onClick={() => setSelectedValue(THREE_MINS)}
+                className={`px-2 py-1 border rounded ${
+                  selectedValue === THREE_MINS ? "bg-gray-300 text-white" : ""
+                }`}
+              >
+                3 minutes
+              </button>
+              <button
+                onClick={() => setSelectedValue(NICE_MINS)}
+                className={`px-2 py-1 border rounded ${
+                  selectedValue === NICE_MINS ? "bg-gray-300 text-white" : ""
+                }`}
+              >
+                69 minutes
+              </button>
+              <button
+                onClick={() => setSelectedValue(NICE_HOURS)}
+                className={`px-2 py-1 border rounded ${
+                  selectedValue === NICE_HOURS ? "bg-gray-300 text-white" : ""
+                }`}
+              >
+                69 hours
+              </button>
+              <button
+                onClick={() => setSelectedValue(NICE_DAYS)}
+                className={`px-2 py-1 border rounded ${
+                  selectedValue === NICE_DAYS ? "bg-gray-300 text-white" : ""
+                }`}
+              >
+                69 days
+              </button>
+            </div>
 
             <button
               onClick={() => {
+                if (!chat || !chat.userToAdminAction || !chat.activeRoom)
+                  return;
+                let expiresAt;
+
+                if (selectedValue === THREE_MINS)
+                  expiresAt = moment().add(3, "m").toDate();
+                else if (selectedValue === NICE_MINS)
+                  expiresAt = moment().add(69, "m").toDate();
+                else if (selectedValue === NICE_HOURS)
+                  expiresAt = moment().add(69, "h").toDate();
+                else if (selectedValue === NICE_DAYS)
+                  expiresAt = moment().add(69, "d").toDate();
+
+                if (action === BAN_ACTION) {
+                  // send ws event
+                  auth?.chatSocket?.emit(
+                    OUTGOING_BAN,
+                    JSON.stringify({
+                      userId: chat.userToAdminAction.id,
+                      roomId: chat.activeRoom.id,
+                      expiresAt,
+                    }),
+                    () => {
+                      chat.setAlertMessage("User has been banned");
+                      chat.setOpenAlert({ type: "success", isOpen: true });
+                    }
+                  );
+                } else if (action === MUTE_ACTION) {
+                  //send http req to mute user
+                  auth_net_post(muteEndpoint, {
+                    userId: chat.userToAdminAction.id,
+                    roomId: chat.activeRoom.id,
+                    expiresAt,
+                  }).then((data) => {
+                    // token expired
+                    if (data.error && data.error == "Forbidden")
+                      return navigate("/logout");
+                    if (data.error)
+                    {
+                      chat.setAlertMessage(data.message);
+                      chat.setOpenAlert({ type: "error", isOpen: true });
+                      return ;
+                    }
+                    chat.setAlertMessage("User has been muted");
+                    chat.setOpenAlert({ type: "success", isOpen: true });
+                  });
+                }
 
                 // close window
                 setOpenModal(false);

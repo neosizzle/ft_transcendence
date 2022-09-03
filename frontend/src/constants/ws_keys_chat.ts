@@ -14,3 +14,7 @@ export const OUTGOING_INV = "invite";
 export const OUTGOING_JOIN = "join";
 export const OUTGOING_CREATE = "create";
 export const OUTGOING_LEAVE = "leave";
+export const OUTGOING_BAN = "ban";
+export const OUTGOING_PROMOTE = "promoteAdmin";
+export const OUTGOING_DEMOTE = "demoteAdmin";
+export const OUTGOING_OWNER_TRANSFER = "ownertransfer";

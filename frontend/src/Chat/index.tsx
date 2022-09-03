@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { API_ROOT, NOT_FRIENDS } from "../constants";
+import { API_ROOT, INCOMING_BAN, INCOMING_DEMOTION, INCOMING_OWNER_TRANSFER, INCOMING_PROMOTION, NOT_FRIENDS } from "../constants";
 import { useAuth, User } from "../context/authContext";
 import { auth_net_get } from "../utils";
 import { ERR, INCOMING_KICK, INCOMING_MSG } from "../constants";
-import { BaseWSResponse, Member, Message, Room } from "./classes";
+import { Admin, Ban, BaseWSResponse, Member, Message, Room } from "./classes";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useChat } from "../context/chatContext";
 import RoomList from "./components/RoomList";
@@ -20,14 +20,13 @@ function Chat() {
   const auth = useAuth();
   const navigate = useNavigate();
   const chat = useChat();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [memberUsers, setMemberUsers] = useState<User[] | null>(null); // user objects for members
-  const [members, setMembers] = useState<Member[] | null>(null); // member objects for active room
+  const [searchParams] = useSearchParams();
 
   // DM STATES
   useState<number>(NOT_FRIENDS);
   const [otherDmUser, setOtherDmUser] = useState<User | null>(null);
 
+  // handle user leave / getting kicked
   const handleKick = (data: Member) => {
     if (data.userId !== auth?.user?.id) return;
 
@@ -54,6 +53,7 @@ function Chat() {
     }
   };
 
+  // handle new incoming message
   const handleNewMessage = (data: Message) => {
     // add message into active room data if room id is active room id
     if (data.roomId === chat?.activeRoomRef.current?.id) {
@@ -77,6 +77,7 @@ function Chat() {
     }
   };
 
+  // handle error event
   const handleError = (data: BaseWSResponse) => {
     if (data.message === "Forbidden") navigate("/logout");
     else {
@@ -85,6 +86,72 @@ function Chat() {
       chat?.setOpenAlert({ type: "error", isOpen: true });
     }
   };
+
+  // handle han event
+  const handleBan = (data: Ban) => {
+    // if banned user is not self, check for active room and update members and member users
+    if (data.userId !== auth?.user?.id && chat?.activeRoomRef.current?.id === data.roomId)
+    {
+      let membersClone = cloneDeep(chat.membersRef.current as Member[])
+      let memberUsersClone = cloneDeep(chat.memberUsersRef.current as User[])
+
+      memberUsersClone = memberUsersClone.filter((user) => user.id !== data.userId)
+      membersClone = membersClone.filter((member) => member.userId !== data.userId)
+      chat.setMembers(membersClone);
+      chat.setMemberUsers(memberUsersClone);
+    }
+
+    // if banned user is self, filter rooms and set active room to filtered first room
+    if (data.userId === auth?.user?.id)
+    {
+      const memberToRemove : Member = {
+        id : -1,
+        userId : data.userId,
+        roomId : data.roomId,
+        room : data.room,
+        user : data.user,
+      }
+      handleKick(memberToRemove)
+    }
+  }
+
+  //handle admin promotion
+  const handlePromotion = (data : Admin) => {
+    // if active room is data room, update current room admins
+    if (chat?.activeRoomRef.current?.id !== data.roomId) return;
+    
+    const adminsClone = cloneDeep(chat.adminsRef.current as Admin[])
+    adminsClone.push(data);
+    chat.setAdmins(adminsClone);
+  }
+
+  // handle admin demotion
+  const handleDemotion = (data : Admin) => {
+    // if active room is data room, update current room admins
+    if (chat?.activeRoomRef.current?.id !== data.roomId) return;
+    
+    let adminsClone = cloneDeep(chat.adminsRef.current as Admin[])
+    adminsClone = adminsClone.filter((admin) => admin.userId !== data.userId)
+    chat.setAdmins(adminsClone);
+  }
+
+  // handle owner change
+  const handleOwnerChange = (data : Room) => 
+  {
+    // update curr room owner if data room is same as active room
+    if (data.id !== chat?.activeRoomRef.current?.id) return ;
+
+    const roomCpy : Room = {
+      id : chat.activeRoomRef.current.id,
+      roomName : chat.activeRoomRef.current.roomName,
+      ownerId : data.ownerId,
+      type : chat.activeRoomRef.current.type,
+      isProtected : chat.activeRoomRef.current.isProtected,
+      createdAt : chat.activeRoomRef.current.createdAt,
+      updatedAt : chat.activeRoomRef.current.updatedAt,
+    }
+    chat.setActiveRoom(roomCpy)
+  }
 
   useEffect(() => {
     auth_net_get(
@@ -98,14 +165,21 @@ function Chat() {
     auth.chatSocket.on(INCOMING_MSG, handleNewMessage);
     auth.chatSocket.on(ERR, handleError);
     auth.chatSocket.on(INCOMING_KICK, handleKick);
-    // auth.chatSocket.on(INCOMING_BAN, Test);
+    auth.chatSocket.on(INCOMING_BAN, handleBan);
+    auth.chatSocket.on(INCOMING_PROMOTION, handlePromotion);
+    auth.chatSocket.on(INCOMING_DEMOTION, handleDemotion);
+    auth.chatSocket.on(INCOMING_OWNER_TRANSFER, handleOwnerChange);
 
     return () => {
       // remove socket listeners
-      auth?.chatWidgetSocket?.off(INCOMING_MSG, handleNewMessage);
-      auth?.chatWidgetSocket?.off(ERR, handleError);
-      auth?.chatWidgetSocket?.off(INCOMING_KICK, handleKick);
-      // auth?.chatWidgetSocket?.off(INCOMING_BAN, Test);
+      auth?.chatSocket?.off(INCOMING_MSG, handleNewMessage);
+      auth?.chatSocket?.off(ERR, handleError);
+      auth?.chatSocket?.off(INCOMING_KICK, handleKick);
+      auth?.chatSocket?.off(INCOMING_BAN, handleBan);
+      auth?.chatSocket?.off(INCOMING_PROMOTION, handlePromotion);
+      auth?.chatSocket?.off(INCOMING_DEMOTION, handleDemotion);
+      auth?.chatSocket?.off(INCOMING_OWNER_TRANSFER, handleOwnerChange);
+
     };
   }, [auth]);
 
@@ -153,8 +227,8 @@ function Chat() {
         member.forEach((member: Member) => {
           userArr.push(member.user);
         });
-        setMembers(member);
-        setMemberUsers(userArr);
+        chat?.setMembers(member);
+        chat?.setMemberUsers(userArr);
 
         // set dm states
         if (chat?.activeRoom?.type !== "DM") return;
@@ -179,13 +253,13 @@ function Chat() {
 
         {/* Chat area */}
         <ChatArea
-          members={members}
-          memberUsers={memberUsers}
+          members={chat ? chat.members : null}
+          memberUsers={chat ? chat.memberUsers : null}
           otherDmUser={otherDmUser}
         />
 
         {/* Members list */}
-        <MemberList memberUsers={memberUsers} />
+        <MemberList memberUsers={chat ? chat.memberUsers : null} />
 
         {/* Alert Box */}
         {chat?.openAlert.isOpen ? (

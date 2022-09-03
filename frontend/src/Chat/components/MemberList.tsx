@@ -1,10 +1,9 @@
-import React, { FunctionComponent, useEffect, useState } from "react";
+import React, { FunctionComponent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_ROOT } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
 import { auth_net_get } from "../../utils";
-import { Admin } from "../classes";
 import ConfirmationModal from "./ConfirmationModal";
 import MemberCard from "./MemberCard";
 import TimeSelectionModal from "./TimeSelectionModal";
@@ -18,7 +17,6 @@ interface MemberListProps {
 }
 
 const MemberList: FunctionComponent<MemberListProps> = ({ memberUsers }) => {
-  const [admins, setAdmins] = useState<Admin[]>([]);
   const chat = useChat();
   const auth = useAuth();
   const navigate = useNavigate();
@@ -69,7 +67,7 @@ const MemberList: FunctionComponent<MemberListProps> = ({ memberUsers }) => {
       const adminsRes = await auth_net_get(
         `${adminEndpoint}?page=1&pageSize=${data.total_elements}&filterOn=roomId&filterBy=${chat?.activeRoom?.id}`
       );
-      setAdmins(adminsRes.data);
+      chat.setAdmins(adminsRes.data);
     });
   }, [memberUsers]);
 
@@ -78,7 +76,7 @@ const MemberList: FunctionComponent<MemberListProps> = ({ memberUsers }) => {
       <div className="border-2 text-center text-5xl">Members</div>
 
       <div>
-        {memberUsers?.map((user) => (
+        {chat && memberUsers?.map((user) => (
           <MemberCard
             userBlocked={
               (chat?.activeRoomBlocks?.findIndex(
@@ -91,10 +89,10 @@ const MemberList: FunctionComponent<MemberListProps> = ({ memberUsers }) => {
             )}
             user={user}
             key={user.id}
-            isAdmin={admins.findIndex((admin) => admin.userId === user.id) >= 0}
-            isOwner={chat?.activeRoom?.ownerId === user.id}
+            isAdmin={chat.admins.findIndex((admin) => admin.userId === user.id) >= 0}
+            isOwner={chat.activeRoom?.ownerId === user.id}
             isSelf={user.id === auth?.user?.id}
-            isSelfAdmin = {admins.findIndex((admin) => admin.userId === auth?.user?.id) >= 0}
+            isSelfAdmin = {chat.admins.findIndex((admin) => admin.userId === auth?.user?.id) >= 0}
             isSelfOwner = {chat?.activeRoom?.ownerId === auth?.user?.id}
             isGc = {chat?.activeRoom?.type === "GC"}
           />

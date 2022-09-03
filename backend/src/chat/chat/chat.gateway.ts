@@ -280,13 +280,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // emmit broadcast message and notification that admin had been tranferred
-    this.wsServer.to(patchRes.id.toString()).emit("ownerChange", {
-      userId: patchRes.ownerId,
-      roomId: patchRes.id,
-      message: `${patchRes.ownerId} has become owner`,
-      createdAt: patchRes.createdAt,
-      updatedAt: patchRes.updatedAt,
-    });
+    this.wsServer.to(patchRes.id.toString()).emit("ownerChange", patchRes);
   }
 
   /**
@@ -312,11 +306,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // emmit broadcast message and notification that admin had been promoted
-    this.wsServer.to(dto.roomId.toString()).emit("promotion", {
-      userId: adminRes.userId,
-      roomId: adminRes.roomId,
-      message: `${adminRes.userId} has became admin`,
-    });
+    this.wsServer.to(dto.roomId.toString()).emit("promotion", adminRes);
   }
 
   /**
@@ -341,11 +331,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
     // emmit broadcast message and notification that admin had been demoted
-    this.wsServer.to(deleteRes.roomId.toString()).emit("demotion", {
-      userId: deleteRes.userId,
-      roomId: deleteRes.roomId,
-      message: `${deleteRes.userId} has became admin`,
-    });
+    this.wsServer.to(deleteRes.roomId.toString()).emit("demotion", deleteRes);
   }
   /**
    * Handles new message
@@ -453,6 +439,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       banRes = await this.ban.giveBan(client.handshake.auth.user, dto);
     } catch (error) {
+      console.log('ban err ', error)
       client.emit("exception", error);
       return;
     }
@@ -467,6 +454,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // broadcast ban event into roomId
     this.wsServer.to(dto.roomId.toString()).emit("userBanned", banRes);
+    return banRes;
   }
 
   /**

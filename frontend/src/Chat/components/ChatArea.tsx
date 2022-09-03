@@ -150,6 +150,23 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
             Leave
           </button>
         ) : null}
+
+       {/* Edit room btn */}
+       {chat?.activeRoom?.ownerId === auth?.user?.id ? (
+          <button
+            onClick={() => {
+              const newRoomName = prompt("enter new room name (leave blank if change not wanted)")
+              const newPassword = prompt("enter new room password (leave blank if change not wanted)")
+
+              alert("i will save changes where room name is  " + newRoomName + " and password is " + newPassword)
+            }}
+            className="block rounded px-4 py-2 bg-gray-400"
+          >
+            Edit room
+          </button>
+        ) : null}
+
+
       </div>
       <div className="h-96 overflow-scroll" onScroll={handleScroll}>
         <div className="my-5 py-5" id="top"></div>
