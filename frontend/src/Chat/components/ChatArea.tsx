@@ -6,7 +6,7 @@ import {
 } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
-import { auth_net_get, auth_net_patch, auth_net_post } from "../../utils";
+import { auth_net_get, auth_net_patch } from "../../utils";
 import { Member, Message, roomPatchDto } from "../classes";
 
 const chatEndpoint = `${API_ROOT}/chat`;

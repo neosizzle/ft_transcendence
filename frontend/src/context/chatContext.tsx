@@ -44,6 +44,10 @@ export interface ChatCtx {
   memberUsersRef: MutableRefObject<User[] | null>;
   setMemberUsers: (data: User[] | null) => void;
 
+  memberCount: number;
+  memberCountRef: MutableRefObject<number>;
+  setMemberCount: (data: number) => void;
+
   members: Member[] | null;
   membersRef: MutableRefObject<Member[] | null>;
   setMembers: (data: Member[] | null) => void;
@@ -165,6 +169,13 @@ export const ChatProvider = (props: Props) => {
     memberUsersRef.current = data;
   };
 
+  const [memberCount, _setMemberCount] = useState<number>(0);
+  const memberCountRef = useRef(memberCount);
+  const setMemberCount = (data: number) => {
+    _setMemberCount(data);
+    memberCountRef.current = data;
+  };
+
   const [members, _setMembers] = useState<Member[] | null>(null); // current members in room
   const membersRef = useRef(members);
   const setMembers = (data: Member[] | null) => {
@@ -216,6 +227,9 @@ export const ChatProvider = (props: Props) => {
         memberUsers,
         memberUsersRef,
         setMemberUsers,
+        memberCount,
+        setMemberCount,
+        memberCountRef,
         members,
         membersRef,
         setMembers,

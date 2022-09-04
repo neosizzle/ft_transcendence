@@ -4,6 +4,7 @@ import { API_ROOT } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
 import { auth_net_get } from "../../utils";
+import { Member } from "../classes";
 import ConfirmationModal from "./ConfirmationModal";
 import MemberCard from "./MemberCard";
 import TimeSelectionModal from "./TimeSelectionModal";
@@ -82,46 +83,57 @@ const MemberList: FunctionComponent<MemberListProps> = ({ memberUsers }) => {
       setHitBtm(false)
       setCurrChatPage(currChatPage - 1);
       auth_net_get(
-        `${memberEndpoint}?page=1&pageSize=${MEMBER_PAGE_SIZE}&filterOn=roomId&filterBy=${chat.activeRoom?.id}`
+        `${memberEndpoint}?page=${currChatPage - 1}&pageSize=${MEMBER_PAGE_SIZE}&filterOn=roomId&filterBy=${chat.activeRoom?.id}`
       ).then((data) => {
         if (data.error && data.error == "Forbidden") return navigate("/logout");
         const member = data.data;
         const userArr: User[] = [];
-
         member.forEach((member: Member) => {
           userArr.push(member.user);
         });
-        // Need to use chat?.setmembers
-        // setMembers(member);
-        // setMemberUsers(userArr);
+        chat.setMembers(member);
+        chat.setMemberUsers(userArr);
       });
     }
-  //   else if (Math.floor(e.currentTarget.scrollHeight - e.currentTarget.scrollTop) === e.currentTarget.clientHeight) {
-  //     //   if (chat.activeRoomCount / ROOM_PAGE_SIZE < 1 || currChatPage >= chat.activeRoomCount / ROOM_PAGE_SIZE)
-  //     return;
-  //     setHitBtm(true)
-  //     setCurrChatPage(currChatPage + 1);
-  //     auth_net_get(
-  //       `${memberEndpoint}?page=${currChatPage + 1}&pageSize=${MEMBER_PAGE_SIZE}&filterOn=userId&filterBy=${auth?.user?.id}`
-  //     ).then((data) => {
-  //       if (data.error && data.error == "Forbidden") return navigate("/logout");
-  //       const member = data.data;
-  //       const userArr: User[] = [];
-
-  //       member.forEach((member: Member) => {
-  //         userArr.push(member.user);
-  //       });
-  //     }
-  // }
+    else if (Math.floor(e.currentTarget.scrollHeight - e.currentTarget.scrollTop) === e.currentTarget.clientHeight) {
+      if (chat.memberCount/ MEMBER_PAGE_SIZE < 1 || currChatPage >= chat.memberCount / MEMBER_PAGE_SIZE)
+        return;
+      setHitBtm(true)
+      setCurrChatPage(currChatPage + 1);
+      auth_net_get(
+        `${memberEndpoint}?page=${currChatPage + 1}&pageSize=${MEMBER_PAGE_SIZE}&filterOn=roomId&filterBy=${chat.activeRoom?.id}`
+      ).then((data) => {
+        if (data.error && data.error == "Forbidden") return navigate("/logout");
+        const member = data.data;
+        const userArr: User[] = [];
+        member.forEach((member: Member) => {
+          userArr.push(member.user);
+        });
+        chat.setMembers(member);
+        chat.setMemberUsers(userArr);
+      });
+    }
   }
+
+  useEffect(() => {
+    if (hitBtm){
+      const ref = document.getElementById("top-members");
+      ref?.scrollIntoView();
+    }
+    else {
+      const ref = document.getElementById("bottom-members");
+      ref?.scrollIntoView({block: "end"});
+    }
+  }, [chat?.memberUsers]);
 
   return (
     <div>
       <div className="border-2 text-center text-5xl">Members</div>
 
       <div className="h-96 overflow-scroll" onScroll={handleScroll}>
+      <div className="my-3 py-3" id="top-members"></div>
         <div>
-          {memberUsers?.map((user) => (
+          {chat && memberUsers?.map((user) => (
             <MemberCard
               userBlocked={
                 (chat?.activeRoomBlocks?.findIndex(
@@ -134,15 +146,16 @@ const MemberList: FunctionComponent<MemberListProps> = ({ memberUsers }) => {
               )}
               user={user}
               key={user.id}
-              isAdmin={admins.findIndex((admin) => admin.userId === user.id) >= 0}
-              isOwner={chat?.activeRoom?.ownerId === user.id}
+              isAdmin={chat.admins.findIndex((admin) => admin.userId === user.id) >= 0}
+              isOwner={chat.activeRoom?.ownerId === user.id}
               isSelf={user.id === auth?.user?.id}
-              isSelfAdmin={admins.findIndex((admin) => admin.userId === auth?.user?.id) >= 0}
+              isSelfAdmin={chat.admins.findIndex((admin) => admin.userId === auth?.user?.id) >= 0}
               isSelfOwner={chat?.activeRoom?.ownerId === auth?.user?.id}
               isGc={chat?.activeRoom?.type === "GC"}
             />
           ))}
         </div>
+        <div className="my-3 py-3" id="bottom-members"></div>
       </div>
 
       {/* Time selection modal for mute / ban */}
