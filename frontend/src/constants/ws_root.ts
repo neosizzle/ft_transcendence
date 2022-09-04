@@ -7,4 +7,4 @@ export const WS_ROOT = `http://${redirText.substring(
   redirText.indexOf(":", 7) > 0
     ? redirText.indexOf(":", 7)
     : redirText.indexOf("/login", 7)
-)}:3001/api/v1`;
+)}:3001`;
