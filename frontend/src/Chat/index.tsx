@@ -240,6 +240,7 @@ function Chat() {
         });
         chat?.setMembers(member);
         chat?.setMemberUsers(userArr);
+        chat.setMemberCount(data.total_elements)
 
         // set dm states
         if (chat?.activeRoom?.type !== "DM") return;
