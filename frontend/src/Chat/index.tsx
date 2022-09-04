@@ -22,6 +22,7 @@ import { cloneDeep } from "lodash";
 const chatEndpoint = `${API_ROOT}/chat`;
 const memberEndpoint = `${API_ROOT}/members`;
 const ROOM_PAGE_SIZE = 5;
+const MEMBER_PAGE_SIZE = 10;
 
 function Chat() {
   const auth = useAuth();
@@ -226,7 +227,7 @@ function Chat() {
       });
       //Gets the members for display on the right
       auth_net_get(
-        `${memberEndpoint}?page=1&pageSize=50&filterOn=roomId&filterBy=${chat.activeRoom.id}`
+        `${memberEndpoint}?page=1&pageSize=${MEMBER_PAGE_SIZE}&filterOn=roomId&filterBy=${chat.activeRoom.id}`
       ).then((data) => {
         // token expired
         if (data.error && data.error == "Forbidden") return navigate("/logout");
