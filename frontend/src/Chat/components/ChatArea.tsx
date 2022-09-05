@@ -118,7 +118,7 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
           )
         ) : (
           <p className="text-3xl ">
-            {chat?.activeRoom?.roomName} <span className="text-xl text-gray-300"> #{chat?.activeRoom?.id}</span>
+            {chat?.activeRoom?.roomName} | Room ID: {chat?.activeRoom?.id}
           </p>
         )}
       </div>
