@@ -1,7 +1,8 @@
 import React, { FunctionComponent, useState } from "react";
 import { OUTGOING_CREATE } from "../../constants";
 import { useAuth } from "../../context/authContext";
-import { roomDto } from "../classes";
+import { useChat } from "../../context/chatContext";
+import { roomDto, Room } from "../classes";
 
 const AddIcon: FunctionComponent = () => {
   return (
@@ -36,6 +37,7 @@ const CreateRoomModal: FunctionComponent<CreateRoomModalProps> = ({
   const [confirmPasswordInput, setConfirmPasswordInput] = useState<string>("");
   const [confirmPasswordErr, setConfirmPasswordErr] = useState<boolean>(false);
   const auth = useAuth();
+  const chat = useChat();
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 h-full overflow-x-hidden overflow-y-auto md:inset-0  bg-gray-300/50">
@@ -133,7 +135,7 @@ const CreateRoomModal: FunctionComponent<CreateRoomModalProps> = ({
                   setRoomNameErr(true);
                   return;
                 }
-                if (passwordInput.length > 0 && passwordInput.length < 8) {
+                if (passwordInput.length > 0 && passwordInput.length < 7) {
                   setPasswordErr(true);
                   return;
                 }
@@ -155,7 +157,20 @@ const CreateRoomModal: FunctionComponent<CreateRoomModalProps> = ({
                 // emit ws create event
                 auth?.chatSocket?.emit(
                   OUTGOING_CREATE,
-                  JSON.stringify(payload)
+                  JSON.stringify(payload),
+                  (data : Room) => {
+                    if (data.id)
+                    {
+                      chat?.setAlertMessage("Created room, number is " + data.id);
+                      chat?.setOpenAlert({type : "success", isOpen : true})
+                    }
+                    else
+                    {
+                      console.error(data)
+                      chat?.setAlertMessage("Create room failed");
+                      chat?.setOpenAlert({type : "error", isOpen : true})
+                    }
+                  }
                 );
 
                 // close window

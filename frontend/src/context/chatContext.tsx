@@ -72,9 +72,9 @@ export interface ChatCtx {
   adminActionRef: MutableRefObject<string>;
   setAdminAction: (data: string) => void;
 
-  rooms: Room[] | null;
-  roomsRef: MutableRefObject<Room[] | null>;
-  setRooms: (data: Room[] | null) => void;
+  rooms: Room[];
+  roomsRef: MutableRefObject<Room[]>;
+  setRooms: (data: Room[]) => void;
 
   openAlert: AlertType;
   setOpenAlert: React.Dispatch<React.SetStateAction<AlertType>>;
@@ -190,9 +190,9 @@ export const ChatProvider = (props: Props) => {
     adminsRef.current = data;
   };
 
-  const [rooms, _setRooms] = useState<Room[] | null>(null); // all avail rooms
+  const [rooms, _setRooms] = useState<Room[]>([]); // all avail rooms
   const roomsRef = useRef(rooms);
-  const setRooms = (data: Room[] | null) => {
+  const setRooms = (data: Room[]) => {
     _setRooms(data);
     roomsRef.current = data;
   };
