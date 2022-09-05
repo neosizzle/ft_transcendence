@@ -6,13 +6,13 @@ import {
   Param,
   Post,
   Req,
-  StreamableFile,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { Request } from "express";
+import { Request, Response } from "express";
 import { createReadStream, readdirSync } from "fs";
 import { diskStorage } from "multer";
 import { extname, join } from "path";
@@ -74,11 +74,11 @@ export class BucketController {
 
   // get file
   @Get(":id")
-  getFile(@Param("id") id: string) {
+  getFile(@Param("id") id: string, @Res() res: Response) {
     const dirCont = readdirSync(UPLOADS_DIR);
     const fileName = dirCont.find((elem) => elem === id);
     if (!fileName) throw new NotFoundException();
     const file = createReadStream(join(UPLOADS_DIR, fileName));
-    return new StreamableFile(file);
+    file.pipe(res);
   }
 }

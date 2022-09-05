@@ -131,26 +131,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!initUsers.includes(user.id.toString()))
       initUsers.push(user.id.toString());
     for (const userId of initUsers) {
-      const client = this.clients.find(
+      const clientsToJoin = this.clients.filter(
         (client) => userId.toString() === client.userId.toString()
       );
-      if (!client) continue;
-      const clientSocket = namespace.sockets.get(client.socketId);
-      clientSocket.join(roomId);
+      if (!clientsToJoin || clientsToJoin.length < 1) continue;
+      // JOIN FOR BOTH CHAT MODULE AND CHAT
+      clientsToJoin.forEach((client) => {
+        const clientSocket = namespace.sockets.get(client.socketId);
+        clientSocket.join(roomId);
 
-      // inform initial users that group is created
-      if (roomCreateRes.type === "GC") {
-        const sysMsg: SysMsg = {
-          id: -1,
-          roomId: parseInt(roomId, 10),
-          room: roomCreateRes,
-          userId: null,
-          message: `You have been invited to room ${roomId}`,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        clientSocket.emit("newMessage", sysMsg);
-      }
+        // inform initial users that group is created
+        if (roomCreateRes.type === "GC") {
+          const sysMsg: SysMsg = {
+            id: -1,
+            roomId: parseInt(roomId, 10),
+            room: roomCreateRes,
+            userId: null,
+            message: `You have been invited to room ${roomId}`,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          clientSocket.emit("newMessage", sysMsg);
+        }
+      });
     }
 
     return roomCreateRes;

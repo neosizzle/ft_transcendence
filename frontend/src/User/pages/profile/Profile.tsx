@@ -99,7 +99,12 @@ const Profile: FunctionComponent = () => {
   useEffect(() => {
     if (!user) return;
     setlevelPercent(
-      user?.level ? (user?.level - Math.floor(user?.level)) * 100 : 0
+      user?.level
+        ? parseInt(
+            ((user?.level - Math.floor(user?.level)) * 100).toFixed(1),
+            10
+          )
+        : 0
     );
   }, [user]);
 
@@ -210,10 +215,11 @@ const Profile: FunctionComponent = () => {
               <div className="sm:h-full sm:w-full rounded bg-slate-300 m-2 text-center">
                 <div>W / L</div>
                 <div className="font-bold">
-                  {user.losses ? user.wins / user.losses : user.wins}
+                  {user.losses
+                    ? (user.wins / user.losses).toFixed(1)
+                    : user.wins}
                 </div>
               </div>
-              
             </div>
           </div>
         </div>

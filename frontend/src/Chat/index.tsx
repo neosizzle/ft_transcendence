@@ -191,6 +191,7 @@ function Chat() {
       auth?.chatSocket?.off(INCOMING_PROMOTION, handlePromotion);
       auth?.chatSocket?.off(INCOMING_DEMOTION, handleDemotion);
       auth?.chatSocket?.off(INCOMING_OWNER_TRANSFER, handleOwnerChange);
+      auth?.chatSocket?.disconnect();
     };
   }, [auth]);
 

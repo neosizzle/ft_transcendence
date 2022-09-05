@@ -87,7 +87,7 @@ const ChatWidget: FunctionComponent = () => {
       //update last msg
       const lastMessages = cloneDeep(
         widget.lastMessagesRef.current as Message[]
-      );
+      ) || [];
       const lastMsgIdx = lastMessages.findIndex(
         (e) => e.roomId === data.roomId
       );
@@ -169,8 +169,6 @@ const ChatWidget: FunctionComponent = () => {
         widget?.setCurrActiveRoom(null);
       widget?.setRooms(newRooms as Room[] | null);
     }
-    console.log(data);
-    alert("BANNED ");
   };
 
   // initial actions
@@ -181,6 +179,7 @@ const ChatWidget: FunctionComponent = () => {
     auth.chatWidgetSocket.on(ERR, handleError);
     auth.chatWidgetSocket.on(INCOMING_KICK, handleKick);
     auth.chatWidgetSocket.on(INCOMING_BAN, handleBan);
+    // auth.chatWidgetSocket.on()
 
     // add document listener
     document.addEventListener("click", handleClose);
@@ -191,6 +190,7 @@ const ChatWidget: FunctionComponent = () => {
       auth?.chatWidgetSocket?.off(ERR, handleError);
       auth?.chatWidgetSocket?.off(INCOMING_KICK, handleKick);
       auth?.chatWidgetSocket?.off(INCOMING_BAN, handleBan);
+      // auth?.chatWidgetSocket?.disconnect();
 
       // remove document listener
       document.removeEventListener("click", handleClose);
