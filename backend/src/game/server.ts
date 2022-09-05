@@ -98,7 +98,7 @@ export default class GameServer {
 		
 		// ask clients to update their queue info and game state
 		this.server.emit('updateQueue');
-		this.updateClient()
+		this.updateClient();
 	}
 	
 	/* 'client' requests to start game. Server checks whether client is a
@@ -230,6 +230,10 @@ export default class GameServer {
 				)
 			}
 		}
+		
+		// ask clients to update their queue info and game state
+		this.server.emit('updateQueue');
+		this.updateClient();
 	}
 	
 	// return the queue info of a client

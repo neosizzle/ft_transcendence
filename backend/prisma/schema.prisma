@@ -102,7 +102,7 @@ enum RoomType {
 
 model Room {
   id       Int        @id @default(autoincrement())
-  roomName String?    @unique
+  roomName String?
   password String?
   ownerId  Int
   type     RoomType   @default(DM)
@@ -162,7 +162,7 @@ model Chat {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   user      User?      @relation(name: "sent_messages", fields: [userId], references: [id])
-  room      Room      @relation(name: "messages", fields: [roomId], references: [id])
+  room      Room      @relation(name: "messages", fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 // Game module

@@ -246,13 +246,20 @@ export class MemberService {
     }
 
     // user self leaving
+    const roomMembersCnt = await this.prisma.member.count({
+      where: { roomId: memberToDelete.roomId },
+    });
+
     if (
       memberToDelete.userId === user.id &&
-      memberToDelete.room.ownerId === user.id
-    )
+      memberToDelete.room.ownerId === user.id &&
+      roomMembersCnt > 1
+    ) {
+      // if user is owner of room, deny leave if we have more than one member
       throw new BadRequestException(
         "Ownership must be transfered before leaving"
       );
+    }
 
     // if user is admin in current room, delete the admin as well
     await this.prisma.admin.deleteMany({
@@ -268,6 +275,13 @@ export class MemberService {
       },
     });
 
+    // if we only have 1 room member, delete room
+    if (
+      memberToDelete.userId === user.id &&
+      memberToDelete.room.ownerId === user.id &&
+      roomMembersCnt === 1
+    )
+      await this.prisma.room.delete({ where: { id: memberToDelete.roomId } });
     return res;
   }
 }

@@ -6,7 +6,7 @@ import {
 } from "../../constants";
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
-import { auth_net_get, auth_net_patch, auth_net_post } from "../../utils";
+import { auth_net_get, auth_net_patch } from "../../utils";
 import { Member, Message, roomPatchDto } from "../classes";
 
 const chatEndpoint = `${API_ROOT}/chat`;
@@ -118,7 +118,7 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
           )
         ) : (
           <p className="text-3xl ">
-            {chat?.activeRoom?.roomName} - {chat?.activeRoom?.id}
+            {chat?.activeRoom?.roomName} | Room ID: {chat?.activeRoom?.id}
           </p>
         )}
       </div>
@@ -157,12 +157,14 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
           <button
             onClick={() => {
               const newRoomName = prompt("enter new room name (leave blank if change not wanted)")
+              if (newRoomName === null) return ;
               const newPassword = prompt("enter new room password (leave blank if want to remove password)")
+              if (newPassword === null) return ;
 
               const payload : roomPatchDto = {};
               if (newRoomName && newRoomName.length > 0) 
                 payload.roomName = newRoomName;
-              if (!newPassword)
+              if (newPassword.length < 1)
                 payload.isProtected = false;
               else if (newPassword.length < 7)
               {
@@ -170,7 +172,10 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
                 return ;
               }
               else
+              {
                 payload.password = newPassword;
+                payload.isProtected = true;
+              }
               auth_net_patch(`${roomEndpoint}/${chat?.activeRoom?.id}`, payload)
               .then((data) => {
                  // token expired
@@ -182,7 +187,7 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
                     chat?.setOpenAlert({type : "error", isOpen : true})
                     return;
                   }
-                  chat?.setAlertMessage("Room details changes successfully");
+                  chat?.setAlertMessage("Room details changed successfully");
                   chat?.setOpenAlert({type : "success", isOpen : true})
               })
             }}
