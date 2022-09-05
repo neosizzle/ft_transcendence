@@ -133,7 +133,7 @@ const CreateRoomModal: FunctionComponent<CreateRoomModalProps> = ({
                   setRoomNameErr(true);
                   return;
                 }
-                if (passwordInput.length > 0 && passwordInput.length < 8) {
+                if (passwordInput.length > 0 && passwordInput.length < 7) {
                   setPasswordErr(true);
                   return;
                 }
