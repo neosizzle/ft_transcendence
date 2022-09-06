@@ -195,8 +195,11 @@ function Chat() {
   }, [auth]);
 
   useEffect(() => {
-    //For first time setting activeRoomMessages
+    //For first time setting activeRoom
     if (chat?.rooms != null) {
+      // If create room, might not jump to room because activeroom isn't already null. But edit room will work
+      if (chat.activeRoom != null)
+        return ;
       const initRoomIdSelect = searchParams.get("room");
       if (initRoomIdSelect) {
         const initRoom = chat.rooms.find(

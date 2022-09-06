@@ -9,6 +9,7 @@ import { useChat } from "../../context/chatContext";
 import { auth_net_get, auth_net_patch } from "../../utils";
 import { Member, Message, roomPatchDto } from "../classes";
 import SystemMessage from "./SystemMessage";
+import { cloneDeep } from "lodash";
 
 const chatEndpoint = `${API_ROOT}/chat`;
 const roomEndpoint = `${API_ROOT}/rooms`
@@ -191,6 +192,15 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
                   chat?.setAlertMessage("Room details changed successfully");
                   chat?.setOpenAlert({type : "success", isOpen : true})
               })
+              if (!chat?.activeRoom)
+                return;
+              const rooms = cloneDeep(chat?.rooms);
+              const roomIndex = rooms.findIndex(room => room.id === chat.activeRoom?.id);
+              rooms[roomIndex].roomName = newRoomName;
+              chat.setRooms(rooms);
+              const activeRoomClone = {...chat?.activeRoom};
+              activeRoomClone.roomName = newRoomName;
+              chat?.setActiveRoom(activeRoomClone);
             }}
             className="block rounded px-4 py-2 bg-gray-400"
           >
