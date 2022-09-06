@@ -239,7 +239,7 @@ export default class Pong implements GameInterface {
 			const y = this.height * 0.5
 			if (this.isRunning[i] == false) {
 				ctx.fillText("Press", x, y);
-				ctx.fillText("SPACE", x, y + 30);
+				ctx.fillText("SPACE", x, y + Math.floor(30 * DISP_SCALE));
 			}
 		}
 		
