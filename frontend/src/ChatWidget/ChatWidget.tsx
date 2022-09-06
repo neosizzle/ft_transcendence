@@ -34,7 +34,6 @@ const ChatWidget: FunctionComponent = () => {
   const auth = useAuth();
   const widget = useChatWidget();
   const navigate = useNavigate();
-  const location = useLocation();
 
   // handle chat window close
   const handleClose = (e: MouseEvent) => {
@@ -173,6 +172,7 @@ const ChatWidget: FunctionComponent = () => {
 
   // initial actions
   useEffect(() => {
+
     // add socket listeners
     if (!auth?.chatWidgetSocket) return;
     auth.chatWidgetSocket.on(INCOMING_MSG, handleNewMsg);
@@ -190,14 +190,14 @@ const ChatWidget: FunctionComponent = () => {
       auth?.chatWidgetSocket?.off(ERR, handleError);
       auth?.chatWidgetSocket?.off(INCOMING_KICK, handleKick);
       auth?.chatWidgetSocket?.off(INCOMING_BAN, handleBan);
-      // auth?.chatWidgetSocket?.disconnect();
+      // auth.chatSocket?.disconnect();
 
       // remove document listener
       document.removeEventListener("click", handleClose);
     };
   }, [auth]);
 
-  return !auth?.user || location.pathname === "/chat" ? null : (
+  return  (
     <div
       className={`fixed border border-slate-600 z-10 right-10 bottom-10 h-10 w-10 flex justify-center items-center bg-black rounded-full lg:right-5 lg:bottom-0 lg:rounded-none lg:h-10 lg:w-80 lg:justify-start`}
     >

@@ -116,10 +116,10 @@ export const AuthProvider = (props: Props) => {
     chatIo.on("connection accepted", () => {
       chatIo.emit("authHandshake");
     });
-    setChatSocket(chatIo)
+    setChatSocket(chatIo);
 
     // init chat widget socket
-     const chatWidgetIo = io(chatWsEndpoint, {
+    const chatWidgetIo = io(chatWsEndpoint, {
       extraHeaders: {
         Authorization: `Bearer ${data.data.token}`,
       },
@@ -159,7 +159,7 @@ export const AuthProvider = (props: Props) => {
     // Disconnect chat socket
     chatSocket?.disconnect();
     setChatSocket(null);
-    
+
     // Disconnect chat widget socket
     chatWidgetSocket?.disconnect();
     setChatWidgetSocket(null);

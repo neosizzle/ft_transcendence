@@ -8,6 +8,7 @@ import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
 import { auth_net_get, auth_net_patch } from "../../utils";
 import { Member, Message, roomPatchDto } from "../classes";
+import SystemMessage from "./SystemMessage";
 
 const chatEndpoint = `${API_ROOT}/chat`;
 const roomEndpoint = `${API_ROOT}/rooms`
@@ -153,7 +154,7 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
         ) : null}
 
        {/* Edit room btn */}
-       {chat?.activeRoom?.ownerId === auth?.user?.id ? (
+       {chat?.activeRoom?.ownerId === auth?.user?.id && chat?.activeRoom?.type !== "DM" ? (
           <button
             onClick={() => {
               const newRoomName = prompt("enter new room name (leave blank if change not wanted)")
@@ -203,7 +204,10 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
         <div className="my-5 py-5" id="top"></div>
         {chat?.activeRoomMessages?.map((message) => (
           <div key={message.id}>
-            {message.userId === auth?.user?.id ? (
+            {
+              !message.userId ?
+              <SystemMessage message={message} /> : 
+            message.userId === auth?.user?.id ? (
               <div>
                 <div className="text-lg text-right">{message.message}</div>
                 <div className="text-xs text-grey text-right">
