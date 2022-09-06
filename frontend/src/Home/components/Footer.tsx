@@ -12,24 +12,25 @@ export interface MemberAck {
 
 const members: MemberAck[] = [
   {
-    name: "Jun Han",
-    intraName: "jng",
-    intraUrl: "www.youtube.com",
+    name: "Edison Lim",
+    intraName: "edlim",
+    intraUrl: "https://profile.intra.42.fr/users/edlim",
     image: "/assets/default-pp.webp",
-    github: "wewewewe",
-    linkedin: "asdsadasd",
+    github: "https://github.com/PandieYay",
   },
   {
-    name: "Jun Han",
+    name: "Jun Han Ng",
     intraName: "jng",
-    intraUrl: "www.youtube.com",
+    intraUrl: "https://profile.intra.42.fr/users/jng",
     image: "/assets/default-pp.webp",
+    github: "https://github.com/neosizzle",
   },
   {
-    name: "Jun Han",
-    intraName: "jng",
-    intraUrl: "www.youtube.com",
+    name: "Wee Hean Ng",
+    intraName: "weng",
+    intraUrl: "https://profile.intra.42.fr/users/weng",
     image: "/assets/default-pp.webp",
+    github: "https://github.com/nwhean",
   },
 ];
 
