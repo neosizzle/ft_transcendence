@@ -13,7 +13,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
-import { Admin, Ban, Chat, Member, Room } from "@prisma/client";
+import { Admin, Ban, Chat, Member, Room, User } from "@prisma/client";
 import { Socket, Namespace } from "socket.io";
 import { PrismaService } from "src/prisma/prisma.service";
 import { AuthGuard } from "src/users/auth/guard";
@@ -214,7 +214,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // check if room exists, user has permission to join, password is correct
     // join room in db
-    let member: Member;
+    let member : Member & {user : User, room : Room};
     try {
       member = await this.member.addMember(client.handshake.auth.user, dto);
     } catch (error) {
@@ -242,7 +242,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       };
 
       this.wsServer.to(room.id.toString()).emit("newMessage", sysMsg);
+      this.wsServer.to(room.id.toString()).emit("newMember", member);
     }
+
+    return member;
   }
 
   /**

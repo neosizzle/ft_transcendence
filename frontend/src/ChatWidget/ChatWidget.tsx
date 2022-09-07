@@ -1,6 +1,6 @@
 import { cloneDeep } from "lodash";
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Ban, BaseWSResponse, Member, Message, Room } from "../Chat/classes";
 import { ERR, INCOMING_BAN, INCOMING_KICK, INCOMING_MSG } from "../constants";
 import { useAuth } from "../context/authContext";
@@ -28,6 +28,8 @@ const ChatIcon: FunctionComponent = () => {
     </svg>
   );
 };
+
+// TODO  Cannot read properties of null (reading 'roomId') sys msg at Socket.handleNewMsg (ChatWidget.tsx:90:1)
 
 const ChatWidget: FunctionComponent = () => {
   const [openWindow, setOpenWindow] = useState<boolean>(false); // open chat window

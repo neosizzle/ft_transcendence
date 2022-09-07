@@ -216,8 +216,8 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
       </div>
       <div className="h-96 overflow-scroll" onScroll={handleScroll}>
         <div className="my-5 py-5" id="top"></div>
-        {chat?.activeRoomMessages?.map((message) => (
-          <div key={message.id}>
+        {chat?.activeRoomMessages?.map((message, i) => (
+          <div key={i}>
             {
               !message.userId ?
               <SystemMessage message={message} /> : 
@@ -237,6 +237,7 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
                   {new Date(message.createdAt).toLocaleString("en-gb", {
                     hour12: true,
                   })}
+                  {/* See here it works */}
                 </div>
               </div>
             )}

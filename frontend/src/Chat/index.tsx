@@ -3,6 +3,7 @@ import {
   API_ROOT,
   INCOMING_BAN,
   INCOMING_DEMOTION,
+  INCOMING_NEW_MEMBER,
   INCOMING_OWNER_TRANSFER,
   INCOMING_PROMOTION,
   NOT_FRIENDS,
@@ -34,7 +35,23 @@ function Chat() {
   useState<number>(NOT_FRIENDS);
   const [otherDmUser, setOtherDmUser] = useState<User | null>(null);
 
-  // handle user leave / getting kicked
+  // hande new member joined GC.
+  const handleNewMember = (data: Member) => {
+    // after successful room join
+    const membersClone = cloneDeep(chat?.membersRef.current as Member[]) || [];
+    membersClone.push(data as Member);
+    chat?.setMemberCount(chat.memberCountRef.current + 1);
+    chat?.setMembers(membersClone);
+    
+    const memberUsersClone = cloneDeep(chat?.memberUsersRef.current as User[] || [])
+    memberUsersClone.push(data.user);
+    chat?.setMemberUsers(memberUsersClone);
+     
+  }
+
+  // hndle member leave gc TODO
+
+  // handle user leave / getting kicked 
   const handleKick = (data: Member) => {
     if (data.userId !== auth?.user?.id) return;
 
@@ -181,6 +198,8 @@ function Chat() {
     auth.chatSocket.on(INCOMING_PROMOTION, handlePromotion);
     auth.chatSocket.on(INCOMING_DEMOTION, handleDemotion);
     auth.chatSocket.on(INCOMING_OWNER_TRANSFER, handleOwnerChange);
+    auth.chatSocket.on(INCOMING_NEW_MEMBER, handleNewMember);
+
 
     return () => {
       // remove socket listeners
@@ -191,6 +210,7 @@ function Chat() {
       auth?.chatSocket?.off(INCOMING_PROMOTION, handlePromotion);
       auth?.chatSocket?.off(INCOMING_DEMOTION, handleDemotion);
       auth?.chatSocket?.off(INCOMING_OWNER_TRANSFER, handleOwnerChange);
+      auth?.chatSocket?.off(INCOMING_NEW_MEMBER, handleNewMember);
     };
   }, [auth]);
 
@@ -199,7 +219,7 @@ function Chat() {
     if (chat?.rooms != null) {
       // If create room, might not jump to room because activeroom isn't already null. But edit room will work
       if (chat.activeRoom != null)
-        return ;
+        return;
       const initRoomIdSelect = searchParams.get("room");
       if (initRoomIdSelect) {
         const initRoom = chat.rooms.find(
