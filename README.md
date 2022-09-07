@@ -18,7 +18,7 @@ before they can be run. Both of these can be achived by running the following
 command while in the project root directory.
     > ```docker-compose up --build```
 
-1. Building the docker image can talk awhile. Please be patient and grab a cup
+1. Building the docker image can take awhile. Please be patient and grab a cup
 of coffee or tea while you wait.
 
 1. Once everything is up and runnning, you should be able to visit the website
