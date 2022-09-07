@@ -147,6 +147,10 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
 
               // emit leave room dto
               auth?.chatSocket?.emit(OUTGOING_LEAVE, memberId.toString());
+              chat.setActiveRoomMessages([]);
+              chat.setActiveRoomCount(chat.activeRoomCount - 1)
+              chat.setMembers([]);
+              chat.setMemberUsers([]);
             }}
             className="block rounded px-4 py-2 bg-gray-400"
           >

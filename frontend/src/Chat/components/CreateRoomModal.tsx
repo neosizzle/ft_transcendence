@@ -174,6 +174,7 @@ const CreateRoomModal: FunctionComponent<CreateRoomModalProps> = ({
                 );
 
                 // close window
+                chat?.setActiveRoomCount(chat.activeRoomCount + 1);
                 setOpenCreateRoomModal(false);
               }}
               type="button"
