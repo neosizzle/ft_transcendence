@@ -8,7 +8,6 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { ListObject, ListQuery, validateListquery } from "src/utils";
 import { UserPatchDto } from "./dto";
 
-//TODO user delete
 // very ugly solution
 /**
  * Transforms string values into values of their specific type

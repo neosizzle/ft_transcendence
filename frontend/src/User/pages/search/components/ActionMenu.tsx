@@ -10,8 +10,6 @@ import { createNewDm, getCommonDmRoom } from "../../../utils";
 const friendsEndpoint = `${API_ROOT}/friends`;
 const blocksEndpoint = `${API_ROOT}/blocks`;
 
-// TODO mobile not working
-
 //unblock bad request
 
 interface ActionMenuProps {

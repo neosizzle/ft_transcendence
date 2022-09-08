@@ -8,8 +8,6 @@ import ActionMenu from "./ActionMenu";
 
 const MOBILE_WIDTH = 426;
 
-// TODO : integrate the rest of the features
-
 interface UserCardProps {
   user: User;
   setCurrSelectedUser: React.Dispatch<React.SetStateAction<User | null>>;

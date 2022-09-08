@@ -29,8 +29,6 @@ const ChatIcon: FunctionComponent = () => {
   );
 };
 
-// TODO  Cannot read properties of null (reading 'roomId') sys msg at Socket.handleNewMsg (ChatWidget.tsx:90:1)
-
 const ChatWidget: FunctionComponent = () => {
   const [openWindow, setOpenWindow] = useState<boolean>(false); // open chat window
   const auth = useAuth();
@@ -90,7 +88,7 @@ const ChatWidget: FunctionComponent = () => {
         widget.lastMessagesRef.current as Message[]
       ) || [];
       const lastMsgIdx = lastMessages.findIndex(
-        (e) => e.roomId === data.roomId
+        (e) => e?.roomId === data.roomId
       );
       lastMessages[lastMsgIdx] = data;
       widget.setLastMessages(lastMessages);
@@ -108,10 +106,10 @@ const ChatWidget: FunctionComponent = () => {
         widget?.roomsRef.current &&
         widget?.roomsRef.current?.length < ROOMS_PAGE_SIZE
       ) {
-        const rooms = cloneDeep(widget?.roomsRef.current as Room[]);
+        const rooms = cloneDeep(widget?.roomsRef.current as Room[]) || [];
         const lastMsgs = cloneDeep(
           widget?.lastMessagesRef.current as Message[]
-        );
+        ) || [];
 
         rooms.push(data.room);
         lastMsgs.push(data);

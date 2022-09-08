@@ -7,7 +7,6 @@ import { BaseWSResponse, Room } from "../../../../Chat/classes";
 import { ERR, INCOMING_STATUS_UPDATE } from "../../../../constants";
 import { createNewDm, getCommonDmRoom } from "../../../utils";
 
-// TODO : integrate the rest of the features
 interface FriendCardProps {
   friendship?: FriendShip;
   currUser?: User | null;

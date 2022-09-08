@@ -99,7 +99,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  // TODO work with edi for owner transfer and admin promotion/demotion
   /**
    * Handles create new dm / gc
    * @param client Client socket
@@ -536,7 +535,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // add message to chat
-    let msgRes: Chat;
+    let msgRes: Chat & {room : Room, user : User};
     try {
       msgRes = await this.prisma.chat.create({
         data: {
@@ -544,6 +543,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           roomId: room.id,
           message: `${INV_STRING}${dto.queuePosition}/${userIdToInv}`,
         },
+        include : {room : true, user : true}
       });
     } catch (error) {
       client.emit("exception", new InternalServerErrorException(error.message));

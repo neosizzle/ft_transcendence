@@ -1,9 +1,11 @@
 import React, { FunctionComponent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Room } from "../../../../Chat/classes";
 import { AlertType } from "../../../../commonComponents/Alert";
 import { API_ROOT } from "../../../../constants";
 import { useAuth, User } from "../../../../context/authContext";
 import { auth_net_delete, auth_net_post } from "../../../../utils";
+import { createNewDm, getCommonDmRoom } from "../../../utils";
 
 const friendsEndpoint = `${API_ROOT}/friends`;
 const blocksEndpoint = `${API_ROOT}/blocks`;
@@ -29,8 +31,25 @@ const ActionModal: FunctionComponent<ActionModalProps> = ({
     navigate(`/users/profile/${user.id}`);
   };
 
-  const joinGame = () => {
-    alert(`Joining ${user.id}s game`);
+  const messageUser = async () => {
+    if (!auth || !auth.user) return;
+
+    // try to get common dm room
+    let commonDmRoom: Room | undefined = await getCommonDmRoom(
+      auth,
+      auth?.user,
+      user
+    );
+
+    if (!commonDmRoom) {
+      const newRoomData = await createNewDm(auth, user);
+      if (newRoomData.id) commonDmRoom = newRoomData;
+    }
+
+    if (!commonDmRoom) {
+      setOpenAlert({ type: "error", isOpen: true });
+      setAlertMsg(`Cant message ${user.username}`);
+    } else navigate(`/chat?room=${commonDmRoom?.id}`);
     setCurrUser(null);
   };
 
@@ -50,10 +69,6 @@ const ActionModal: FunctionComponent<ActionModalProps> = ({
       }
     );
 
-    setCurrUser(null);
-  };
-  const messageUser = () => {
-    alert(`Messaging ${user.id}`);
     setCurrUser(null);
   };
 
@@ -83,6 +98,7 @@ const ActionModal: FunctionComponent<ActionModalProps> = ({
 
     setCurrUser(null);
   };
+
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 h-full overflow-x-hidden overflow-y-auto md:inset-0  bg-gray-300/50">
@@ -122,15 +138,6 @@ const ActionModal: FunctionComponent<ActionModalProps> = ({
 
             {auth?.user?.id !== user.id ? (
               <div>
-                {/* Join game */}
-                <button
-                  className="block text-left py-3 w-full px-2"
-                  disabled={loading}
-                  onClick={joinGame}
-                >
-                  {" "}
-                  Join {user.username}&apos;s game{" "}
-                </button>
                 {/* Add friend */}
                 <button
                   className="block text-left py-3 w-full px-2"

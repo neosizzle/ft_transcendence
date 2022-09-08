@@ -26,7 +26,7 @@ const ListCard: FunctionComponent<ListCardProps> = ({ room, idx }) => {
 
   useEffect(() => {
     setLoading(true);
-    if (room.type === "DM") {
+    if (room && room.type === "DM") {
       auth_net_get(
         `${memberEndpoint}?page=1&pageSize=2&filterOn=roomId&filterBy=${room.id}`
       ).then((data) => {
