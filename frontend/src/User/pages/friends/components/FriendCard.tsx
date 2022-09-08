@@ -116,7 +116,12 @@ const FriendCard: FunctionComponent<FriendCardProps> = ({
               ) : null}
             </div>
 
-            <div className="hidden sm:block">Level {userToDisplay?.level}</div>
+            <div className="hidden sm:block">
+              Level{" "}
+              {typeof userToDisplay?.level === "number"
+                ? Math.floor(userToDisplay?.level)
+                : "wut"}
+            </div>
           </div>
 
           {/* Action buttons */}
