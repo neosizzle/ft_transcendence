@@ -1,6 +1,10 @@
+import { cloneDeep } from "lodash";
 import React, { FunctionComponent, useState } from "react";
+import Chat from "..";
 import { OUTGOING_JOIN } from "../../constants";
 import { useAuth } from "../../context/authContext";
+import { useChat } from "../../context/chatContext";
+import { Member, Room } from "../classes";
 
 const GroupIcon: FunctionComponent = () => {
   return (
@@ -31,6 +35,7 @@ const JoinModal: FunctionComponent<JoinModalProps> = ({
   const [roomIdInput, setRoomIdInput] = useState<string>("");
   const [passwordInput, setPasswordInput] = useState<string>("");
   const auth = useAuth();
+  const chat = useChat();
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 h-full overflow-x-hidden overflow-y-auto md:inset-0  bg-gray-300/50">

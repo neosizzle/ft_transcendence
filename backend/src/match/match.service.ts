@@ -9,8 +9,6 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { ListObject, ListQuery, validateListquery } from "src/utils";
 import { MatchDto } from "./dto";
 
-const RANK_CONST_GAIN = 42;
-
 /**
  * Transforms string values into values of their specific type
  *
@@ -136,14 +134,17 @@ export class MatchService {
 
   // add match entry
   async addMatch(dto: MatchDto) {
-
     // check if both user ids are not the same
     if (dto.playerId0 === dto.playerId1)
       throw new BadRequestException("Player0 and player1 must be different");
 
     // check if both player exists
-    const player0 = await this.prisma.user.findUnique({where : { id : dto.playerId0 }});
-    const player1 = await this.prisma.user.findUnique({where : { id : dto.playerId1 }});
+    const player0 = await this.prisma.user.findUnique({
+      where: { id: dto.playerId0 },
+    });
+    const player1 = await this.prisma.user.findUnique({
+      where: { id: dto.playerId1 },
+    });
 
     if (!player0 || !player1) throw new NotFoundException("user not found");
 
@@ -151,45 +152,46 @@ export class MatchService {
     if (dto.winnerId !== dto.playerId0 && dto.winnerId !== dto.playerId1)
       throw new BadRequestException("Invalid winner");
 
-    // set winner user 
-    let winner : User;
-    let loser : User;
-    if (dto.winnerId === player0.id)
-    {
+    // set winner user
+    let winner: User;
+    let loser: User;
+    if (dto.winnerId === player0.id) {
       winner = player0;
       loser = player1;
-    }
-    else{
+    } else {
       winner = player1;
       loser = player0;
     }
 
-    // Formula for new ranking calculation: (rank of losing player / rank of winning player) * 42 (constant) * ((score difference/100) + 1) Cred. Wallyboy
+    // calculation using chess elo formula https://www.omnicalculator.com/sports/elo#how-to-find-elo-rating-change
     // update winner ranking and winloss and level
-    const rankGain = Math.floor((loser.ranking / winner.ranking ? loser.ranking / winner.ranking : 1) * RANK_CONST_GAIN * (Math.abs(dto.playerScore0 - dto.playerScore1) + 1));
+    const rankGain = Math.floor(
+      20 * 1 -
+        1 / (1 + Math.pow(10, Math.abs(winner.ranking - loser.ranking) / 400))
+    );
 
     try {
       await this.prisma.user.update({
-        where : {
-          id : winner.id
+        where: {
+          id: winner.id,
         },
-        data : {
-          ranking : winner.ranking + rankGain,
-          wins : winner.wins + 1,
-          level : winner.level + 0.2,
-        }
-      })
+        data: {
+          ranking: winner.ranking + rankGain,
+          wins: winner.wins + 1,
+          level: winner.level + 0.2,
+        },
+      });
 
       await this.prisma.user.update({
-        where : {
-          id : loser.id
+        where: {
+          id: loser.id,
         },
-        data : {
-          ranking : loser.ranking - rankGain,
-          losses : loser.losses + 1,
-          level : loser.level + 0.2,
-        }
-      })
+        data: {
+          ranking: loser.ranking - rankGain,
+          losses: loser.losses + 1,
+          level: loser.level + 0.2,
+        },
+      });
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error.message);
@@ -199,7 +201,7 @@ export class MatchService {
     try {
       const res = await this.prisma.match.create({
         data: dto,
-      });      
+      });
       return res;
     } catch (error) {
       console.error(error);

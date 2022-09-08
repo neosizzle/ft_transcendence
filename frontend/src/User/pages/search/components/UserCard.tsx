@@ -8,8 +8,6 @@ import ActionMenu from "./ActionMenu";
 
 const MOBILE_WIDTH = 426;
 
-// TODO : integrate the rest of the features
-
 interface UserCardProps {
   user: User;
   setCurrSelectedUser: React.Dispatch<React.SetStateAction<User | null>>;
@@ -80,11 +78,14 @@ const UserCard: FunctionComponent<UserCardProps> = ({
                 ) : null}
               </div>
 
-              <div className="hidden sm:block">Level {user.level}</div>
+              <div className="hidden sm:block">Level {parseInt(
+            (user.level).toFixed(1),
+            10
+          )}</div>
 
               <div className="text-xs sm:text-sm">Rank : {user.ranking}</div>
               <div className="text-xs sm:text-sm">
-                W/L : {user.losses ? user.wins / user.losses : user.wins}
+                W/L : {user.losses ? (user.wins / user.losses).toFixed(1) : user.wins}
               </div>
             </div>
           </div>

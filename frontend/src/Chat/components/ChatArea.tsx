@@ -8,6 +8,8 @@ import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
 import { auth_net_get, auth_net_patch } from "../../utils";
 import { Member, Message, roomPatchDto } from "../classes";
+import SystemMessage from "./SystemMessage";
+import { cloneDeep } from "lodash";
 
 const chatEndpoint = `${API_ROOT}/chat`;
 const roomEndpoint = `${API_ROOT}/rooms`
@@ -145,6 +147,12 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
 
               // emit leave room dto
               auth?.chatSocket?.emit(OUTGOING_LEAVE, memberId.toString());
+
+              // TODO fix for if owner, do not reset members
+              chat.setActiveRoomMessages([]);
+              chat.setActiveRoomCount(chat.activeRoomCount - 1)
+              chat.setMembers([]);
+              chat.setMemberUsers([]);
             }}
             className="block rounded px-4 py-2 bg-gray-400"
           >
@@ -153,7 +161,7 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
         ) : null}
 
        {/* Edit room btn */}
-       {chat?.activeRoom?.ownerId === auth?.user?.id ? (
+       {chat?.activeRoom?.ownerId === auth?.user?.id && chat?.activeRoom?.type !== "DM" ? (
           <button
             onClick={() => {
               const newRoomName = prompt("enter new room name (leave blank if change not wanted)")
@@ -190,6 +198,15 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
                   chat?.setAlertMessage("Room details changed successfully");
                   chat?.setOpenAlert({type : "success", isOpen : true})
               })
+              if (!chat?.activeRoom)
+                return;
+              const rooms = cloneDeep(chat?.rooms);
+              const roomIndex = rooms.findIndex(room => room.id === chat.activeRoom?.id);
+              rooms[roomIndex].roomName = newRoomName;
+              chat.setRooms(rooms);
+              const activeRoomClone = {...chat?.activeRoom};
+              activeRoomClone.roomName = newRoomName;
+              chat?.setActiveRoom(activeRoomClone);
             }}
             className="block rounded px-4 py-2 bg-gray-400"
           >
@@ -201,9 +218,12 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
       </div>
       <div className="h-96 overflow-scroll" onScroll={handleScroll}>
         <div className="my-5 py-5" id="top"></div>
-        {chat?.activeRoomMessages?.map((message) => (
-          <div key={message.id}>
-            {message.userId === auth?.user?.id ? (
+        {chat?.activeRoomMessages?.map((message, i) => (
+          <div key={i}>
+            {
+              !message.userId ?
+              <SystemMessage message={message} /> : 
+            message.userId === auth?.user?.id ? (
               <div>
                 <div className="text-lg text-right">{message.message}</div>
                 <div className="text-xs text-grey text-right">
@@ -219,6 +239,7 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
                   {new Date(message.createdAt).toLocaleString("en-gb", {
                     hour12: true,
                   })}
+                  {/* See here it works */}
                 </div>
               </div>
             )}

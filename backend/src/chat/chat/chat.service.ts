@@ -86,7 +86,8 @@ export class ChatService {
         }
       })
       if (data3 != null)
-        throw new BadRequestException("User is muted until " + data3.expiresAt.toISOString() + ".");
+        throw new BadRequestException("User is muted until " + new Date(data3.expiresAt).toLocaleString("en-gb", { hour12: true, timeZone: "Asia/Singapore" }) + ".");
+        //Can't convert it to localtimezone for some reason?
     }
     return this.prismaService.chat.create({
       include: {

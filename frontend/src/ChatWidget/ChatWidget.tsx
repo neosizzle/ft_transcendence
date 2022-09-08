@@ -1,6 +1,6 @@
 import { cloneDeep } from "lodash";
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Ban, BaseWSResponse, Member, Message, Room } from "../Chat/classes";
 import { ERR, INCOMING_BAN, INCOMING_KICK, INCOMING_MSG } from "../constants";
 import { useAuth } from "../context/authContext";
@@ -34,7 +34,6 @@ const ChatWidget: FunctionComponent = () => {
   const auth = useAuth();
   const widget = useChatWidget();
   const navigate = useNavigate();
-  const location = useLocation();
 
   // handle chat window close
   const handleClose = (e: MouseEvent) => {
@@ -87,9 +86,9 @@ const ChatWidget: FunctionComponent = () => {
       //update last msg
       const lastMessages = cloneDeep(
         widget.lastMessagesRef.current as Message[]
-      );
+      ) || [];
       const lastMsgIdx = lastMessages.findIndex(
-        (e) => e.roomId === data.roomId
+        (e) => e?.roomId === data.roomId
       );
       lastMessages[lastMsgIdx] = data;
       widget.setLastMessages(lastMessages);
@@ -107,10 +106,10 @@ const ChatWidget: FunctionComponent = () => {
         widget?.roomsRef.current &&
         widget?.roomsRef.current?.length < ROOMS_PAGE_SIZE
       ) {
-        const rooms = cloneDeep(widget?.roomsRef.current as Room[]);
+        const rooms = cloneDeep(widget?.roomsRef.current as Room[]) || [];
         const lastMsgs = cloneDeep(
           widget?.lastMessagesRef.current as Message[]
-        );
+        ) || [];
 
         rooms.push(data.room);
         lastMsgs.push(data);
@@ -169,18 +168,18 @@ const ChatWidget: FunctionComponent = () => {
         widget?.setCurrActiveRoom(null);
       widget?.setRooms(newRooms as Room[] | null);
     }
-    console.log(data);
-    alert("BANNED ");
   };
 
   // initial actions
   useEffect(() => {
+
     // add socket listeners
     if (!auth?.chatWidgetSocket) return;
     auth.chatWidgetSocket.on(INCOMING_MSG, handleNewMsg);
     auth.chatWidgetSocket.on(ERR, handleError);
     auth.chatWidgetSocket.on(INCOMING_KICK, handleKick);
     auth.chatWidgetSocket.on(INCOMING_BAN, handleBan);
+    // auth.chatWidgetSocket.on()
 
     // add document listener
     document.addEventListener("click", handleClose);
@@ -191,13 +190,14 @@ const ChatWidget: FunctionComponent = () => {
       auth?.chatWidgetSocket?.off(ERR, handleError);
       auth?.chatWidgetSocket?.off(INCOMING_KICK, handleKick);
       auth?.chatWidgetSocket?.off(INCOMING_BAN, handleBan);
+      // auth.chatSocket?.disconnect();
 
       // remove document listener
       document.removeEventListener("click", handleClose);
     };
   }, [auth]);
 
-  return !auth?.user || location.pathname === "/chat" ? null : (
+  return  (
     <div
       className={`fixed border border-slate-600 z-10 right-10 bottom-10 h-10 w-10 flex justify-center items-center bg-black rounded-full lg:right-5 lg:bottom-0 lg:rounded-none lg:h-10 lg:w-80 lg:justify-start`}
     >

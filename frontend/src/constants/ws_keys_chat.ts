@@ -7,6 +7,8 @@ export const INCOMING_KICK = "userKicked";
 export const INCOMING_BAN = "userBanned";
 export const INCOMING_PROMOTION = "promotion";
 export const INCOMING_DEMOTION = "demotion";
+export const INCOMING_NEW_MEMBER = "newMember";
+export const INCOMING_LEAVE = "leaveMember";
 
 // outgoing events
 export const OUTGOING_MSG = "message";

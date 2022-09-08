@@ -7,7 +7,6 @@ import { BaseWSResponse, Room } from "../../../../Chat/classes";
 import { ERR, INCOMING_STATUS_UPDATE } from "../../../../constants";
 import { createNewDm, getCommonDmRoom } from "../../../utils";
 
-// TODO : integrate the rest of the features
 interface FriendCardProps {
   friendship?: FriendShip;
   currUser?: User | null;
@@ -117,7 +116,12 @@ const FriendCard: FunctionComponent<FriendCardProps> = ({
               ) : null}
             </div>
 
-            <div className="hidden sm:block">Level {userToDisplay?.level}</div>
+            <div className="hidden sm:block">
+              Level{" "}
+              {typeof userToDisplay?.level === "number"
+                ? Math.floor(userToDisplay?.level)
+                : "wut"}
+            </div>
           </div>
 
           {/* Action buttons */}

@@ -10,6 +10,8 @@ import { createNewDm, getCommonDmRoom } from "../../../utils";
 const friendsEndpoint = `${API_ROOT}/friends`;
 const blocksEndpoint = `${API_ROOT}/blocks`;
 
+//unblock bad request
+
 interface ActionMenuProps {
   user: User;
   setCurrUser: React.Dispatch<React.SetStateAction<User | null>>;

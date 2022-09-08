@@ -78,6 +78,9 @@ const RoomList: FunctionComponent = () => {
 
       {/* Room list */}
       <div className="h-96 overflow-scroll" onScroll={handleScroll}>
+        <div className="my-5 py-5"></div>
+        <div className="my-5 py-5"></div>
+        <div className="my-5 py-5"></div>
         <div className="my-5 py-5" id="top-room"></div>
       {chat?.rooms?.map((room) => (
         <RoomCard 

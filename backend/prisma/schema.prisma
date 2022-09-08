@@ -124,7 +124,7 @@ model Member {
   userId Int
   roomId Int
   user      User    @relation(name: "room_members", fields: [userId], references: [id])
-  room      Room    @relation(name: "members", fields: [roomId], references: [id])
+  room      Room    @relation(name: "members", fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 
@@ -133,7 +133,7 @@ model Admin {
   userId Int
   roomId Int
   user      User    @relation(name: "room_admins", fields: [userId], references: [id])
-  room      Room    @relation(name: "admins", fields: [roomId], references: [id])
+  room      Room    @relation(name: "admins", fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 model Ban {
@@ -142,7 +142,7 @@ model Ban {
   roomId    Int
   expiresAt DateTime
   user      User       @relation(name: "room_bans", fields: [userId], references: [id])
-  room      Room       @relation(name: "bans", fields: [roomId], references: [id])
+  room      Room       @relation(name: "bans", fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 model Mute {
@@ -151,7 +151,7 @@ model Mute {
   roomId    Int
   expiresAt DateTime
   user      User       @relation(name: "room_mutes", fields: [userId], references: [id])
-  room      Room       @relation(name: "mutes", fields: [roomId], references: [id])
+  room      Room       @relation(name: "mutes", fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 model Chat {

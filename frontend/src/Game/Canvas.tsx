@@ -4,6 +4,12 @@ import { GameInterface, GameState } from './Pong';
 import './Canvas.css';
 
 
+export let DISP_SCALE: number;
+if (typeof window == 'undefined')
+	DISP_SCALE = 1;
+else
+	DISP_SCALE = Math.min(window.innerWidth, window.innerHeight) / 400;
+
 export type QueueInfo =  {
 	position: number[],
 	size: number[],
@@ -201,7 +207,7 @@ export default class Canvas extends React.Component<CanvasProps> {
 		// default text settings
 		this.ctx.textBaseline = "middle";
 		this.ctx.textAlign = "center";
-		this.ctx.font = "30px Arial";
+		this.ctx.font = Math.floor(30 * DISP_SCALE).toString() + "px Arial";
 		
 		// run the animation loop
 		this.animationID = window.requestAnimationFrame(this.update.bind(this));

@@ -177,7 +177,8 @@ export class MemberService {
 
       if (banRes)
         throw new BadRequestException(
-          "You are banned from this room until " + banRes.expiresAt
+          "You are banned from this room until " + new Date(banRes.expiresAt).toLocaleString("en-gb", { hour12: true, timeZone: "Asia/Singapore"}) + "."
+          //Can't convert it to localtimezone for some reason?
         );
     }
 
@@ -208,6 +209,10 @@ export class MemberService {
           userId: user.id,
           roomId: roomToJoin.id,
         },
+        include : {
+          user : true,
+          room : true
+        }
       });
 
       return res;
@@ -273,6 +278,7 @@ export class MemberService {
       where: {
         id,
       },
+      include : {user : true, room : true}
     });
 
     // if we only have 1 room member, delete room

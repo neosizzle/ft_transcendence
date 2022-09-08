@@ -1,17 +1,10 @@
 import React from 'react';
 import { Socket } from 'socket.io-client';
 
-import Canvas, { QueueInfo } from './Canvas';
+import Canvas, { DISP_SCALE, QueueInfo } from './Canvas';
 import Pong, { GameInterface, GameState } from './Pong';
 import KeyPressMonitor from './KeyPressMonitor';
 import { useAuth, AuthCtx } from '../context/authContext';
-
-
-let DISP_SCALE: number;
-if (typeof window == 'undefined')
-	DISP_SCALE = 1;
-else
-	DISP_SCALE = Math.min(window.innerWidth, window.innerHeight) / 400;
 
 
 // this code is needed so as to get useAuth Hook to work with Game class
