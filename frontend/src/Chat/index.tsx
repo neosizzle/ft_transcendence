@@ -20,6 +20,7 @@ import ChatArea from "./components/ChatArea";
 import MemberList from "./components/MemberList";
 import Alert from "../commonComponents/Alert";
 import { cloneDeep } from "lodash";
+import { userInfo } from "os";
 
 const chatEndpoint = `${API_ROOT}/chat`;
 const memberEndpoint = `${API_ROOT}/members`;
@@ -53,17 +54,13 @@ function Chat() {
 
   // hndle member leave gc TODO
   const handleLeaveMember = (data: Member) => {
-    console.log(data.roomId)
     if (data.roomId === chat?.activeRoomRef?.current?.id) {
+      const membersClone = cloneDeep(chat?.membersRef.current as Member[]) || [];
+      chat?.setMemberCount(chat.memberCountRef.current - 1);
+      chat?.setMembers(membersClone.filter((member) => data.id !== member.id));
 
-      // const membersClone = cloneDeep(chat?.membersRef.current as Member[]) || [];
-      // membersClone.push(data as Member);
-      // chat?.setMemberCount(chat.memberCountRef.current + 1);
-      // chat?.setMembers(membersClone);
-
-    //   const memberUsersClone = cloneDeep(chat?.memberUsersRef.current as User[] || [])
-    //   memberUsersClone.push(data.user);
-    //   chat?.setMemberUsers(memberUsersClone);
+      const memberUsersClone = cloneDeep(chat?.memberUsersRef.current as User[] || [])
+      chat?.setMemberUsers(memberUsersClone.filter((user) => data.userId !== user.id));
     }
   }
 

@@ -61,7 +61,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param args
    */
   handleConnection(client: Socket) {
-    console.log("connected ", client.id)
     // return ack
     client.emit("connection accepted", client.handshake);
   }
@@ -71,8 +70,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param client Client socket
    */
   handleDisconnect(client: Socket) {
-    console.log("disconnected ", client.id)
-
     // remove from client list
     this.clients = this.clients.filter((e) => client.id !== e.socketId);
   }
@@ -196,6 +193,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.leave(res.roomId.toString());
     client.emit("userKicked", res);
     this.wsServer.to(res.roomId.toString()).emit("newMessage", sysMsg);
+    this.wsServer.to(res.roomId.toString()).emit("leaveMember", res);
   }
 
   /**
@@ -449,7 +447,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       banRes = await this.ban.giveBan(client.handshake.auth.user, dto);
     } catch (error) {
-      console.log("ban err ", error);
       client.emit("exception", error);
       return;
     }

@@ -278,6 +278,7 @@ export class MemberService {
       where: {
         id,
       },
+      include : {user : true, room : true}
     });
 
     // if we only have 1 room member, delete room
