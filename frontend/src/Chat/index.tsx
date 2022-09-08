@@ -20,7 +20,6 @@ import ChatArea from "./components/ChatArea";
 import MemberList from "./components/MemberList";
 import Alert from "../commonComponents/Alert";
 import { cloneDeep } from "lodash";
-import { userInfo } from "os";
 
 const chatEndpoint = `${API_ROOT}/chat`;
 const memberEndpoint = `${API_ROOT}/members`;
@@ -81,7 +80,7 @@ function Chat() {
     // if kicked user is me and im on one of non active rooms, remove room from rooms
     if (
       chat?.roomsRef &&
-      chat?.roomsRef?.current?.findIndex((room) => room.id === data.roomId)
+      chat?.roomsRef?.current?.findIndex((room) => room.id === data.roomId) > -1
     ) {
       let roomsClone = cloneDeep(chat.roomsRef.current as Room[]);
       roomsClone = roomsClone.filter((room) => room.id !== data.roomId);
@@ -145,7 +144,7 @@ function Chat() {
       chat.setMemberUsers(memberUsersClone);
     }
 
-    // if banned user is self, filter rooms and set active room to filtered first room
+     // if banned user is self, filter rooms and set active room to filtered first room
     if (data.userId === auth?.user?.id) {
       const memberToRemove: Member = {
         id: -1,
@@ -287,6 +286,13 @@ function Chat() {
           userArr[0].id === auth?.user?.id ? userArr[1] : userArr[0];
         setOtherDmUser(otherUser);
       });
+    }
+    else
+    {
+      // active room is null ,set messages and members to null
+      chat?.setActiveRoomMessages([]);
+      chat?.setMembers([]);
+      chat?.setMemberUsers([]);
     }
   }, [chat?.activeRoom]);
 

@@ -450,6 +450,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit("exception", error);
       return;
     }
+
+    // broadcast ban event into roomId
+    this.wsServer.to(dto.roomId.toString()).emit("userBanned", banRes);
+
     // remove user from room in ws
     const baneeClient = this.clients.find(
       (client) => dto.userId.toString() === client.userId.toString()
@@ -458,9 +462,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const baneeClientSocket = this.wsServer.sockets.get(baneeClient.socketId);
       baneeClientSocket.leave(dto.roomId.toString());
     }
-
-    // broadcast ban event into roomId
-    this.wsServer.to(dto.roomId.toString()).emit("userBanned", banRes);
     return banRes;
   }
 
