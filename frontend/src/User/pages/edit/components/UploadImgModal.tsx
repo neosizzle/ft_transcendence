@@ -83,7 +83,7 @@ const UploadLabelPreview: FunctionComponent<UploadLabelPreviewProps> = ({
           />
           <div className="mb-4 w-full border-t border-2 border-gray-300"></div>
           <div className="mb-4 text-xl">
-            Not happy? Click or drag and drop to upload again
+            Not happy? drag and drop to upload again
           </div>
         </div>
       )}
@@ -115,8 +115,7 @@ const UploadLabel: FunctionComponent<UploadLabelProps> = ({ loading }) => {
             </svg>
           </div>
           <div className="font-medium text-gray-600 my-2">
-            Drop files to Attach, or{" "}
-            <span className="text-blue-600 underline"> browse</span>
+            Drag and Drop files to Attach
           </div>
         </div>
       )}
