@@ -53,6 +53,7 @@ function Chat() {
 
   // hndle member leave gc TODO
   const handleLeaveMember = (data: Member) => {
+    //If other member leaves room, this member will display other member as gone   
     if (data.roomId === chat?.activeRoomRef?.current?.id) {
       const membersClone = cloneDeep(chat?.membersRef.current as Member[]) || [];
       chat?.setMemberCount(chat.memberCountRef.current - 1);
@@ -67,11 +68,15 @@ function Chat() {
   const handleKick = (data: Member) => {
     if (data.userId !== auth?.user?.id) return;
 
-    // if kicked user is me and im in active room, set active room to next room and remove current room from rooms
+    // if kicked user is me and im in active room, set active room to next room and remove current room from rooms, reset members and chat
     if (data.roomId === chat?.activeRoomRef?.current?.id) {
       let roomsClone = cloneDeep(chat.roomsRef.current as Room[]);
       roomsClone = roomsClone.filter((room) => room.id !== data.roomId);
 
+      chat?.setActiveRoomMessages([]);
+      chat?.setActiveRoomCount(chat?.activeRoomCount - 1)
+      chat?.setMembers([]);
+      chat?.setMemberUsers([]);
       chat.setActiveRoom(roomsClone[0]);
       chat.setRooms(roomsClone);
       return;
