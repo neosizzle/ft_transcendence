@@ -147,6 +147,8 @@ const ChatArea: FunctionComponent<ChatAreaProps> = ({
 
               // emit leave room dto
               auth?.chatSocket?.emit(OUTGOING_LEAVE, memberId.toString());
+
+              // TODO fix for if owner, do not reset members
               chat.setActiveRoomMessages([]);
               chat.setActiveRoomCount(chat.activeRoomCount - 1)
               chat.setMembers([]);

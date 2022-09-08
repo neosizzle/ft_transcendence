@@ -3,6 +3,7 @@ import {
   API_ROOT,
   INCOMING_BAN,
   INCOMING_DEMOTION,
+  INCOMING_LEAVE,
   INCOMING_NEW_MEMBER,
   INCOMING_OWNER_TRANSFER,
   INCOMING_PROMOTION,
@@ -38,18 +39,33 @@ function Chat() {
   // hande new member joined GC.
   const handleNewMember = (data: Member) => {
     // after successful room join
-    const membersClone = cloneDeep(chat?.membersRef.current as Member[]) || [];
-    membersClone.push(data as Member);
-    chat?.setMemberCount(chat.memberCountRef.current + 1);
-    chat?.setMembers(membersClone);
-    
-    const memberUsersClone = cloneDeep(chat?.memberUsersRef.current as User[] || [])
-    memberUsersClone.push(data.user);
-    chat?.setMemberUsers(memberUsersClone);
-     
+    if (data.roomId === chat?.activeRoomRef?.current?.id) {
+      const membersClone = cloneDeep(chat?.membersRef.current as Member[]) || [];
+      membersClone.push(data as Member);
+      chat?.setMemberCount(chat.memberCountRef.current + 1);
+      chat?.setMembers(membersClone);
+
+      const memberUsersClone = cloneDeep(chat?.memberUsersRef.current as User[] || [])
+      memberUsersClone.push(data.user);
+      chat?.setMemberUsers(memberUsersClone);
+    }
   }
 
   // hndle member leave gc TODO
+  const handleLeaveMember = (data: Member) => {
+    console.log(data.roomId)
+    if (data.roomId === chat?.activeRoomRef?.current?.id) {
+
+      // const membersClone = cloneDeep(chat?.membersRef.current as Member[]) || [];
+      // membersClone.push(data as Member);
+      // chat?.setMemberCount(chat.memberCountRef.current + 1);
+      // chat?.setMembers(membersClone);
+
+    //   const memberUsersClone = cloneDeep(chat?.memberUsersRef.current as User[] || [])
+    //   memberUsersClone.push(data.user);
+    //   chat?.setMemberUsers(memberUsersClone);
+    }
+  }
 
   // handle user leave / getting kicked 
   const handleKick = (data: Member) => {
@@ -199,6 +215,7 @@ function Chat() {
     auth.chatSocket.on(INCOMING_DEMOTION, handleDemotion);
     auth.chatSocket.on(INCOMING_OWNER_TRANSFER, handleOwnerChange);
     auth.chatSocket.on(INCOMING_NEW_MEMBER, handleNewMember);
+    auth.chatSocket.on(INCOMING_LEAVE, handleLeaveMember);
 
 
     return () => {
@@ -211,6 +228,7 @@ function Chat() {
       auth?.chatSocket?.off(INCOMING_DEMOTION, handleDemotion);
       auth?.chatSocket?.off(INCOMING_OWNER_TRANSFER, handleOwnerChange);
       auth?.chatSocket?.off(INCOMING_NEW_MEMBER, handleNewMember);
+      auth?.chatSocket?.off(INCOMING_LEAVE, handleLeaveMember);
     };
   }, [auth]);
 
