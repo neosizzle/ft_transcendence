@@ -10,6 +10,7 @@ import {
 import { useAuth, User } from "../../context/authContext";
 import { useChat } from "../../context/chatContext";
 import { auth_net_post, StringFunctionDict } from "../../utils";
+import { Ban } from "../classes";
 
 const promptMessages: StringFunctionDict = {};
 promptMessages[MUTE_ACTION] = (user: unknown) =>
@@ -171,9 +172,18 @@ const TimeSelectionModal: FunctionComponent<TimeSelectionModalProps> = ({
                       roomId: chat.activeRoom.id,
                       expiresAt,
                     }),
-                    () => {
-                      chat.setAlertMessage("User has been banned");
+                    (data : Ban) => {
+                      if (data.id)
+                      {
+                        chat.setAlertMessage("User has been banned");
                       chat.setOpenAlert({ type: "success", isOpen: true });
+                      }
+                      else
+                      {
+                        console.log(data)
+                        chat.setAlertMessage("Ban error");
+                        chat.setOpenAlert({ type: "error", isOpen: true });
+                      }
                     }
                   );
                 } else if (action === MUTE_ACTION) {

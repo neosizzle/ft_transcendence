@@ -36,10 +36,10 @@ const RoomList: FunctionComponent = () => {
         chat?.setRooms(roomsArr);
       });
     }
-    else if (Math.floor(e.currentTarget.scrollHeight - e.currentTarget.scrollTop) === e.currentTarget.clientHeight) {
+    else if (Math.abs(Math.floor(e.currentTarget.scrollHeight - e.currentTarget.scrollTop) - e.currentTarget.clientHeight) < 5) {
       if (chat.activeRoomCount / ROOM_PAGE_SIZE < 1 || currChatPage >= chat.activeRoomCount / ROOM_PAGE_SIZE)
         return;
-      setHitBtm(true)
+      setHitBtm(true);
       setCurrChatPage(currChatPage + 1);
       auth_net_get(
         `${memberEndpoint}?page=${currChatPage + 1}&pageSize=${ROOM_PAGE_SIZE}&filterOn=userId&filterBy=${auth?.user?.id}`
