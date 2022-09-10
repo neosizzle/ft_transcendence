@@ -2,7 +2,7 @@
 
 ## Infrastructure and architecture design
 The infrastructure of this project is set by the subject, so there is not much room to wiggle for this one. According the the subject, We are required to use
-docker compose for ALL application services (API, game server, frontend, any jobs etc etc). For the stack of frontend, we are required to use any TYPESCRIPT framework. We went with [React](https://www.typescriptlang.org/docs/handbook/react.html). For the backend API, we are required to use [NestJs](https://nestjs.com/). For the backend database, we have to use (A Postgres database)[https://github.com/porsager/postgres]. Of course, how we integrate this into our project is entirely up to us.
+docker compose for ALL application services (API, game server, frontend, any jobs etc etc). For the stack of frontend, we are required to use any TYPESCRIPT framework. We went with [React](https://www.typescriptlang.org/docs/handbook/react.html). For the backend API, we are required to use [NestJs](https://nestjs.com/). For the backend database, we have to use [A Postgres database](https://github.com/porsager/postgres). Of course, how we integrate this into our project is entirely up to us.
 
 We set up 3 containers, (frontend, backend, db) and connect them to the same network. We only expose ports which are required for the system to interact with the outside world (HTTP) which is port 80. The internal services can communicate w/ each other using the network set up above isolated from the public internet.
 
