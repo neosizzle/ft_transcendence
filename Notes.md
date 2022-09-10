@@ -1,5 +1,50 @@
 # ft_trancendence: A Not-So-Brief Introduction 
 
+## Infrastructure and architecture design
+The infrastructure of this project is set by the subject, so there is not much room to wiggle for this one. According the the subject, We are required to use
+docker compose for ALL application services (API, game server, frontend, any jobs etc etc). For the stack of frontend, we are required to use any TYPESCRIPT framework. We went with [React](https://www.typescriptlang.org/docs/handbook/react.html). For the backend API, we are required to use [NestJs](https://nestjs.com/). For the backend database, we have to use (A Postgres database)[https://github.com/porsager/postgres]. Of course, how we integrate this into our project is entirely up to us.
+
+We set up 3 containers, (frontend, backend, db) and connect them to the same network. We only expose ports which are required for the system to interact with the outside world (HTTP) which is port 80. The internal services can communicate w/ each other using the network set up above isolated from the public internet.
+
+We also have a utility script that runs every now and then (userStatus.sh) which checks for user status. We run that script during the building of the backend API image in the background. It is something like a cloud function if you are developing in a cloud environment. 
+
+We also use git for version control, github issues for bug tracking and github projects for task updates and general management. We also used figma for screen prototyping and whiteboarding.
+
+## Security concerns
+Security is also a requirement to validate this project. In simple terms, if any user accessed (CRUD) items which my theory is not allowed to, your system is vulnerable to that said user and he can audit the system to serve his malicious purposes with or without the knowldge of the devloper.
+
+Here are the list of security concerns mentioned by the subject and the way to overcome said concerns.
+1. Passwords must be hashed (Before storing password in database, hash it using a 1 way hasing algorithm so that developers wont know user passwords)
+2. SQL injection must be prevented (Use an ORM. If you dont want to use ORMs, you will need to sanitize user input and use prepared statements for database queries)
+3. Docker must not run in bind mount volume (The souce code must not be linked in any way to the running application. The code must be COMPILED then SERVED seperately. that way if the source code is changed by bad actor, the application would not apply the changes)
+
+## Authentication and User module
+Although these two are seperate requirements, I grouped them together since they are closely tied to each other and one depends on the other. 
+For a start, a user is defined in our system as a valid, authenticated user from 42 intranet. If you dont have an intra account, you cant be a user of our system. Therefore, we have 2 layers of authntication in place, our backend layer and 42 intranets layer. We wont be discussing about the intranets authntication layer since we are not the ones what implemented it, this will only cover the authentication for the nestjs backend layer.
+
+Just like intranet, we will also be using the Oauth token system (infact, the tokens we issue is the same tokens intranet issues) to authorize and authenticate users. Authorizing users grant the user permission to access resources, Authenticating users will identify the user who are accessing resources. The high level of a login flow would be something like this in our system.
+
+User logs in via intra @ frontend -> intra will generate a code for us (NOT OAUTH TOKEN), we send code to backend -> backend calls 42 api to verify code and get token -> we get the user info with the token, store the token and user on our own database.
+
+You might ask, why do we store the copy of the same exact token and user in our database when we can use 42 API anyways? The students doing this project lives far away from france, and the time to get the API response can go up to 500ms. Storing a cached copy in the database can reduce that overhead and provide a better user experience. We also need to store the user as a seprate entity anyways so it would be better off storing the auth credential seperately as well
+
+Of couse, we will also be implementing our own user objects on top of the user object provided by 42 API. Our user objects have properties of 
+- Username 
+- Intra name
+- Intra Id
+- Avatar
+- Level
+- Status (ONLINE, OFFLINE, INGAME)
+- Rank
+- Wins
+- Losses 
+- Relationships with other models (will get to this soon)
+
+these prpoperties are the base properties that our user module will have and it would get created upon signup.
+
+## Friends and blocks
+TODO
+
 ## Pong Game
 The most basic implementation of this game involves 1 ball and 2 Paddles:
 1. The ball reflects after colliding with the paddles or touching the top / bottom boundary. 
