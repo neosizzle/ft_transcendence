@@ -43,7 +43,13 @@ Of couse, we will also be implementing our own user objects on top of the user o
 these prpoperties are the base properties that our user module will have and it would get created upon signup.
 
 ## Friends and blocks
-TODO
+Friends and blocks are both relations that can happen from many users to many users. Meaning that user A can both befriend/block user B, user A can both befreiend/block user C, user B can both befriend/block user C and so on... This would mean that we need to store an array of users in the Users model to record all these relationships. This can be easily done in a noSQL database however since we are using postgres, we need to have another table, lets call it friendship. This table acts as a lookup table (it does not contain any metadata, just contains 2 columns :- the user and the befriended/blocked user). The blocks table will have the same functionality as well. 
+
+To add a friend or a block, a POST request is done to the resource and the record is added to the friendship or blocks table resulting in a new block.
+
+To retreive all friends / blocks from a certain user, we need to filter the friendship/blocks database to return rows that contain the userid if the desired user.
+
+Of course, more complicated filters suck as filtering by friends by username, filtering friends by level can also be done using nested queries. Just need to spend some more time to code that one out (wont contrubute anything to eval but its worth a try)
 
 ## Pong Game
 The most basic implementation of this game involves 1 ball and 2 Paddles:
