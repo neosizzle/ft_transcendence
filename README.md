@@ -1,6 +1,6 @@
 # ft_transcendence
 
-
+![demo](https://github.com/neosizzle/ft_transcendence/blob/main/ft_transcendence.gif)
 
 ## Introduction
 This is the final project in the 42 Core Program. We are tasked with creating
