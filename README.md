@@ -1,5 +1,7 @@
 # ft_transcendence
 
+
+
 ## Introduction
 This is the final project in the 42 Core Program. We are tasked with creating
 a working multi-player [Pong](https://en.wikipedia.org/wiki/Pong) game clone
@@ -25,7 +27,7 @@ of coffee or tea while you wait.
 at **http://localhost**.
 
 1. When you are done, you can press Ctrl + C on the terminal or run the
-following command to cleanly shutdown the docker images:
+following command to cleanly shutdown the docke`r images:
     > ```docker compose down```
 
 ## Troubleshooting
